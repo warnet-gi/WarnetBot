@@ -8,11 +8,17 @@ load_dotenv()
 
 client = commands.Bot(
     command_prefix='war!',
-    intents=Intents.all()
+    strip_after_prefix=True,
+    intents=Intents.all(),
 )
 
 @client.event
 async def on_ready():
+    await client.change_presence(
+        status=discord.Status.idle,
+        activity=discord.Activity(type=discord.ActivityType.watching, name='Pengguna WARNET')
+    )
+    
     print("The bot is online!")
     print("------------------")
 
