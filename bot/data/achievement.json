@@ -2,21 +2,123 @@
     "data": [
         {
             "id": 1,
-            "name": "Pemain Baru",
-            "desc": "Telah bermain Genshin Impact selama lebih dari 300 hari.",
-            "claim": "Screenshot akun HoYolab mu sebagai bukti."
+            "name": "Ambitious Player",
+            "desc": "Telah bermain Genshin Impact selama 300 hari",
+            "claim ": "Screenshot akun HoYolab pada Battle Chronicles sebagai bukti."
         },
         {
             "id": 2,
-            "name": "Pemain Lama",
-            "desc": "Telah bermain Genshin Impact selama lebih dari 500 hari.",
-            "claim": "Screenshot akun HoYolab mu sebagai bukti."
+            "name": "Maniac Player",
+            "desc": "Telah bermain Genshin Impact selama 500 hari",
+            "claim ": "Screenshot akun HoYolab pada Battle Chronicles sebagai bukti."
         },
         {
             "id": 3,
-            "name": "Pemain Sepuh",
-            "desc": "Telah bermain Genshin Impact selama lebih dari 1000 hari.",
-            "claim": "Screenshot akun HoYolab mu sebagai bukti."
+            "name": "Ancient Player",
+            "desc": "Telah bermain Genshin Impact selama 1000 hari",
+            "claim ": "Screenshot akun HoYolab pada Battle Chronicles sebagai bukti."
+        },
+        {
+            "id": 4,
+            "name": "Legendary Player",
+            "desc": "Telah bermain Genshin Impact selama 1500 hari",
+            "claim ": "Screenshot akun HoYolab pada Battle Chronicles sebagai bukti."
+        },
+        {
+            "id": 5,
+            "name": "Treasure Hunter Trainee",
+            "desc": "Telah membuka 1000 chest",
+            "claim ": "Screenshot akun HoYolab pada Battle Chronicles sebagai bukti."
+        },
+        {
+            "id": 6,
+            "name": "Treasure Hunter Expert",
+            "desc": "Telah membuka 2500 chest",
+            "claim ": "Screenshot akun HoYolab pada Battle Chronicles sebagai bukti."
+        },
+        {
+            "id": 7,
+            "name": "Treasure Hunter Captain",
+            "desc": "Telah membuka 4500 chest",
+            "claim ": "Screenshot akun HoYolab pada Battle Chronicles sebagai bukti."
+        },
+        {
+            "id": 8,
+            "name": "Treasure Hunter Admiral",
+            "desc": "Telah membuka 7000 chest",
+            "claim ": "Screenshot akun HoYolab pada Battle Chronicles sebagai bukti."
+        },
+        {
+            "id": 9,
+            "name": "Friends of the Teyvat",
+            "desc": "Telah memiliki friendship Level 10 untuk 20 karakter",
+            "claim ": "Screenshot daftar namecard yang diperoleh dari in-game."
+        },
+        {
+            "id": 10,
+            "name": "Good Friends of the Teyvat",
+            "desc": "Telah memiliki friendship Level 10 untuk 40 karakter",
+            "claim ": "Screenshot daftar namecard yang diperoleh dari in-game."
+        },
+        {
+            "id": 11,
+            "name": "Best Friends of the Teyvat",
+            "desc": "Telah memiliki friendship Level 10 untuk 70 karakter",
+            "claim ": "Screenshot daftar namecard yang diperoleh dari in-game."
+        },
+        {
+            "id": 12,
+            "name": "Small Ascendant",
+            "desc": "Akun memiliki 15 karakter Level 90 exp",
+            "claim ": "Screenshot daftar karakter di in-game."
+        },
+        {
+            "id": 13,
+            "name": "Big Ascendant",
+            "desc": "Akun memiliki 30 karakter Level 90 exp",
+            "claim ": "Screenshot daftar karakter di in-game."
+        },
+        {
+            "id": 14,
+            "name": "Great Ascendant",
+            "desc": "Akun memiliki 50 karakter Level 90 exp",
+            "claim ": "Screenshot daftar karakter di in-game."
+        },
+        {
+            "id": 15,
+            "name": "Lord's Crown",
+            "desc": "Telah menggunakan 10 Crown of Insight",
+            "claim ": "Screenshot talent karakter di in-game.Talent harus level 10 (atau 13 kalau memiliki konstelasi)."
+        },
+        {
+            "id": 16,
+            "name": "King's Crown",
+            "desc": "Telah menggunakan 20 Crown of Insight",
+            "claim ": "Screenshot talent karakter di in-game.Talent harus level 10 (atau 13 kalau memiliki konstelasi)."
+        },
+        {
+            "id": 17,
+            "name": "God's Crown",
+            "desc": "Telah menggunakan 30 Crown of Insight",
+            "claim ": "Screenshot talent karakter di in-game.Talent harus level 10 (atau 13 kalau memiliki konstelasi)."
+        },
+        {
+            "id": 18,
+            "name": "Blessed by The Sun",
+            "desc": "Mendapat 2 atau lebih karakter *5 dalam 10 pull",
+            "claim ": "Screenshot hasil gacha dengan menampilkan UID atau screenshot pity history."
+        },
+        {
+            "id": 19,
+            "name": "Blessed by The Moon",
+            "desc": "Mendapat 2 atau lebih weapon *5 dalam 10 pull",
+            "claim ": "Screenshot hasil gacha dengan menampilkan UID atau screenshot pity history."
+        },
+        {
+            "id": 20,
+            "name": "Prime Adventurer",
+            "desc": "Akun mencapai AR 60",
+            "claim ": "Screenshot profile di in-game atau HoYolab."
         }
     ]
 }
