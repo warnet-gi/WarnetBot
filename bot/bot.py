@@ -1,6 +1,7 @@
 import os
 import aiohttp
 import asyncio
+import logging
 
 import discord
 from discord.ext import commands
@@ -8,6 +9,8 @@ from discord.ext import commands
 from dotenv import load_dotenv
 
 load_dotenv()
+
+discord.utils.setup_logging(level=logging.INFO, root=False)
 
 BOT_PREFIX = 'war!'
 

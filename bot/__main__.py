@@ -1,7 +1,4 @@
 import asyncio
-
-
-import asyncio
 from bot.bot import WarnetBot
 
 def main():
