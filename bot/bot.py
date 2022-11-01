@@ -16,7 +16,7 @@ class WarnetBot(commands.Bot):
     bot_app_info: discord.AppInfo
 
     def __init__(self) -> None:
-        super().__init__(command_prefix=BOT_PREFIX, strip_after_prefix=True, intents=discord.Intents.all())
+        super().__init__(command_prefix=BOT_PREFIX, strip_after_prefix=True, intents=discord.Intents.all(), help_command=None)
         self.session: aiohttp.ClientSession = None
 
     @commands.Cog.listener()

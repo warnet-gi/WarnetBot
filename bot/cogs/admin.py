@@ -1,4 +1,3 @@
-from dis import dis, disco
 import discord
 from discord import Interaction, app_commands, ui
 from discord.ext import commands
