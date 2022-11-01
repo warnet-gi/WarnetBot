@@ -1,0 +1,22 @@
+{
+    "data": [
+        {
+            "id": 1,
+            "name": "Pemain Baru",
+            "desc": "Telah bermain Genshin Impact selama lebih dari 300 hari.",
+            "claim": "Screenshot akun HoYolab mu sebagai bukti."
+        },
+        {
+            "id": 2,
+            "name": "Pemain Lama",
+            "desc": "Telah bermain Genshin Impact selama lebih dari 500 hari.",
+            "claim": "Screenshot akun HoYolab mu sebagai bukti."
+        },
+        {
+            "id": 3,
+            "name": "Pemain Sepuh",
+            "desc": "Telah bermain Genshin Impact selama lebih dari 1000 hari.",
+            "claim": "Screenshot akun HoYolab mu sebagai bukti."
+        }
+    ]
+}
