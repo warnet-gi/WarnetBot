@@ -131,6 +131,14 @@ test = ["coverage[toml]", "pytest", "pytest-asyncio", "pytest-cov", "pytest-mock
 voice = ["PyNaCl (>=1.3.0,<1.6)"]
 
 [[package]]
+name = "discord-py-pagination"
+version = "0.0.5"
+description = "Easily create pagination for your embeds."
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "exceptiongroup"
 version = "1.0.0"
 description = "Backport of PEP 654 (exception groups)"
@@ -322,7 +330,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "53d36f77a147156b0aaebf93a9b4cb20a0ebb38c14faf3c55eb766c282f54f2a"
+content-hash = "b5e9af6e0753e00d32e106c87ec315b24d786ae8d2637b80edb5d5b19b0dcc89"
 
 [metadata.files]
 aiohttp = [
@@ -468,6 +476,10 @@ discord = [
 discord-py = [
     {file = "discord.py-2.0.1-py3-none-any.whl", hash = "sha256:aeb186348bf011708b085b2715cf92bbb72c692eb4f59c4c0b488130cc4c4b7e"},
     {file = "discord.py-2.0.1.tar.gz", hash = "sha256:309146476e986cb8faf038cd5d604d4b3834ef15c2d34df697ce5064bf5cd779"},
+]
+discord-py-pagination = [
+    {file = "discord.py-pagination-0.0.5.tar.gz", hash = "sha256:94db6f36f9663d37b8bd721aa98984c4207b0cf49211cdea2751300bfd2ad252"},
+    {file = "discord.py_pagination-0.0.5-py3-none-any.whl", hash = "sha256:da28b8ecb0827eb991da701e0223f2cd9e0c12de0c0a0913f621430289b4bd1b"},
 ]
 exceptiongroup = [
     {file = "exceptiongroup-1.0.0-py3-none-any.whl", hash = "sha256:2ac84b496be68464a2da60da518af3785fff8b7ec0d090a581604bc870bdee41"},

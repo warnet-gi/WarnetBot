@@ -9,6 +9,7 @@ readme = "README.md"
 python = "^3.10"
 discord = "^2.0.0"
 python-dotenv = "^0.21.0"
+discord-py-pagination = "^0.0.5"
 
 
 [tool.poetry.group.dev.dependencies]
