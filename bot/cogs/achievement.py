@@ -13,6 +13,7 @@ class Achievement(commands.Cog):
 
     def __init__(self, bot: WarnetBot) -> None:
         self.bot = bot
+        self.achievement_data = self.get_achievement_json_data()
 
     @app_commands.command(name='achievement-member-register', description='Member need to register before using other achievement commands')
     async def achievement_register(self, interaction: Interaction) -> None:
@@ -23,15 +24,13 @@ class Achievement(commands.Cog):
     async def achievement_list(self, interaction: Interaction) -> None:
         await interaction.response.defer()
         
-        achievement_data = await self.get_achievement_json_data()
-
         embed = discord.Embed(
             color=0xfcba03,
             title='WARNET Achievement List',
             description='Berikut daftar achievement yang tersedia di server ini:'
         )
         
-        for data in achievement_data['data']:
+        for data in self.achievement_data['data']:
             embed.add_field(name=f"`{data['id']}` {data['name']}", value=f"```{data['desc']}```", inline=True)
 
         await interaction.followup.send(embed=embed)
@@ -57,7 +56,7 @@ class Achievement(commands.Cog):
         pass
 
     @staticmethod
-    async def get_achievement_json_data() -> dict:
+    def get_achievement_json_data() -> dict:
         with open(ACHIEVEMENT_DATA_PATH, 'r') as f:
             data = json.load(f)
         
