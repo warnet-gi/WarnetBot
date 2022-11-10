@@ -1,5 +1,5 @@
 import discord
-from discord import Interaction, app_commands, ui
+from discord import Interaction, app_commands, Embed
 from discord.ext import commands
 import Paginator
 
@@ -17,6 +17,7 @@ class Achievement(commands.Cog):
         self.bot = bot
         self.achievement_data = self.get_achievement_json_data()
         self._total_achievement_data = len(self.achievement_data)
+        self.achievement_embeds = self.prepare_achievement_embeds()
 
     @app_commands.command(name='achievement-member-register', description='Member need to register before using other achievement commands')
     async def achievement_register(self, interaction: Interaction) -> None:
@@ -26,28 +27,7 @@ class Achievement(commands.Cog):
     @app_commands.command(name='achievement-list', description='Shows all available achievement list')
     async def achievement_list(self, interaction: Interaction) -> None:
         await interaction.response.defer()
-        
-        total_data = self._total_achievement_data
-        total_pages = total_data//10 + 1 if total_data % 10 else total_data//10
-
-        embeds = []
-        for page in range(total_pages):
-            embed = discord.Embed(
-                color=0xfcba03,
-                title='WARNET Achievement List',
-                description='Berikut daftar achievement yang tersedia di server ini:'
-            )
-            embed.set_footer(text=f'Achievement page {page+1} of {total_pages}')
-
-            id_start = 10*page + 1
-            id_end = 10*(page+1)
-            for achievement_id in range(id_start, id_end+1):
-                data = self.achievement_data[str(achievement_id)]
-                embed.add_field(name=f"`{achievement_id}` {data['name']}", value=f"```{data['desc']}```", inline=True)
-
-            embeds.append(embed)
-
-        await Paginator.Simple().start(interaction, pages=embeds)
+        await Paginator.Simple().start(interaction, pages=self.achievement_embeds)
 
     @app_commands.command(name='achievement-detail', description='Shows the detail of an achievement')
     async def achievement_detail(self, interaction: Interaction, achievement_id: int) -> None:
@@ -75,6 +55,29 @@ class Achievement(commands.Cog):
             data = json.load(f)
         
         return data['data']
+
+    def prepare_achievement_embeds(self) -> List[Embed]:
+        total_data = self._total_achievement_data
+        total_pages = total_data//10 + 1 if total_data % 10 else total_data//10
+
+        embeds = []
+        for page in range(total_pages):
+            embed = discord.Embed(
+                color=0xfcba03,
+                title='WARNET Achievement List',
+                description='Berikut daftar achievement yang tersedia di server ini:'
+            )
+            embed.set_footer(text='Gunakan command /achievement-detail untuk melihat detail achievement')
+
+            id_start = 10*page + 1
+            id_end = 10*(page+1)
+            for achievement_id in range(id_start, id_end+1):
+                data = self.achievement_data[str(achievement_id)]
+                embed.add_field(name=f"`{achievement_id}` {data['name']}", value=f"```{data['desc']}```", inline=True)
+
+            embeds.append(embed)
+        
+        return embeds
 
 
 async def setup(bot: WarnetBot) -> None:
