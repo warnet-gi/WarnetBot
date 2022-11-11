@@ -74,6 +74,10 @@ class Achievement(commands.Cog):
             for achievement_id in range(id_start, id_end+1):
                 data = self.achievement_data[str(achievement_id)]
                 embed.add_field(name=f"`{achievement_id}` {data['name']}", value=f"```{data['desc']}```", inline=True)
+                
+                # to make the embed shows 2 column
+                if achievement_id % 2 == 0 and achievement_id != id_end:
+                    embed.add_field(name="\u200b", value="\u200b", inline=False)
 
             embeds.append(embed)
         
