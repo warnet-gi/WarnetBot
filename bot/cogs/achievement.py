@@ -7,6 +7,7 @@ import json
 from typing import List, Dict
 
 from bot.bot import WarnetBot
+from bot.config import config
 import datetime
 
 
@@ -32,8 +33,40 @@ class Achievement(commands.Cog):
 
     @app_commands.command(name='achievement-detail', description='Shows the detail of an achievement')
     async def achievement_detail(self, interaction: Interaction, achievement_id: int) -> None:
+        await interaction.response.defer()
         
-        pass
+        try:
+            target_data = self.achievement_data[str(achievement_id)]
+
+        except KeyError:
+            error_embed = discord.Embed(
+                color=discord.Colour.red(),
+                title='❌ Achievement tidak ditemukan :(',
+                description='Cobalah untuk memeriksa apakah id yang diinput sudah benar. Ketik </achievement-list:0> untuk melihat daftar achievement yang tersedia.',
+                timestamp=datetime.datetime.now(),
+            )
+            await interaction.followup.send(embed=error_embed)
+
+            return
+        
+        name = target_data['name']
+        desc = target_data['desc']
+        claim = target_data['claim']
+
+        author_color = interaction.user.color
+        embed = discord.Embed(
+            color=author_color,
+            title=f'🏅 {name}',
+            description=desc,
+            timestamp=datetime.datetime.now(),
+        )
+        embed.add_field(
+            name="How to claim?",
+            value=f"{claim}.\nHubungi <@&{config.ADMINISTRATOR_ROLE_ID['admin']}> atau <@&{config.ADMINISTRATOR_ROLE_ID['mod']}> untuk claim achievement."
+        )
+        embed.set_thumbnail(url='https://cdn.discordapp.com/attachments/761684443915485184/956797958651805716/paimon_win.gif')
+        
+        await interaction.followup.send(embed=embed)
 
     @app_commands.command(name='achievement-stats', description='Shows your completed achievement stats')
     async def achievement_stats(self, interaction: Interaction) -> None:
