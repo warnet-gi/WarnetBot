@@ -7,12 +7,13 @@ import discord
 from discord.ext import commands
 
 from dotenv import load_dotenv
+from bot.config import config
 
 load_dotenv()
 
 discord.utils.setup_logging(level=logging.INFO, root=False)
 
-BOT_PREFIX = 'war!'
+BOT_PREFIX = config.DEFAULT['prefix']
 
 class WarnetBot(commands.Bot):
     debug: bool    
