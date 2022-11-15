@@ -1,7 +1,7 @@
 import os
 import aiohttp
-import asyncio
 import logging
+import asyncpg
 
 import discord
 from discord.ext import commands
@@ -18,6 +18,7 @@ BOT_PREFIX = config.DEFAULT['prefix']
 class WarnetBot(commands.Bot):
     debug: bool    
     bot_app_info: discord.AppInfo
+    db_pool: asyncpg.Pool
 
     def __init__(self) -> None:
         super().__init__(command_prefix=BOT_PREFIX, strip_after_prefix=True, intents=discord.Intents.all(), help_command=None)
@@ -60,4 +61,14 @@ class WarnetBot(commands.Bot):
 
     async def start(self, debug: bool = False) -> None:
         self.debug = debug
+        self.db_pool = await asyncpg.create_pool(
+            host=os.getenv('DB_HOST'),
+            user=os.getenv('DB_USERNAME'),
+            database=os.getenv('DB_NAME'),
+            password=os.getenv('DB_PASSWORD'),
+            port=os.getenv('DB_PORT')
+        )
         return await super().start(os.getenv('BOT_TOKEN'), reconnect=True)
+
+    def get_db_pool(self) -> asyncpg.Pool:
+        return self.db_pool
