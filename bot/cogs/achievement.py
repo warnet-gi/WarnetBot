@@ -17,14 +17,40 @@ class Achievement(commands.Cog):
 
     def __init__(self, bot: WarnetBot) -> None:
         self.bot = bot
+        self.db_pool = bot.get_db_pool()
         self.achievement_data = self.get_achievement_json_data()
         self._total_achievement_data = len(self.achievement_data)
         self.achievement_embeds = self.prepare_achievement_embeds()
 
     @app_commands.command(name='achievement-member-register', description='Member need to register before using other achievement commands')
     async def achievement_register(self, interaction: Interaction) -> None:
+        await interaction.response.defer(ephemeral=True)
 
-        pass
+        author_id = interaction.user.id
+        embed: discord.Embed
+        async with self.db_pool.acquire() as conn:
+            res = await conn.fetchval("SELECT discord_id FROM warnet_user WHERE discord_id = $1;", author_id)
+            if res == None:
+                await conn.execute("INSERT INTO warnet_user(discord_id) VALUES ($1);", author_id)
+                await conn.execute("INSERT INTO achievement_stats(warnet_discord_id) VALUES ($1);", author_id)
+                embed = discord.Embed(
+                    color=discord.Colour.green(),
+                    title='✅ Registered Successfully',
+                    description=f"""
+                    Sekarang kamu sudah bisa melakukan proses claim achievement dan cek progress di </achievement-stats:0>.
+                    Hubungi <@&{config.ADMINISTRATOR_ROLE_ID['admin']}> atau <@&{config.ADMINISTRATOR_ROLE_ID['mod']}> untuk claim achievement.
+                    """,
+                    timestamp=datetime.datetime.now()
+                )
+            else:
+                embed = discord.Embed(
+                    color=discord.Colour.red(),
+                    title='❌ You are already registered',
+                    description="Akun kamu sudah terdaftar. Tidak perlu mendaftar lagi.",
+                    timestamp=datetime.datetime.now()
+                )
+
+        await interaction.followup.send(embed=embed, ephemeral=True)
 
     @app_commands.command(name='achievement-list', description='Shows all available achievement list')
     async def achievement_list(self, interaction: Interaction) -> None:
