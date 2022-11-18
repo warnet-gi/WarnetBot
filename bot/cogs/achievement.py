@@ -1,11 +1,11 @@
+import Paginator
 import discord
 from discord import Interaction, app_commands, Embed
 from discord.ext import commands
-import Paginator
 
 import json
-from typing import List, Dict
 import datetime
+from typing import List, Dict
 from asyncpg.exceptions import UniqueViolationError
 
 from bot.bot import WarnetBot
@@ -35,7 +35,7 @@ class Achievement(commands.Cog):
                 await conn.execute("INSERT INTO warnet_user(discord_id) VALUES ($1);", author_id)
                 embed = discord.Embed(
                     color=discord.Colour.green(),
-                    title='✅ Registered Successfully',
+                    title='✅ Registered successfully',
                     description=f"""
                     Sekarang kamu sudah bisa melakukan proses claim achievement dan cek progress di </achievement-stats:0>.
                     Hubungi <@&{config.ADMINISTRATOR_ROLE_ID['admin']}> atau <@&{config.ADMINISTRATOR_ROLE_ID['mod']}> untuk claim achievement.
@@ -67,12 +67,11 @@ class Achievement(commands.Cog):
         except KeyError:
             error_embed = discord.Embed(
                 color=discord.Colour.red(),
-                title='❌ Achievement tidak ditemukan :(',
+                title='❌ Achievement not found',
                 description='Cobalah untuk memeriksa apakah id yang diinput sudah benar. Ketik </achievement-list:0> untuk melihat daftar achievement yang tersedia.',
                 timestamp=datetime.datetime.now(),
             )
             await interaction.followup.send(embed=error_embed)
-
             return
         
         name = target_data['name']
@@ -124,7 +123,7 @@ class Achievement(commands.Cog):
                     except KeyError:
                         error_embed = discord.Embed(
                             color=discord.Colour.red(),
-                            title='❌ Achievement tidak ditemukan :(',
+                            title='❌ Achievement not found',
                             description='Cobalah untuk memeriksa apakah id yang diinput sudah benar. Ketik </achievement-list:0> untuk melihat daftar achievement yang tersedia.',
                             timestamp=datetime.datetime.now(),
                         )
