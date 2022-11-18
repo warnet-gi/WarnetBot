@@ -7,3 +7,8 @@ DEFAULT = {
     'guild_id': '761644411486339073',
     'prefix': 'war!',
 }
+
+GUILD_ID = (
+    835725357423919104,  # Private Development Server
+    761644411486339073,  # WARNET Guild ID
+)
