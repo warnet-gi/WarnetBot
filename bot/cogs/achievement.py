@@ -5,10 +5,11 @@ import Paginator
 
 import json
 from typing import List, Dict
+import datetime
+from asyncpg.exceptions import UniqueViolationError
 
 from bot.bot import WarnetBot
 from bot.config import config
-import datetime
 
 
 ACHIEVEMENT_DATA_PATH = 'bot/data/achievement.json'
@@ -98,10 +99,70 @@ class Achievement(commands.Cog):
 
         pass
 
-    @app_commands.command(name='achievement-give', description='Admin or Mod can mark an achievement as complete')
-    async def achievement_give(self, interaction: Interaction, achievement_id: int) -> None:
+    @app_commands.command(name='achievement-give', description='Admin or Mod can mark an achievement as complete for specific user')
+    async def achievement_give(self, interaction: Interaction, member: discord.Member, achievement_id: int) -> None:
+        await interaction.response.defer()
 
-        pass
+        embed: discord.Embed
+        member_id = member.id
+        author_name = interaction.user.name
+        if interaction.user.guild_permissions.administrator:
+            async with self.db_pool.acquire() as conn:
+                res = await conn.fetchval("SELECT discord_id FROM warnet_user WHERE discord_id = $1;", member_id)
+                if res == None:
+                    embed = discord.Embed(
+                        color=discord.Colour.red(),
+                        title='❌ User not registered',
+                        description=f"<@{member.id}> belum terdaftar di database. Silakan <@{member_id}> untuk mendaftar terlebih dahulu menggunakan </achievement-member-register:0>",
+                        timestamp=datetime.datetime.now()
+                    )
+
+                    await interaction.followup.send(embed=embed)
+                else:
+                    try:
+                        achievement_detail = self.achievement_data[str(achievement_id)]
+                    except KeyError:
+                        error_embed = discord.Embed(
+                            color=discord.Colour.red(),
+                            title='❌ Achievement tidak ditemukan :(',
+                            description='Cobalah untuk memeriksa apakah id yang diinput sudah benar. Ketik </achievement-list:0> untuk melihat daftar achievement yang tersedia.',
+                            timestamp=datetime.datetime.now(),
+                        )
+                        await interaction.followup.send(embed=error_embed)
+                        return
+
+                    try:
+                        await conn.execute("INSERT INTO achievement_progress(discord_id, achievement_id) VALUES ($1, $2);", member_id, achievement_id)
+                    except UniqueViolationError:
+                        error_embed = discord.Embed(
+                            color=discord.Colour.red(),
+                            title='❌ Achievement has been added before',
+                            description=f'Achievement dengan id `{achievement_id}` sudah ditambahkan sebelumnya pada user <@{member.id}>.',
+                            timestamp=datetime.datetime.now(),
+                        )
+                        await interaction.followup.send(embed=error_embed)
+                        return
+
+                    embed = discord.Embed(
+                        color=discord.Colour.green(),
+                        title='✅ Achievement has been given',
+                        description=f"Sukses menambahkan progress achievement kepada <@{member.id}>.",
+                        timestamp=datetime.datetime.now()
+                    )
+                    embed.add_field(name=f"🏅**{achievement_detail['name']}**", value=f"> {achievement_detail['desc']}")
+                    embed.set_footer(text=f"Given by {author_name}")
+
+                    await interaction.followup.send(embed=embed)
+
+        else:
+            embed = discord.Embed(
+                color=discord.Colour.red(),
+                title="❌ You don't have permission",
+                description=f"Hanya <@&{config.ADMINISTRATOR_ROLE_ID['admin']}> atau <@&{config.ADMINISTRATOR_ROLE_ID['mod']}> yang bisa menggunakan command ini. Cobalah untuk mengontak mereka apabila ingin melakukan claim achievement.",
+                timestamp=datetime.datetime.now(),
+            )
+
+            await interaction.followup.send(embed=embed)
     
     @app_commands.command(name='achievement-ungive', description='Admin or Mod can mark an achievement as incomplete')
     async def achievement_ungive(self, interaction: Interaction, achievement_id: int) -> None:
