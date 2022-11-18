@@ -32,7 +32,6 @@ class Achievement(commands.Cog):
             res = await conn.fetchval("SELECT discord_id FROM warnet_user WHERE discord_id = $1;", author_id)
             if res == None:
                 await conn.execute("INSERT INTO warnet_user(discord_id) VALUES ($1);", author_id)
-                await conn.execute("INSERT INTO achievement_stats(warnet_discord_id) VALUES ($1);", author_id)
                 embed = discord.Embed(
                     color=discord.Colour.green(),
                     title='✅ Registered Successfully',
