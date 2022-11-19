@@ -128,7 +128,7 @@ python-versions = "*"
 
 [[package]]
 name = "discord-py"
-version = "2.0.1"
+version = "2.1.0"
 description = "A Python wrapper for the Discord API"
 category = "main"
 optional = false
@@ -343,7 +343,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "44c357e316f18831111d28c17ec945bf204172fab693ce6ed4947ceda1492b56"
+content-hash = "4285c3454823f795b82807ba6a3d45ca421cf01f25ebc10f2fa9712095b70f8e"
 
 [metadata.files]
 aiohttp = [
@@ -525,8 +525,8 @@ discord = [
     {file = "discord-2.0.0.tar.gz", hash = "sha256:b6df1dd56c19750b3cb9b69de85bf463e712a0db232546ae8109c04bf0a61083"},
 ]
 discord-py = [
-    {file = "discord.py-2.0.1-py3-none-any.whl", hash = "sha256:aeb186348bf011708b085b2715cf92bbb72c692eb4f59c4c0b488130cc4c4b7e"},
-    {file = "discord.py-2.0.1.tar.gz", hash = "sha256:309146476e986cb8faf038cd5d604d4b3834ef15c2d34df697ce5064bf5cd779"},
+    {file = "discord.py-2.1.0-py3-none-any.whl", hash = "sha256:a2cfa9f09e3013aaaa43600cc8dfaf67c532dd34afcb71e550f5a0dc9133a5e0"},
+    {file = "discord.py-2.1.0.tar.gz", hash = "sha256:027ccdd22b5bb66a9e19cbd8daa1bc74b49271a16a074d57e52f288fcfa208e8"},
 ]
 discord-py-pagination = [
     {file = "discord.py-pagination-0.0.5.tar.gz", hash = "sha256:94db6f36f9663d37b8bd721aa98984c4207b0cf49211cdea2751300bfd2ad252"},
