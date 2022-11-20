@@ -5,7 +5,7 @@ from discord.ext import commands
 
 import json
 import datetime
-from typing import List, Dict
+from typing import List, Dict, Optional
 from asyncpg.exceptions import UniqueViolationError
 
 from bot.bot import WarnetBot
@@ -96,9 +96,51 @@ class Achievement(commands.Cog):
 
     @app_commands.command(name='achievement-stats', description='Shows your completed achievement stats')
     async def achievement_stats(self, interaction: Interaction) -> None:
+        await interaction.response.defer()
 
-        pass
+        author_id = interaction.user.id
+        author_name = interaction.user.name
+        author_color = interaction.user.color 
+        async with self.db_pool.acquire() as conn:
+            res = await conn.fetchval("SELECT discord_id FROM warnet_user WHERE discord_id = $1;", author_id)
+            if res == None:
+                embed = discord.Embed(
+                    color=discord.Colour.red(),
+                    title='❌ User not registered',
+                    description=f"<@{author_id}> belum terdaftar di database. Silakan <@{author_id}> untuk mendaftar terlebih dahulu menggunakan </achievement-member-register:0>",
+                    timestamp=datetime.datetime.now()
+                )
 
+                await interaction.followup.send(embed=embed)
+
+            else:
+                total_completed = await conn.fetchval("SELECT COUNT(*) FROM achievement_progress WHERE discord_id = $1;", author_id)
+                records = await conn.fetch("SELECT achievement_id FROM achievement_progress WHERE discord_id = $1 ORDER BY achievement_id ASC;", author_id)
+                completed_achievement_list = [dict(row)['achievement_id'] for row in records]  # [1, 2, 3]
+
+                # TODO: shows total completed, shows list of completed achievement (use pagination)
+                stats_percentage = (total_completed / len(self.achievement_data)) * 100
+                badge_id = self.get_achievement_badge_id(total_completed) 
+                embed = discord.Embed(
+                    color=author_color,
+                    title=f"🏆 {author_name}'s Achievement Progress",
+                    timestamp=datetime.datetime.now()
+                )
+                embed.set_thumbnail(url=interaction.user.display_avatar.url)
+                embed.add_field(
+                    name=f"{author_name} has completed {stats_percentage:.2f}% of total achievements in WARNET",
+                    value=f"**{total_completed}**✅ of {len(self.achievement_data)} achievements",
+                    inline=False
+                )
+                embed.add_field(
+                    name="Current Badge",
+                    value="No Badge" if badge_id == None else f"<@&{badge_id}>",
+                    inline=False
+                )
+
+                await interaction.followup.send(embed=embed)
+
+    # TODO: If the amount of completed achievement pass a certain amount -> give special role
     @app_commands.command(name='achievement-give', description='Admin or Mod can mark an achievement as complete for specific user')
     async def achievement_give(self, interaction: Interaction, member: discord.Member, achievement_id: int) -> None:
         await interaction.response.defer()
@@ -113,7 +155,7 @@ class Achievement(commands.Cog):
                     embed = discord.Embed(
                         color=discord.Colour.red(),
                         title='❌ User not registered',
-                        description=f"<@{member.id}> belum terdaftar di database. Silakan <@{member_id}> untuk mendaftar terlebih dahulu menggunakan </achievement-member-register:0>",
+                        description=f"<@{member_id}> belum terdaftar di database. Silakan <@{member_id}> untuk mendaftar terlebih dahulu menggunakan </achievement-member-register:0>",
                         timestamp=datetime.datetime.now()
                     )
 
@@ -142,7 +184,7 @@ class Achievement(commands.Cog):
                         error_embed = discord.Embed(
                             color=discord.Colour.red(),
                             title='❌ Achievement has been added before',
-                            description=f'Achievement dengan id `{achievement_id}` sudah ditambahkan sebelumnya pada user <@{member.id}>.',
+                            description=f'Achievement dengan id `{achievement_id}` sudah ditambahkan sebelumnya pada user <@{member_id}>.',
                             timestamp=datetime.datetime.now(),
                         )
                         await interaction.followup.send(embed=error_embed)
@@ -151,7 +193,7 @@ class Achievement(commands.Cog):
                     embed = discord.Embed(
                         color=discord.Colour.green(),
                         title='✅ Achievement has been given',
-                        description=f"Sukses menambahkan progress achievement kepada <@{member.id}>.",
+                        description=f"Sukses menambahkan progress achievement kepada <@{member_id}>.",
                         timestamp=datetime.datetime.now()
                     )
                     embed.add_field(name=f"🏅**{achievement_detail['name']}**", value=f"> {achievement_detail['desc']}")
@@ -169,6 +211,7 @@ class Achievement(commands.Cog):
 
             await interaction.followup.send(embed=embed)
     
+    # TODO: If the amount of completed achievement is below a certain amount -> remove special role
     @app_commands.command(name='achievement-revoke', description='Admin or Mod can mark an achievement as incomplete')
     async def achievement_revoke(self, interaction: Interaction, member: discord.Member, achievement_id: int) -> None:
         await interaction.response.defer()
@@ -183,7 +226,7 @@ class Achievement(commands.Cog):
                     embed = discord.Embed(
                         color=discord.Colour.red(),
                         title='❌ User not registered',
-                        description=f"<@{member.id}> belum terdaftar di database. Silakan <@{member_id}> untuk mendaftar terlebih dahulu menggunakan </achievement-member-register:0>",
+                        description=f"<@{member_id}> belum terdaftar di database. Silakan <@{member_id}> untuk mendaftar terlebih dahulu menggunakan </achievement-member-register:0>",
                         timestamp=datetime.datetime.now()
                     )
 
@@ -209,7 +252,7 @@ class Achievement(commands.Cog):
                         embed = discord.Embed(
                             color=discord.Colour.yellow(),
                             title='🗑️ Achievement has been revoked',
-                            description=f"Sukses menghapus satu progress achievement milik <@{member.id}>.",
+                            description=f"Sukses menghapus satu progress achievement milik <@{member_id}>.",
                             timestamp=datetime.datetime.now()
                         )
                         embed.add_field(name=f"~~🏅**{achievement_detail['name']}**~~", value=f"> ~~{achievement_detail['desc']}~~")
@@ -221,7 +264,7 @@ class Achievement(commands.Cog):
                         error_embed = discord.Embed(
                             color=discord.Colour.red(),
                             title='❌ Can not revoke the achievement',
-                            description=f'User <@{member.id}> tidak pernah mengklaim achievement ini sehingga tidak bisa dilakukan pencabutan.',
+                            description=f'User <@{member_id}> tidak pernah mengklaim achievement ini sehingga tidak bisa dilakukan pencabutan.',
                             timestamp=datetime.datetime.now(),
                         )
                         await interaction.followup.send(embed=error_embed)
@@ -243,6 +286,26 @@ class Achievement(commands.Cog):
             data = json.load(f)
         
         return data['data']
+
+    @staticmethod
+    def get_achievement_badge_id(total_achievement: int) -> Optional[int]:
+        """
+        return achievement role id based on total completed achievement
+        """
+
+        if total_achievement < 10:
+            return None
+        elif total_achievement < 20:
+            return config.ACHIEVEMENT_RANK_ROLE_ID[0]
+        elif total_achievement < 50:
+            return config.ACHIEVEMENT_RANK_ROLE_ID[1]
+        elif total_achievement < 80:
+            return config.ACHIEVEMENT_RANK_ROLE_ID[2]
+        elif total_achievement < 150:
+            return config.ACHIEVEMENT_RANK_ROLE_ID[3]
+        else:
+            return config.ACHIEVEMENT_RANK_ROLE_ID[4]
+
 
     def prepare_achievement_embeds(self) -> List[Embed]:
         total_data = self._total_achievement_data
