@@ -102,7 +102,7 @@ async def show_achievement_stats(self: commands.Cog, interaction: Interaction) -
 
             # TODO: shows total completed, shows list of completed achievement (use pagination)
             stats_percentage = (total_completed / len(self.achievement_data)) * 100
-            badge_id = self.get_achievement_badge_id(total_completed) 
+            badge_id, _ = self.get_achievement_badge_id(total_completed) 
             embed = discord.Embed(
                 color=author_color,
                 title=f"🏆 {author_name}'s Achievement Progress",

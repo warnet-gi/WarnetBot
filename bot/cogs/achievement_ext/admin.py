@@ -41,7 +41,7 @@ async def give_achievement(self: commands.Cog, interaction: Interaction, member:
                     )
                     await interaction.followup.send(embed=error_embed)
                     return
-
+                    
                 try:
                     await conn.execute("INSERT INTO achievement_progress(discord_id, achievement_id) VALUES ($1, $2);", member_id, achievement_id)
                 
@@ -65,7 +65,39 @@ async def give_achievement(self: commands.Cog, interaction: Interaction, member:
                 embed.add_field(name=f"🏅**{achievement_detail['name']}**", value=f"> {achievement_detail['desc']}")
                 embed.set_footer(text=f"Given by {author_name}")
 
-                await interaction.followup.send(embed=embed)
+                followup_msg = await interaction.followup.send(embed=embed)
+
+                total_completed = await conn.fetchval("SELECT COUNT(*) FROM achievement_progress WHERE discord_id = $1;", member_id)
+                role_badge_id, prev_role_badge_id = self.get_achievement_badge_id(total_completed) 
+                target_role = None if role_badge_id == None else interaction.guild.get_role(role_badge_id)
+                previous_role = None if prev_role_badge_id == None else interaction.guild.get_role(prev_role_badge_id)
+
+                if target_role == None:
+                    return
+
+                # Check if the user already has the role or not
+                if member.get_role(role_badge_id) == None:
+                    try:
+                        # give the current role and remove previous role then notify them
+                        await member.add_roles(target_role, reason="Completed WARNET achievement level")
+                        if previous_role != None:
+                            await member.remove_roles(previous_role)
+
+                        notify_embed = discord.Embed(
+                            color=target_role.color,
+                            description=f"⭐ Selamat {member.mention} telah mendapatkan badge role {target_role.mention} 🎊",
+                            timestamp=datetime.datetime.now()
+                        )
+                        await interaction.channel.send(
+                            content=f"{member.mention}",
+                            embed=notify_embed,
+                            reference=followup_msg
+                        )
+                    except discord.Forbidden:
+                        await interaction.response.send_message(content="❌ Bot tidak memiliki izin untuk menambahkan role", ephemeral=True)
+                    except discord.HTTPException:
+                        await interaction.response.send_message(content="Failed to add the role", ephemeral=True)
+
 
     else:
         await _send_missing_permission_error_embed(interaction)

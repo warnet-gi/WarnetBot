@@ -4,7 +4,7 @@ from discord.ext import commands
 
 import json
 import datetime
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Tuple
 
 from bot.bot import WarnetBot
 from bot.config import config
@@ -65,23 +65,23 @@ class Achievement(commands.GroupCog, group_name="achievement"):
         return data['data']
 
     @staticmethod
-    def get_achievement_badge_id(total_achievement: int) -> Optional[int]:
+    def get_achievement_badge_id(total_achievement: int) -> Tuple[Optional[int], Optional[int]]:
         """
-        return achievement role id based on total completed achievement
+        return current achievement role id and previous role id based on total completed achievement
         """
 
         if total_achievement < 10:
-            return None
+            return None, None
         elif total_achievement < 20:
-            return config.ACHIEVEMENT_RANK_ROLE_ID[0]
+            return config.ACHIEVEMENT_RANK_ROLE_ID[0], None
         elif total_achievement < 50:
-            return config.ACHIEVEMENT_RANK_ROLE_ID[1]
+            return config.ACHIEVEMENT_RANK_ROLE_ID[1], config.ACHIEVEMENT_RANK_ROLE_ID[0]
         elif total_achievement < 80:
-            return config.ACHIEVEMENT_RANK_ROLE_ID[2]
+            return config.ACHIEVEMENT_RANK_ROLE_ID[2], config.ACHIEVEMENT_RANK_ROLE_ID[1]
         elif total_achievement < 150:
-            return config.ACHIEVEMENT_RANK_ROLE_ID[3]
+            return config.ACHIEVEMENT_RANK_ROLE_ID[3], config.ACHIEVEMENT_RANK_ROLE_ID[2]
         else:
-            return config.ACHIEVEMENT_RANK_ROLE_ID[4]
+            return config.ACHIEVEMENT_RANK_ROLE_ID[4], config.ACHIEVEMENT_RANK_ROLE_ID[3]
 
     def prepare_achievement_embeds(self) -> List[Embed]:
         total_data = self._total_achievement_data
