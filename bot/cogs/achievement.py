@@ -18,6 +18,8 @@ from bot.cogs.achievement_commands.admin import give_achievement, revoke_achieve
 
 
 ACHIEVEMENT_DATA_PATH = 'bot/data/achievement.json'
+PRIVATE_DEV_GUILD_ID = config.PRIVATE_DEV_GUILD_ID
+WARNET_GUILD_ID = config.WARNET_GUILD_ID
 
 class Achievement(commands.Cog):
 
@@ -106,4 +108,7 @@ class Achievement(commands.Cog):
 
 
 async def setup(bot: WarnetBot) -> None:
-    await bot.add_cog(Achievement(bot))
+    await bot.add_cog(
+        Achievement(bot),
+        guilds=[discord.Object(PRIVATE_DEV_GUILD_ID), discord.Object(WARNET_GUILD_ID)]
+    )
