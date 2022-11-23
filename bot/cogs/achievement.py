@@ -21,6 +21,7 @@ ACHIEVEMENT_DATA_PATH = 'bot/data/achievement.json'
 PRIVATE_DEV_GUILD_ID = config.PRIVATE_DEV_GUILD_ID
 WARNET_GUILD_ID = config.WARNET_GUILD_ID
 
+@commands.guild_only()
 class Achievement(commands.GroupCog, group_name="achievement"):
 
     def __init__(self, bot: WarnetBot) -> None:
