@@ -68,14 +68,7 @@ async def give_achievement(self: commands.Cog, interaction: Interaction, member:
                 await interaction.followup.send(embed=embed)
 
     else:
-        embed = discord.Embed(
-            color=discord.Colour.red(),
-            title="❌ You don't have permission",
-            description=f"Hanya <@&{config.ADMINISTRATOR_ROLE_ID['admin']}> atau <@&{config.ADMINISTRATOR_ROLE_ID['mod']}> yang bisa menggunakan command ini. Cobalah untuk mengontak mereka apabila ingin melakukan claim achievement.",
-            timestamp=datetime.datetime.now(),
-        )
-
-        await interaction.followup.send(embed=embed)
+        await _send_missing_permission_error_embed(interaction)
 
 async def revoke_achievement(self: commands.Cog, interaction: Interaction, member: discord.Member, achievement_id: int) -> None:
     await interaction.response.defer()
@@ -135,11 +128,14 @@ async def revoke_achievement(self: commands.Cog, interaction: Interaction, membe
                     return
 
     else:
-        embed = discord.Embed(
-            color=discord.Colour.red(),
-            title="❌ You don't have permission",
-            description=f"Hanya <@&{config.ADMINISTRATOR_ROLE_ID['admin']}> atau <@&{config.ADMINISTRATOR_ROLE_ID['mod']}> yang bisa menggunakan command ini. Cobalah untuk mengontak mereka apabila ingin melakukan claim achievement.",
-            timestamp=datetime.datetime.now(),
-        )
+        await _send_missing_permission_error_embed(interaction)
 
-        await interaction.followup.send(embed=embed)
+async def _send_missing_permission_error_embed(interaction: Interaction) -> None:
+    embed = discord.Embed(
+        color=discord.Colour.red(),
+        title="❌ You don't have permission",
+        description=f"Hanya <@&{config.ADMINISTRATOR_ROLE_ID['admin']}> atau <@&{config.ADMINISTRATOR_ROLE_ID['mod']}> yang bisa menggunakan command ini. Cobalah untuk mengontak mereka apabila ingin melakukan claim achievement.",
+        timestamp=datetime.datetime.now(),
+    )
+
+    await interaction.followup.send(embed=embed)
