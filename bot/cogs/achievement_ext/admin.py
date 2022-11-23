@@ -94,9 +94,9 @@ async def give_achievement(self: commands.Cog, interaction: Interaction, member:
                             reference=followup_msg
                         )
                     except discord.Forbidden:
-                        await interaction.response.send_message(content="❌ Bot tidak memiliki izin untuk menambahkan role", ephemeral=True)
+                        await interaction.channel.send(content="❌ Bot tidak memiliki izin untuk menambahkan role", reference=followup_msg)
                     except discord.HTTPException:
-                        await interaction.response.send_message(content="Failed to add the role", ephemeral=True)
+                        await interaction.channel.send(content="Failed to add the role", reference=followup_msg)
 
 
     else:
