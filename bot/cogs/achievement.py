@@ -8,13 +8,13 @@ from typing import List, Dict, Optional
 
 from bot.bot import WarnetBot
 from bot.config import config
-from bot.cogs.achievement_commands.member import (
+from bot.cogs.achievement_ext.member import (
     register,
     show_achievement_list,
     show_achievement_detail,
     show_achievement_stats,
 )
-from bot.cogs.achievement_commands.admin import give_achievement, revoke_achievement
+from bot.cogs.achievement_ext.admin import give_achievement, revoke_achievement
 
 
 ACHIEVEMENT_DATA_PATH = 'bot/data/achievement.json'
