@@ -21,7 +21,7 @@ ACHIEVEMENT_DATA_PATH = 'bot/data/achievement.json'
 PRIVATE_DEV_GUILD_ID = config.PRIVATE_DEV_GUILD_ID
 WARNET_GUILD_ID = config.WARNET_GUILD_ID
 
-class Achievement(commands.Cog):
+class Achievement(commands.GroupCog, group_name="achievement"):
 
     def __init__(self, bot: WarnetBot) -> None:
         self.bot = bot
@@ -30,29 +30,29 @@ class Achievement(commands.Cog):
         self._total_achievement_data = len(self.achievement_data)
         self.achievement_embeds = self.prepare_achievement_embeds()
 
-    @app_commands.command(name='achievement-member-register', description='Member need to register before using other achievement commands')
+    @app_commands.command(name='member-register', description='Member need to register before using other achievement commands')
     async def achievement_register(self, interaction: Interaction) -> None:
         await register(self, interaction)
 
-    @app_commands.command(name='achievement-list', description='Shows all available achievement list')
+    @app_commands.command(name='list', description='Shows all available achievement list')
     async def achievement_list(self, interaction: Interaction) -> None:
         await show_achievement_list(self, interaction)
 
-    @app_commands.command(name='achievement-detail', description='Shows the detail of an achievement')
+    @app_commands.command(name='detail', description='Shows the detail of an achievement')
     async def achievement_detail(self, interaction: Interaction, achievement_id: int) -> None:
         await show_achievement_detail(self, interaction, achievement_id)
         
-    @app_commands.command(name='achievement-stats', description='Shows your completed achievement stats')
+    @app_commands.command(name='stats', description='Shows your completed achievement stats')
     async def achievement_stats(self, interaction: Interaction) -> None:
         await show_achievement_stats(self, interaction)
         
     # TODO: If the amount of completed achievement pass a certain amount -> give special role
-    @app_commands.command(name='achievement-give', description='Admin or Mod can mark an achievement as complete for specific user')
+    @app_commands.command(name='give', description='Admin or Mod can mark an achievement as complete for specific user')
     async def achievement_give(self, interaction: Interaction, member: discord.Member, achievement_id: int) -> None:
         await give_achievement(self, interaction, member, achievement_id)
         
     # TODO: If the amount of completed achievement is below a certain amount -> remove special role
-    @app_commands.command(name='achievement-revoke', description='Admin or Mod can mark an achievement as incomplete')
+    @app_commands.command(name='revoke', description='Admin or Mod can mark an achievement as incomplete')
     async def achievement_revoke(self, interaction: Interaction, member: discord.Member, achievement_id: int) -> None:
         await revoke_achievement(self, interaction, member, achievement_id)
 
