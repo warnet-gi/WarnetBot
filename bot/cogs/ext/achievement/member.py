@@ -7,6 +7,7 @@ from discord import Interaction
 from discord.ext import commands
 
 from bot.config import config
+from bot.cogs.views.achievement import StatsProgressDetail
 from bot.cogs.ext.achievement.utils import send_user_not_registered_error_embed
 
 
@@ -98,7 +99,6 @@ async def show_achievement_stats(self: commands.Cog, interaction: Interaction, m
             records = await conn.fetch("SELECT achievement_id FROM achievement_progress WHERE discord_id = $1 ORDER BY achievement_id ASC;", user_id)
             completed_achievement_list = [dict(row)['achievement_id'] for row in records]  # [1, 2, 3]
 
-            # TODO: shows total completed, shows list of completed achievement (use pagination)
             stats_percentage = (total_completed / len(self.achievement_data)) * 100
             badge_id, _ = self.get_achievement_badge_id(total_completed) 
             embed = discord.Embed(
@@ -108,8 +108,8 @@ async def show_achievement_stats(self: commands.Cog, interaction: Interaction, m
             )
             embed.set_thumbnail(url=user_display_avatar_url)
             embed.add_field(
-                name=f"{user_name} has completed {stats_percentage:.2f}% of total achievements in WARNET",
-                value=f"✅ **{total_completed}** of {len(self.achievement_data)} achievements",
+                name=f"Total completed achievement",
+                value=f"✅ **{total_completed}** of {len(self.achievement_data)} achievements ({stats_percentage:.2f}%)",
                 inline=False
             )
             embed.add_field(
@@ -118,4 +118,10 @@ async def show_achievement_stats(self: commands.Cog, interaction: Interaction, m
                 inline=False
             )
 
-            await interaction.followup.send(embed=embed)
+            view = StatsProgressDetail(
+                InitialEmbed=embed,
+                completed_achievement_list=completed_achievement_list,
+                Member=member,
+                achievement_data=self.achievement_data
+            )
+            await view.start(interaction)
