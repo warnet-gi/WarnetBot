@@ -6,6 +6,10 @@ from discord import Interaction
 from discord.ext import commands
 
 from bot.config import config
+from bot.cogs.views.achievement import Confirm
+
+
+ACHIEVEMENT_RANK_ROLE_ID = config.ACHIEVEMENT_RANK_ROLE_ID
 
 
 async def give_achievement(self: commands.Cog, interaction: Interaction, member: discord.Member, achievement_id: int) -> None:
@@ -161,6 +165,52 @@ async def revoke_achievement(self: commands.Cog, interaction: Interaction, membe
 
     else:
         await _send_missing_permission_error_embed(interaction)
+
+
+async def reset_achievement(self: commands.Cog, interaction: Interaction, member: discord.Member) -> None:
+    await interaction.response.defer(ephemeral=True)
+
+    member_id = member.id
+
+    async with self.db_pool.acquire() as conn:
+        res = await conn.fetchval("SELECT discord_id FROM warnet_user WHERE discord_id = $1;", member_id)
+        if res == None:
+            embed = discord.Embed(
+                color=discord.Colour.red(),
+                title='❌ User not registered',
+                description=f"<@{member_id}> belum terdaftar di database. Silakan <@{member_id}> untuk mendaftar terlebih dahulu menggunakan </achievement-member-register:0>",
+                timestamp=datetime.datetime.now()
+            )
+
+            await interaction.followup.send(embed=embed)
+
+        else:
+            embed = discord.Embed(
+                color=discord.Colour.yellow(),
+                description=f"Yakin akan mereset ulang progress dari user {member.mention}?"
+            )
+            view = Confirm()
+            msg: discord.Message = await interaction.followup.send(embed=embed, view=view, ephemeral=True)
+            await view.wait()
+
+            if view.value == None:
+                await msg.edit(content='**Time Out**', embed=None, view=None)
+            
+            elif view.value:
+                async with self.db_pool.acquire() as conn:
+                    await conn.execute("DELETE FROM achievement_progress WHERE discord_id = $1;", member_id)
+                
+                target_roles = []
+                for roles_id in ACHIEVEMENT_RANK_ROLE_ID:
+                    if member.get_role(roles_id) != None:
+                        target_roles.append(interaction.guild.get_role(roles_id))
+                await member.remove_roles(*target_roles)
+
+                await msg.edit(content=f'✅ **Sukses melakukan reset progress achievement kepada {member.mention}**', embed=None, view=None)
+            
+            else:
+                await msg.delete()
+
 
 async def _send_missing_permission_error_embed(interaction: Interaction) -> None:
     embed = discord.Embed(

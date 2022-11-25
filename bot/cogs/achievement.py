@@ -8,13 +8,17 @@ from typing import List, Dict, Optional, Tuple
 
 from bot.bot import WarnetBot
 from bot.config import config
-from bot.cogs.achievement_ext.member import (
+from bot.cogs.ext.achievement.member import (
     register,
     show_achievement_list,
     show_achievement_detail,
     show_achievement_stats,
 )
-from bot.cogs.achievement_ext.admin import give_achievement, revoke_achievement
+from bot.cogs.ext.achievement.admin import (
+    give_achievement,
+    revoke_achievement,
+    reset_achievement,
+)
 
 
 ACHIEVEMENT_DATA_PATH = 'bot/data/achievement.json'
@@ -47,15 +51,17 @@ class Achievement(commands.GroupCog, group_name="achievement"):
     async def achievement_stats(self, interaction: Interaction) -> None:
         await show_achievement_stats(self, interaction)
         
-    # TODO: If the amount of completed achievement pass a certain amount -> give special role
     @app_commands.command(name='give', description='Admin or Mod can mark an achievement as complete for specific user')
     async def achievement_give(self, interaction: Interaction, member: discord.Member, achievement_id: int) -> None:
         await give_achievement(self, interaction, member, achievement_id)
         
-    # TODO: If the amount of completed achievement is below a certain amount -> remove special role
     @app_commands.command(name='revoke', description='Admin or Mod can mark an achievement as incomplete')
     async def achievement_revoke(self, interaction: Interaction, member: discord.Member, achievement_id: int) -> None:
         await revoke_achievement(self, interaction, member, achievement_id)
+
+    @app_commands.command(name='reset', description='Reset member achievement progress')
+    async def achievement_reset(self, Interaction: Interaction, member: discord.Member) -> None:
+        await reset_achievement(self, Interaction, member)
 
     @staticmethod
     def get_achievement_json_data() -> Dict[str, Dict[str, str]]:
