@@ -35,31 +35,42 @@ class Achievement(commands.GroupCog, group_name="achievement"):
         self._total_achievement_data = len(self.achievement_data)
         self.achievement_embeds = self.prepare_achievement_embeds()
 
-    @app_commands.command(name='member-register', description='Member need to register before using other achievement commands')
+    @app_commands.command(name='member-register', description='Member need to register before using other achievement commands.')
     async def achievement_register(self, interaction: Interaction) -> None:
         await register(self, interaction)
 
-    @app_commands.command(name='list', description='Shows all available achievement list')
+    @app_commands.command(name='list', description='Shows all available achievement list.')
     async def achievement_list(self, interaction: Interaction) -> None:
         await show_achievement_list(self, interaction)
 
-    @app_commands.command(name='detail', description='Shows the detail of an achievement')
+    @app_commands.command(name='detail', description='Shows the detail of an achievement.')
+    @app_commands.describe(achievement_id='Achievement ID that you want to look at.')
     async def achievement_detail(self, interaction: Interaction, achievement_id: int) -> None:
         await show_achievement_detail(self, interaction, achievement_id)
         
-    @app_commands.command(name='stats', description='Shows your completed achievement stats')
+    @app_commands.command(name='stats', description='Shows completed achievement stats')
+    @app_commands.describe(member='The name of the member you are trying to search for.')
     async def achievement_stats(self, interaction: Interaction, member: Optional[discord.Member]) -> None:
         await show_achievement_stats(self, interaction, member)
         
-    @app_commands.command(name='give', description='Admin or Mod can mark an achievement as complete for specific user')
+    @app_commands.command(name='give', description='Admin or Mod can mark an achievement as complete for specific user.')
+    @app_commands.describe(
+        member='The name of the member target you are trying to search for.',
+        achievement_id='Achievement ID you want to give.'
+    )
     async def achievement_give(self, interaction: Interaction, member: discord.Member, achievement_id: int) -> None:
         await give_achievement(self, interaction, member, achievement_id)
         
-    @app_commands.command(name='revoke', description='Admin or Mod can mark an achievement as incomplete')
+    @app_commands.command(name='revoke', description='Admin or Mod can mark an achievement as incomplete.')
+    @app_commands.describe(
+        member='The name of the member target you are trying to search for.',
+        achievement_id='Achievement ID you want to revoke.'
+    )
     async def achievement_revoke(self, interaction: Interaction, member: discord.Member, achievement_id: int) -> None:
         await revoke_achievement(self, interaction, member, achievement_id)
 
-    @app_commands.command(name='reset', description='Reset member achievement progress')
+    @app_commands.command(name='reset', description='Reset member achievement progress.')
+    @app_commands.describe(member='The name of the member target you are trying to search for.',)
     async def achievement_reset(self, Interaction: Interaction, member: discord.Member) -> None:
         await reset_achievement(self, Interaction, member)
 
