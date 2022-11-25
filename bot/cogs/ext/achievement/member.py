@@ -6,6 +6,7 @@ from discord import Interaction
 from discord.ext import commands
 
 from bot.config import config
+from bot.cogs.ext.achievement.utils import send_user_not_registered_error_embed
 
 
 async def register(self: commands.Cog, interaction: Interaction) -> None:
@@ -86,14 +87,7 @@ async def show_achievement_stats(self: commands.Cog, interaction: Interaction) -
     async with self.db_pool.acquire() as conn:
         res = await conn.fetchval("SELECT discord_id FROM warnet_user WHERE discord_id = $1;", author_id)
         if res == None:
-            embed = discord.Embed(
-                color=discord.Colour.red(),
-                title='❌ User not registered',
-                description=f"<@{author_id}> belum terdaftar di database. Silakan <@{author_id}> untuk mendaftar terlebih dahulu menggunakan </achievement-member-register:0>",
-                timestamp=datetime.datetime.now()
-            )
-
-            await interaction.followup.send(embed=embed)
+            await send_user_not_registered_error_embed(interaction, author_id)
 
         else:
             total_completed = await conn.fetchval("SELECT COUNT(*) FROM achievement_progress WHERE discord_id = $1;", author_id)
@@ -119,6 +113,5 @@ async def show_achievement_stats(self: commands.Cog, interaction: Interaction) -
                 value="No Badge" if badge_id == None else f"<@&{badge_id}>",
                 inline=False
             )
-
 
             await interaction.followup.send(embed=embed)
