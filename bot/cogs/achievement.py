@@ -48,8 +48,8 @@ class Achievement(commands.GroupCog, group_name="achievement"):
         await show_achievement_detail(self, interaction, achievement_id)
         
     @app_commands.command(name='stats', description='Shows your completed achievement stats')
-    async def achievement_stats(self, interaction: Interaction) -> None:
-        await show_achievement_stats(self, interaction)
+    async def achievement_stats(self, interaction: Interaction, member: Optional[discord.Member]) -> None:
+        await show_achievement_stats(self, interaction, member)
         
     @app_commands.command(name='give', description='Admin or Mod can mark an achievement as complete for specific user')
     async def achievement_give(self, interaction: Interaction, member: discord.Member, achievement_id: int) -> None:

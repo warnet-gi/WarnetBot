@@ -1,4 +1,5 @@
 import datetime
+from typing import Optional
 
 import Paginator
 import discord
@@ -42,6 +43,7 @@ async def show_achievement_list(self: commands.Cog, interaction: Interaction) ->
     await interaction.response.defer()
     await Paginator.Simple().start(interaction, pages=self.achievement_embeds)
 
+
 async def show_achievement_detail(self: commands.Cog, interaction: Interaction, achievement_id: int) -> None:
     await interaction.response.defer()
         
@@ -78,34 +80,36 @@ async def show_achievement_detail(self: commands.Cog, interaction: Interaction, 
     
     await interaction.followup.send(embed=embed)
 
-async def show_achievement_stats(self: commands.Cog, interaction: Interaction) -> None:
+
+async def show_achievement_stats(self: commands.Cog, interaction: Interaction, member: Optional[discord.Member]) -> None:
     await interaction.response.defer()
 
-    author_id = interaction.user.id
-    author_name = interaction.user.name
-    author_color = interaction.user.color 
+    user_id = interaction.user.id if member == None else member.id
+    user_name = interaction.user.name if member == None else member.name
+    user_color = interaction.user.color if member == None else member.color
+    user_display_avatar_url = interaction.user.display_avatar.url if member == None else member.display_avatar.url
     async with self.db_pool.acquire() as conn:
-        res = await conn.fetchval("SELECT discord_id FROM warnet_user WHERE discord_id = $1;", author_id)
+        res = await conn.fetchval("SELECT discord_id FROM warnet_user WHERE discord_id = $1;", user_id)
         if res == None:
-            await send_user_not_registered_error_embed(interaction, author_id)
+            await send_user_not_registered_error_embed(interaction, user_id)
 
         else:
-            total_completed = await conn.fetchval("SELECT COUNT(*) FROM achievement_progress WHERE discord_id = $1;", author_id)
-            records = await conn.fetch("SELECT achievement_id FROM achievement_progress WHERE discord_id = $1 ORDER BY achievement_id ASC;", author_id)
+            total_completed = await conn.fetchval("SELECT COUNT(*) FROM achievement_progress WHERE discord_id = $1;", user_id)
+            records = await conn.fetch("SELECT achievement_id FROM achievement_progress WHERE discord_id = $1 ORDER BY achievement_id ASC;", user_id)
             completed_achievement_list = [dict(row)['achievement_id'] for row in records]  # [1, 2, 3]
 
             # TODO: shows total completed, shows list of completed achievement (use pagination)
             stats_percentage = (total_completed / len(self.achievement_data)) * 100
             badge_id, _ = self.get_achievement_badge_id(total_completed) 
             embed = discord.Embed(
-                color=author_color,
-                title=f"🏆 {author_name}'s Achievement Progress",
+                color=user_color,
+                title=f"🏆 {user_name}'s Achievement Progress",
                 timestamp=datetime.datetime.now()
             )
-            embed.set_thumbnail(url=interaction.user.display_avatar.url)
+            embed.set_thumbnail(url=user_display_avatar_url)
             embed.add_field(
-                name=f"{author_name} has completed {stats_percentage:.2f}% of total achievements in WARNET",
-                value=f"**{total_completed}**✅ of {len(self.achievement_data)} achievements",
+                name=f"{user_name} has completed {stats_percentage:.2f}% of total achievements in WARNET",
+                value=f"✅ **{total_completed}** of {len(self.achievement_data)} achievements",
                 inline=False
             )
             embed.add_field(
