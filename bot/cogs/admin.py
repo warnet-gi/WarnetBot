@@ -4,6 +4,7 @@ from discord.ext import commands
 
 from bot.bot import WarnetBot
 
+import datetime, time
 from typing import Optional, Literal
 
 class Admin(commands.Cog):
@@ -15,18 +16,18 @@ class Admin(commands.Cog):
     async def about(self, interaction) -> None:
         """Shows basic information about the bot."""
 
-        owner_url = 'https://discord.com/users/278821688894947328'
-        github_project = 'https://github.com/Iqrar99/OP-Warnet-Bot'
+        uptime = str(datetime.timedelta(seconds=int(round(time.time()-self.bot.start_time))))  
+
         saweria_url = 'https://saweria.co/warnetGI'
 
         embed = discord.Embed(color=0x4e24d6)
-        embed.set_author(name='OP Warnet Bot', url=github_project)
-        embed.set_thumbnail(url='https://cdn.discordapp.com/avatars/278821688894947328/f3503af0e79e1c737661147d391633c6.png')  ## placeholder
-        embed.add_field(name='DEV:', value=f"[monarch99#1999]({owner_url})", inline=False)
+        embed.set_author(name='Warnet Bot', icon_url='https://cdn.discordapp.com/attachments/761684443915485184/1038313075260002365/warnet_logo_putih.png')
+        embed.set_thumbnail(url=self.bot.user.default_avatar.url if self.bot.user.avatar == None else self.bot.user.avatar.url)
+        embed.add_field(name='Developer', value=f"monarch99#1999", inline=False)
+        embed.add_field(name='Uptime', value=uptime, inline=False)
 
         view = ui.View()
-        view.add_item(ui.Button(label='GITHUB', url=github_project, row=0))
-        view.add_item(ui.Button(label='SAWERIA', url=saweria_url, row=0))
+        view.add_item(ui.Button(label='Donate to WarnetGI Saweria', url=saweria_url, row=0))
 
         await interaction.response.send_message(embed=embed, view=view)
 

@@ -2,6 +2,7 @@ import os
 import aiohttp
 import logging
 import asyncpg
+import time
 
 import discord
 from discord.ext import commands
@@ -32,6 +33,8 @@ class WarnetBot(commands.Bot):
         print("The bot is online!")
         print("Logged in as {}".format(self.user))
         print("------------------")
+
+        self.start_time = time.time()
 
         await self.change_presence(
             status=discord.Status.idle,
