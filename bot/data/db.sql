@@ -1,5 +1,7 @@
 -- Script to initialize postgreSQL bot database
 
+-- ACHIEVEMENT FEATURE --
+-------------------------
 CREATE TABLE warnet_user(
 	discord_id BIGINT NOT NULL,
 	PRIMARY KEY(discord_id),
