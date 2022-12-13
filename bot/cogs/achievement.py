@@ -13,6 +13,7 @@ from bot.cogs.ext.achievement.member import (
     show_achievement_list,
     show_achievement_detail,
     show_achievement_stats,
+    show_achievement_leaderboard
 )
 from bot.cogs.ext.achievement.admin import (
     give_achievement,
@@ -71,8 +72,12 @@ class Achievement(commands.GroupCog, group_name="achievement"):
 
     @app_commands.command(name='reset', description='Reset member achievement progress.')
     @app_commands.describe(member='The name of the member target you are trying to search for.',)
-    async def achievement_reset(self, Interaction: Interaction, member: discord.Member) -> None:
-        await reset_achievement(self, Interaction, member)
+    async def achievement_reset(self, interaction: Interaction, member: discord.Member) -> None:
+        await reset_achievement(self, interaction, member)
+
+    @app_commands.command(name='leaderboard', description='Show server leaderboard for total completed achievements.')
+    async def achievement_leaderboard(self, interaction: Interaction) -> None:
+        await show_achievement_leaderboard(self, interaction)
 
     @staticmethod
     def get_achievement_json_data() -> Dict[str, Dict[str, str]]:

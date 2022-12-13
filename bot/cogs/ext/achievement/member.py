@@ -125,3 +125,9 @@ async def show_achievement_stats(self: commands.Cog, interaction: Interaction, m
                 achievement_data=self.achievement_data
             )
             await view.start(interaction)
+
+
+async def show_achievement_leaderboard(self: commands.Cog, interaction: Interaction) -> None:
+    await interaction.response.defer()
+
+    # TODO: Leaderboard shows top 30 only
