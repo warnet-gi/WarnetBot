@@ -131,7 +131,8 @@ class Achievement(commands.GroupCog, group_name="achievement"):
 
 
 async def setup(bot: WarnetBot) -> None:
-    await bot.add_cog(
-        Achievement(bot),
-        guilds=[discord.Object(PRIVATE_DEV_GUILD_ID), discord.Object(WARNET_GUILD_ID)]
-    )
+    pass
+    # await bot.add_cog(
+    #     Achievement(bot),
+    #     guilds=[discord.Object(PRIVATE_DEV_GUILD_ID), discord.Object(WARNET_GUILD_ID)]
+    # )
