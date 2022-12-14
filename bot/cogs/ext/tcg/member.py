@@ -128,6 +128,7 @@ async def leaderboard(self, interaction: Interaction) -> None:
 
             rank_count += 1
         
+        if len(field_value) == 0: field_value = '**NO PLAYER IN THIS LEADERBOARD YET**'
         embed.add_field(name='Rank  |  Player  |  W/L  |  ELO', value=field_value)
 
         await interaction.followup.send(embed=embed)
