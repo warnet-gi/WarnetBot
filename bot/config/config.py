@@ -11,6 +11,13 @@ ACHIEVEMENT_RANK_ROLE_ID = (
     44444,  # placeholder
 )
 
+TCG_TITLE_ROLE_ID = (
+    1051867676202512415,  # Novice Duelist
+    1051865453208801361,  # Expert Duelist
+    1051865448980942948,  # Master Duelist
+    1051865444073611365,  # Immortal Duelist
+)
+
 DEFAULT = {
     'guild_id': '761644411486339073',
     'prefix': 'war!',

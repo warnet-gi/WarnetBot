@@ -6,7 +6,7 @@ from discord import Interaction
 from discord.ext import commands
 
 from bot.config import config
-from bot.cogs.views.achievement import Confirm
+from bot.cogs.views.general import Confirm
 from bot.cogs.ext.achievement.utils import (
     send_missing_permission_error_embed,
     send_user_not_registered_error_embed
