@@ -1,7 +1,8 @@
 import datetime
+from typing import Optional
 
 import discord
-from discord import Interaction
+from discord import Interaction, app_commands
 from discord.ext import commands
 
 from bot.cogs.views.general import Confirm
@@ -190,5 +191,38 @@ async def set_match_result(self, interaction: Interaction, winner: discord.Membe
                     loser_data['discord_id']
                 )
     
+    else:
+        await send_missing_permission_error_embed(interaction)
+
+async def set_member_stats(
+    self, interaction:Interaction,
+    member: discord.Member,
+    win_count: Optional[app_commands.Range[int, 0]],
+    loss_count: Optional[app_commands.Range[int, 0]],
+    elo: Optional[app_commands.Range[float, 0]]
+) -> None:
+    await interaction.response.defer()
+
+    if interaction.user.guild_permissions.administrator:
+        async with self.db_pool.acquire() as conn:
+            res = await conn.fetchval("SELECT discord_id FROM tcg_leaderboard WHERE discord_id = $1;", member.id)
+            if res == None:
+                await send_user_not_registered_error_embed(interaction, member.id)
+            
+            else:
+                await conn.execute(
+                    f"UPDATE tcg_leaderboard SET win_count={win_count if win_count != None else 'win_count'}, " +
+                    f"loss_count={loss_count if loss_count != None else 'loss_count'}, " +
+                    f"elo={elo if elo != None else 'elo'}  WHERE discord_id = {member.id};"
+                )
+
+                embed = discord.Embed(
+                    color=discord.Color.gold(),
+                    description=f'{member.mention} stats has been set.',
+                    timestamp=datetime.datetime.now()
+                )
+                embed.set_footer(text=f'Set by {interaction.user.name}')
+                
+                await interaction.followup.send(embed=embed)
     else:
         await send_missing_permission_error_embed(interaction)

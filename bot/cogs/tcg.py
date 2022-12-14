@@ -9,7 +9,8 @@ from bot.config import config
 from bot.cogs.ext.tcg.admin import (
     reset_member_stats,
     reset_all_member_stats,
-    set_match_result
+    set_match_result,
+    set_member_stats
 )
 from bot.cogs.ext.tcg.member import (
     register,
@@ -33,6 +34,7 @@ class TCG(commands.GroupCog, group_name="warnet-tcg"):
         await register(self, interaction)
 
     @app_commands.command(name='member-stats', description='Member can check their or someone else\'s TCG stats.')
+    @app_commands.describe(member='Member that you want to look at.')
     async def tcg_member_stats(self, interaction: Interaction, member: Optional[discord.Member]) -> None:
         await member_stats(self, interaction, member)
 
@@ -41,6 +43,7 @@ class TCG(commands.GroupCog, group_name="warnet-tcg"):
         await leaderboard(self, interaction)
 
     @app_commands.command(name='reset-stats', description='Reset a member TCG stats.')
+    @app_commands.describe(member='Member that you want to reset their stats.')
     async def tcg_reset_member_stats(self, interaction: Interaction, member: discord.Member) -> None:
         await reset_member_stats(self, interaction, member)
 
@@ -49,8 +52,26 @@ class TCG(commands.GroupCog, group_name="warnet-tcg"):
         await reset_all_member_stats(self, interaction)
 
     @app_commands.command(name='set-match-result', description='Set the TCG match result between players.')
-    async def tcg_set_match_result(self, interaction: Interaction, winner: discord.Member, loser: discord.Member):
+    @app_commands.describe(winner='Member who won a match.', loser='Member who lose a match.')
+    async def tcg_set_match_result(self, interaction: Interaction, winner: discord.Member, loser: discord.Member) -> None:
         await set_match_result(self, interaction, winner, loser)
+
+    @app_commands.command(name='set-member-stats', description='Set tcg stats for a member manually.')
+    @app_commands.describe(
+        member='Member that you want to set their stat.',
+        win_count='Win count value with 0 as the minimum value.',
+        loss_count='Loss count value with 0 as the minimum value.',
+        elo_rating='ELO rating value with 0 as the minimum value.'
+    )
+    async def tcg_set_member_stats(
+        self,
+        interaction: Interaction,
+        member: discord.Member,
+        win_count: Optional[app_commands.Range[int, 0]],
+        loss_count: Optional[app_commands.Range[int, 0]],
+        elo_rating: Optional[app_commands.Range[float, 0]]
+    ) -> None:
+        await set_member_stats(self, interaction, member, win_count, loss_count, elo_rating)
 
 
 async def setup(bot: WarnetBot) -> None:

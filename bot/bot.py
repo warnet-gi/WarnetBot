@@ -54,14 +54,14 @@ class WarnetBot(commands.Bot):
         await self.load_cogs()
         
         # This copies the global commands over to your guild.
-        development_guild = discord.Object(PRIVATE_DEV_GUILD_ID)
-        if development_guild:
-            self.tree.copy_global_to(guild=development_guild)
-            synced = await self.tree.sync(guild=development_guild)
-        else:
-            synced = await self.tree.sync()
+        # development_guild = discord.Object(PRIVATE_DEV_GUILD_ID)
+        # if development_guild:
+        #     self.tree.copy_global_to(guild=development_guild)
+        #     synced = await self.tree.sync(guild=development_guild)
+        # else:
+        #     synced = await self.tree.sync()
         
-        print("Synced {} command(s)".format(len(synced)))
+        # print("Synced {} command(s)".format(len(synced)))
 
     async def load_cogs(self) -> None:
         for filename in os.listdir('./bot/cogs'):

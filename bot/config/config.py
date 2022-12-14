@@ -12,6 +12,10 @@ ACHIEVEMENT_RANK_ROLE_ID = (
 )
 
 TCG_TITLE_ROLE_ID = (
+    # 1043864006370267146,  # test role
+    # 1044980740238098452,  # test role
+    # 1052443871117848637,  # test role
+    # 1052443930152681473,  # test role
     1051867676202512415,  # Novice Duelist
     1051865453208801361,  # Expert Duelist
     1051865448980942948,  # Master Duelist
