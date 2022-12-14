@@ -75,11 +75,11 @@ class WarnetBot(commands.Bot):
     async def start(self, debug: bool = False) -> None:
         self.debug = debug
         self.db_pool = await asyncpg.create_pool(
-            host=os.getenv('DB_HOST'),
-            user=os.getenv('DB_USERNAME'),
-            database=os.getenv('DB_NAME'),
-            password=os.getenv('DB_PASSWORD'),
-            port=os.getenv('DB_PORT')
+            host=os.getenv('LOCAL_DB_HOST'),
+            user=os.getenv('LOCAL_DB_USERNAME'),
+            database=os.getenv('LOCAL_DB_NAME'),
+            password=os.getenv('LOCAL_DB_PASSWORD'),
+            port=os.getenv('LOCAL_DB_PORT')
         )
         return await super().start(os.getenv('BOT_TOKEN'), reconnect=True)
 
