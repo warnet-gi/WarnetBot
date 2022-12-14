@@ -76,7 +76,8 @@ CREATE TABLE tcg_leaderboard(
 	discord_id BIGINT NOT NULL,
 	win_count INT DEFAULT 0 NOT NULL,
 	loss_count INT DEFAULT 0 NOT NULL,
-	elo FLOAT DEFAULT 1200 NOT NULL,
+	elo FLOAT DEFAULT 1500 NOT NULL,
+	title BIGINT,
 	PRIMARY KEY(discord_id),
 	UNIQUE(discord_id)
 );

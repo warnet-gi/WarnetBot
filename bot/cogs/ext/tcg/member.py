@@ -8,7 +8,6 @@ from discord.ext import commands
 from bot.config import config
 from bot.cogs.ext.tcg.utils import (
     send_user_not_registered_error_embed,
-    get_tcg_title_role,
 )
 
 async def register(self: commands.Cog, interaction:Interaction) -> None:
@@ -23,7 +22,7 @@ async def register(self: commands.Cog, interaction:Interaction) -> None:
             embed = discord.Embed(
                 color=discord.Colour.green(),
                 title='✅ Registered successfully',
-                description=f"Sekarang kamu sudah terdaftar di database TCG WARNET dan rating ELO milikmu sudah diatur menjadi 1200 by default.",
+                description=f"Sekarang kamu sudah terdaftar di database TCG WARNET dan rating ELO milikmu sudah diatur menjadi 1500 by default.",
                 timestamp=datetime.datetime.now()
             )
         else:
@@ -56,9 +55,9 @@ async def member_stats(self: commands.Cog, interaction:Interaction, member: Opti
             win_count = data['win_count']
             loss_count = data['loss_count']
             elo = data['elo']
+            user_tcg_title_role = member.get_role(data['title']) if data['title'] != None else None
             match_played = win_count + loss_count
             win_rate = 0 if match_played == 0 else (win_count / match_played) * 100
-            user_tcg_title_role = get_tcg_title_role(user)
 
             embed = discord.Embed(
                 color=user_color,
@@ -94,3 +93,41 @@ async def member_stats(self: commands.Cog, interaction:Interaction, member: Opti
 
             await interaction.followup.send(embed=embed)
 
+async def leaderboard(self, interaction: Interaction) -> None:
+    await interaction.response.defer()
+
+    async with self.db_pool.acquire() as conn:
+        records = await conn.fetch("SELECT * FROM tcg_leaderboard ORDER BY elo DESC LIMIT 30;")
+        member_data_list = [dict(row) for row in records]
+
+        embed = discord.Embed(
+            color=discord.Color.gold(),
+            title='WARNET TCG ELO RATING LEADERBOARD',
+            description='**Berikut TOP 30 ELO tertinggi di server WARNET**',
+        )
+        embed.set_thumbnail(url='https://cdn.discordapp.com/attachments/929746553944551424/1052431858371133460/Paimon_TCG.png')
+        
+        title_emoji = {
+            config.TCG_TITLE_ROLE_ID[0]: '<:NoviceDuelist:1052440393461022760>',
+            config.TCG_TITLE_ROLE_ID[1]: '<:ExpertDuelist:1052440396489314304>',
+            config.TCG_TITLE_ROLE_ID[2]: '<:MasterDuelist:1052440400822018078>',
+            config.TCG_TITLE_ROLE_ID[3]: '<:ImmortalDuelist:1052440404135518228>'
+        }
+
+        field_value = ''
+        rank_count = 1
+        for member_data in member_data_list:
+            member = interaction.guild.get_member(member_data['discord_id'])
+            if len(member.name) > 10:
+                member_name = member.name[:7]+'...'
+            else:
+                member_name = member.name
+            member_title_emoji = title_emoji[member_data['title']] if member_data['title'] != None else ''
+            row_string = f"`{rank_count:>2}` {member_title_emoji:<1} {member_name:<10} ({member_data['win_count']:>2}/{member_data['loss_count']:<2}) **{member_data['elo']:.1f}**\n"
+            field_value += row_string
+
+            rank_count += 1
+        
+        embed.add_field(name='Rank  |  Player  |  W/L  |  ELO', value=field_value)
+
+        await interaction.followup.send(embed=embed)
