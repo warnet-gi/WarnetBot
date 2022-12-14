@@ -34,11 +34,13 @@ class WarnetBot(commands.Bot):
         print("Logged in as {}".format(self.user))
         print("------------------")
 
-        self.start_time = time.time()
+        humans = 0
+        for g in self.guilds:
+            humans += sum(not m.bot for m in g.members)
 
         await self.change_presence(
-            status=discord.Status.idle,
-            activity=discord.Activity(type=discord.ActivityType.watching, name='Pengguna WARNET')
+            status=discord.Status.online,
+            activity=discord.Activity(type=discord.ActivityType.watching, name=f'{humans} Pengguna WARNET')
         )
 
     async def setup_hook(self) -> None:
@@ -73,14 +75,16 @@ class WarnetBot(commands.Bot):
         await super().close()
 
     async def start(self, debug: bool = False) -> None:
+        self.start_time = time.time()
         self.debug = debug
         self.db_pool = await asyncpg.create_pool(
-            host=os.getenv('LOCAL_DB_HOST'),
-            user=os.getenv('LOCAL_DB_USERNAME'),
-            database=os.getenv('LOCAL_DB_NAME'),
-            password=os.getenv('LOCAL_DB_PASSWORD'),
-            port=os.getenv('LOCAL_DB_PORT')
+            host=os.getenv('HOSTED_DB_HOST'),
+            user=os.getenv('HOSTED_DB_USERNAME'),
+            database=os.getenv('HOSTED_DB_NAME'),
+            password=os.getenv('HOSTED_DB_PASSWORD'),
+            port=os.getenv('HOSTED_DB_PORT')
         )
+
         return await super().start(os.getenv('BOT_TOKEN'), reconnect=True)
 
     def get_db_pool(self) -> asyncpg.Pool:
