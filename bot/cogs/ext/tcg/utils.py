@@ -69,20 +69,20 @@ def check_for_eligible_tcg_title(interaction: Interaction, elo_rating: float) ->
     """
     return current tcg title role id and previous role id based on total ELO rating.
     
-    * Novice Duelist   = 1700
-    * Expert Duelist   = 1900
-    * Master Duelist   = 2100
-    * Immortal Duelist = 2300
+    * Novice Duelist   = 1600
+    * Expert Duelist   = 1800
+    * Master Duelist   = 2000
+    * Immortal Duelist = 2200
     """
     TCG_TITLE_ROLE_LIST = [interaction.guild.get_role(role_id) for role_id in config.TCG_TITLE_ROLE_ID]
 
     if elo_rating < 1600:
         return None
-    elif elo_rating < 1900:
+    elif elo_rating < 1800:
         return TCG_TITLE_ROLE_LIST[0]
-    elif elo_rating < 2100:
+    elif elo_rating < 2000:
         return TCG_TITLE_ROLE_LIST[1]
-    elif elo_rating < 2300:
+    elif elo_rating < 2200:
         return TCG_TITLE_ROLE_LIST[2]
     else:
         return TCG_TITLE_ROLE_LIST[3]
