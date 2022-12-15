@@ -121,6 +121,10 @@ async def leaderboard(self, interaction: Interaction) -> None:
         rank_count = 1
         for member_data in member_data_list_top:
             member = interaction.guild.get_member(member_data['discord_id'])
+            # Prevent none object if user leaves but they still in the leaderboard
+            if member == None:
+                member = await self.bot.fetch_user(member_data['discord_id'])
+            
             if len(member.name) > 10:
                 member_name = member.name[:7]+'...'
             else:
@@ -138,6 +142,10 @@ async def leaderboard(self, interaction: Interaction) -> None:
             field_value = ''
             for member_data in member_data_list_bottom:
                 member = interaction.guild.get_member(member_data['discord_id'])
+                # Prevent none object if user leaves but they still in the leaderboard
+                if member == None:
+                    member = await self.bot.fetch_user(member_data['discord_id'])
+
                 if len(member.name) > 10:
                     member_name = member.name[:7]+'...'
                 else:
