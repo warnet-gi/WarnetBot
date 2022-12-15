@@ -97,16 +97,19 @@ async def leaderboard(self, interaction: Interaction) -> None:
     await interaction.response.defer()
 
     async with self.db_pool.acquire() as conn:
-        records = await conn.fetch("SELECT * FROM tcg_leaderboard ORDER BY elo DESC LIMIT 30;")
+        records = await conn.fetch("SELECT * FROM tcg_leaderboard ORDER BY elo DESC LIMIT 40;")
         member_data_list = [dict(row) for row in records]
+        member_data_list_top = member_data_list[:20]
+        member_data_list_bottom = member_data_list[20:]
 
         embed = discord.Embed(
             color=discord.Color.gold(),
             title='WARNET TCG ELO RATING LEADERBOARD',
-            description='**Berikut TOP 30 ELO tertinggi di server WARNET**',
+            description='**Berikut TOP 40 ELO tertinggi di server WARNET**',
         )
         embed.set_thumbnail(url='https://cdn.discordapp.com/attachments/929746553944551424/1052431858371133460/Paimon_TCG.png')
         
+
         title_emoji = {
             config.TCG_TITLE_ROLE_ID[0]: '<:NoviceDuelist:1052440393461022760>',
             config.TCG_TITLE_ROLE_ID[1]: '<:ExpertDuelist:1052440396489314304>',
@@ -116,7 +119,7 @@ async def leaderboard(self, interaction: Interaction) -> None:
 
         field_value = ''
         rank_count = 1
-        for member_data in member_data_list:
+        for member_data in member_data_list_top:
             member = interaction.guild.get_member(member_data['discord_id'])
             if len(member.name) > 10:
                 member_name = member.name[:7]+'...'
@@ -130,5 +133,21 @@ async def leaderboard(self, interaction: Interaction) -> None:
         
         if len(field_value) == 0: field_value = '**NO PLAYER IN THIS LEADERBOARD YET**'
         embed.add_field(name='Rank  |  Player  |  W/L  |  ELO', value=field_value)
+
+        if member_data_list_bottom:
+            field_value = ''
+            for member_data in member_data_list_bottom:
+                member = interaction.guild.get_member(member_data['discord_id'])
+                if len(member.name) > 10:
+                    member_name = member.name[:7]+'...'
+                else:
+                    member_name = member.name
+                member_title_emoji = title_emoji[member_data['title']] if member_data['title'] != None else ''
+                row_string = f"`{rank_count:>2}` {member_title_emoji:<1} {member_name:<10} ({member_data['win_count']:>2}/{member_data['loss_count']:<2}) **{member_data['elo']:.1f}**\n"
+                field_value += row_string
+
+                rank_count += 1
+
+            embed.add_field(name='|', value=field_value)
 
         await interaction.followup.send(embed=embed)
