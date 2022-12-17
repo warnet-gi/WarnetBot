@@ -74,7 +74,7 @@ def check_for_eligible_tcg_title(interaction: Interaction, elo_rating: float) ->
     * Master Duelist   = 2000
     * Immortal Duelist = 2200
     """
-    TCG_TITLE_ROLE_LIST = [interaction.guild.get_role(role_id) for role_id in config.TCG_TITLE_ROLE_ID]
+    TCG_TITLE_ROLE_LIST = [interaction.guild.get_role(role_id) for role_id in config.TCGConfig.TCG_TITLE_ROLE_ID]
 
     if elo_rating < 1600:
         return None

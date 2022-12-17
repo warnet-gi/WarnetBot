@@ -115,10 +115,10 @@ async def leaderboard(self, interaction: Interaction) -> None:
         
 
         title_emoji = {
-            config.TCG_TITLE_ROLE_ID[0]: '<:NoviceDuelist:1052440393461022760>',
-            config.TCG_TITLE_ROLE_ID[1]: '<:ExpertDuelist:1052440396489314304>',
-            config.TCG_TITLE_ROLE_ID[2]: '<:MasterDuelist:1052440400822018078>',
-            config.TCG_TITLE_ROLE_ID[3]: '<:ImmortalDuelist:1052440404135518228>'
+            config.TCGConfig.TCG_TITLE_ROLE_ID[0]: '<:NoviceDuelist:1052440393461022760>',
+            config.TCGConfig.TCG_TITLE_ROLE_ID[1]: '<:ExpertDuelist:1052440396489314304>',
+            config.TCGConfig.TCG_TITLE_ROLE_ID[2]: '<:MasterDuelist:1052440400822018078>',
+            config.TCGConfig.TCG_TITLE_ROLE_ID[3]: '<:ImmortalDuelist:1052440404135518228>'
         }
 
         field_value = ''

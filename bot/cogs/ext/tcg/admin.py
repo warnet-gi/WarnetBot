@@ -48,7 +48,7 @@ async def reset_member_stats(self, interaction: Interaction, member: discord.Mem
                     )
                     
                     # Remove tcg title role(s) after reset
-                    TCG_TITLE_ROLE_LIST = [interaction.guild.get_role(role_id) for role_id in config.TCG_TITLE_ROLE_ID]
+                    TCG_TITLE_ROLE_LIST = [interaction.guild.get_role(role_id) for role_id in config.TCGConfig.TCG_TITLE_ROLE_ID]
                     await member.remove_roles(*TCG_TITLE_ROLE_LIST)
 
                     await msg.edit(content=f'✅ **Sukses melakukan reset progress TCG kepada {member.mention}**', embed=None, view=None)
