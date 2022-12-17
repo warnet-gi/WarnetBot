@@ -24,11 +24,15 @@ async def send_user_not_registered_error_embed(interaction: Interaction, member1
     await interaction.followup.send(embed=embed)
 
 
-async def send_missing_permission_error_embed(interaction: Interaction) -> None:
+async def send_missing_permission_error_embed(interaction: Interaction, custom_description: str = None) -> None:
+    description = f"Hanya <@&{config.ADMINISTRATOR_ROLE_ID['admin']}> atau <@&{config.ADMINISTRATOR_ROLE_ID['mod']}> yang bisa menggunakan command ini."
+    if custom_description:
+        description = custom_description
+
     embed = discord.Embed(
         color=discord.Colour.red(),
         title="❌ You don't have permission",
-        description=f"Hanya <@&{config.ADMINISTRATOR_ROLE_ID['admin']}> atau <@&{config.ADMINISTRATOR_ROLE_ID['mod']}> yang bisa menggunakan command ini.",
+        description=description,
         timestamp=datetime.datetime.now(),
     )
 

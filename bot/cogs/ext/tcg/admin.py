@@ -128,8 +128,7 @@ async def reset_all_member_stats(self, interaction: Interaction) -> None:
 async def set_match_result(self, interaction: Interaction, winner: discord.Member, loser: discord.Member) -> None:
     await interaction.response.defer()
 
-
-    if interaction.user.guild_permissions.administrator:
+    if interaction.user.guild_permissions.administrator or interaction.user.get_role(config.TCGConfig.TCG_EVENT_STAFF_ROLE_ID) != None:
         async with self.db_pool.acquire() as conn:
             res1 = await conn.fetchval("SELECT discord_id FROM tcg_leaderboard WHERE discord_id = $1;", winner.id)
             res2 = await conn.fetchval("SELECT discord_id FROM tcg_leaderboard WHERE discord_id = $1;", loser.id)
@@ -168,6 +167,11 @@ async def set_match_result(self, interaction: Interaction, winner: discord.Membe
 
                 await interaction.followup.send(embed=embed)
 
+                # Send match log for event
+                if interaction.channel_id == config.TCGConfig.TCG_MATCH_REPORT_CHANNEL_ID:
+                    match_log_channel = interaction.guild.get_channel(config.TCGConfig.TCG_MATCH_LOG_CHANNEL_ID)
+                    await match_log_channel.send(embed=embed)
+
                 winner_current_tcg_role = None
                 loser_current_tcg_role = None
                 if winner_data['title']:
@@ -192,7 +196,9 @@ async def set_match_result(self, interaction: Interaction, winner: discord.Membe
                 )
     
     else:
-        await send_missing_permission_error_embed(interaction)
+        custom_description = f"Hanya <@&{config.ADMINISTRATOR_ROLE_ID['admin']}>, <@&{config.ADMINISTRATOR_ROLE_ID['mod']}>, " + \
+            f"atau <@&{config.TCGConfig.TCG_EVENT_STAFF_ROLE_ID}> yang bisa menggunakan command ini."
+        await send_missing_permission_error_embed(interaction, custom_description=custom_description)
 
 async def set_member_stats(
     self, interaction:Interaction,
@@ -203,7 +209,7 @@ async def set_member_stats(
 ) -> None:
     await interaction.response.defer()
 
-    if interaction.user.guild_permissions.administrator:
+    if interaction.user.guild_permissions.administrator or interaction.user.get_role(config.TCGConfig.TCG_EVENT_STAFF_ROLE_ID) != None:
         async with self.db_pool.acquire() as conn:
             res = await conn.fetchval("SELECT discord_id FROM tcg_leaderboard WHERE discord_id = $1;", member.id)
             if res == None:
@@ -225,4 +231,6 @@ async def set_member_stats(
                 
                 await interaction.followup.send(embed=embed)
     else:
-        await send_missing_permission_error_embed(interaction)
+        custom_description = f"Hanya <@&{config.ADMINISTRATOR_ROLE_ID['admin']}>, <@&{config.ADMINISTRATOR_ROLE_ID['mod']}>, " + \
+            f"atau <@&{config.TCGConfig.TCG_EVENT_STAFF_ROLE_ID}> yang bisa menggunakan command ini."
+        await send_missing_permission_error_embed(interaction, custom_description=custom_description)
