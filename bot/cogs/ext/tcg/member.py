@@ -96,9 +96,13 @@ async def member_stats(self: commands.Cog, interaction:Interaction, member: Opti
 async def leaderboard(self, interaction: Interaction) -> None:
     await interaction.response.defer()
 
+    author = interaction.user
+
     async with self.db_pool.acquire() as conn:
-        records = await conn.fetch("SELECT * FROM tcg_leaderboard ORDER BY elo DESC LIMIT 40;")
+        records = await conn.fetch("SELECT * FROM tcg_leaderboard ORDER BY elo DESC;")
         member_data_list = [dict(row) for row in records]
+
+        # Pick only top 40
         member_data_list_top = member_data_list[:20]
         member_data_list_bottom = member_data_list[20:]
 
@@ -119,6 +123,7 @@ async def leaderboard(self, interaction: Interaction) -> None:
 
         field_value = ''
         rank_count = 1
+        author_rank = 0
         for member_data in member_data_list_top:
             member = interaction.guild.get_member(member_data['discord_id'])
             # Prevent none object if user leaves but they still in the leaderboard
@@ -132,6 +137,9 @@ async def leaderboard(self, interaction: Interaction) -> None:
             member_title_emoji = title_emoji[member_data['title']] if member_data['title'] != None else ''
             row_string = f"`{rank_count:>2}` {member_title_emoji:<1} {member_name:<10} ({member_data['win_count']:>2}/{member_data['loss_count']:<2}) **{member_data['elo']:.1f}**\n"
             field_value += row_string
+
+            if member.id == author.id:
+                author_rank = rank_count
 
             rank_count += 1
         
@@ -154,8 +162,16 @@ async def leaderboard(self, interaction: Interaction) -> None:
                 row_string = f"`{rank_count:>2}` {member_title_emoji:<1} {member_name:<10} ({member_data['win_count']:>2}/{member_data['loss_count']:<2}) **{member_data['elo']:.1f}**\n"
                 field_value += row_string
 
+                if member.id == author.id:
+                    author_rank = rank_count
+
                 rank_count += 1
 
             embed.add_field(name='|', value=field_value)
+
+        if author_rank:
+            embed.set_footer(text=f'{len(member_data_list)} members has been registered in this leaderboard. You are in rank #{author_rank}.')
+        else:
+            embed.set_footer(text=f'{len(member_data_list)} members has been registered in this leaderboard. You are not in the leaderboard yet.')
 
         await interaction.followup.send(embed=embed)
