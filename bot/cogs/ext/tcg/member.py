@@ -102,9 +102,10 @@ async def leaderboard(self, interaction: Interaction) -> None:
         records = await conn.fetch("SELECT * FROM tcg_leaderboard ORDER BY elo DESC;")
         member_data_list = [dict(row) for row in records]
 
-        # Pick only top 40
-        member_data_list_top = member_data_list[:20]
-        member_data_list_bottom = member_data_list[20:]
+        # Pick only top N
+        TOP_N = 40
+        member_data_list_top = member_data_list[:TOP_N//2]
+        member_data_list_bottom = member_data_list[TOP_N//2:TOP_N]
 
         embed = discord.Embed(
             color=discord.Color.gold(),
