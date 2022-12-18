@@ -99,7 +99,7 @@ async def leaderboard(self, interaction: Interaction) -> None:
     author = interaction.user
 
     async with self.db_pool.acquire() as conn:
-        records = await conn.fetch("SELECT * FROM tcg_leaderboard ORDER BY elo DESC;")
+        records = await conn.fetch("SELECT * FROM tcg_leaderboard WHERE win_count + loss_count > 0 ORDER BY elo DESC;")
         member_data_list = [dict(row) for row in records]
 
         # Pick only top N
@@ -115,12 +115,7 @@ async def leaderboard(self, interaction: Interaction) -> None:
         embed.set_thumbnail(url='https://cdn.discordapp.com/attachments/929746553944551424/1052431858371133460/Paimon_TCG.png')
         
 
-        title_emoji = {
-            config.TCGConfig.TCG_TITLE_ROLE_ID[0]: '<:NoviceDuelist:1052440393461022760>',
-            config.TCGConfig.TCG_TITLE_ROLE_ID[1]: '<:ExpertDuelist:1052440396489314304>',
-            config.TCGConfig.TCG_TITLE_ROLE_ID[2]: '<:MasterDuelist:1052440400822018078>',
-            config.TCGConfig.TCG_TITLE_ROLE_ID[3]: '<:ImmortalDuelist:1052440404135518228>'
-        }
+        title_emoji = config.TCGConfig.TCG_TITLE_EMOJI
 
         field_value = ''
         rank_count = 1
@@ -171,8 +166,11 @@ async def leaderboard(self, interaction: Interaction) -> None:
             embed.add_field(name='|', value=field_value)
 
         if author_rank:
-            embed.set_footer(text=f'{len(member_data_list)} members has been registered in this leaderboard. You are in rank #{author_rank}.')
+            embed.set_footer(text=f'{len(member_data_list)} members has been listed in this leaderboard. You are in rank #{author_rank}.')
         else:
-            embed.set_footer(text=f'{len(member_data_list)} members has been registered in this leaderboard. You are not in the leaderboard yet.')
+            embed.set_footer(
+                text=f'{len(member_data_list)} members has been listed in this leaderboard. You are not in the leaderboard yet. ' + \
+                    'Register and play at least 1 official TCG WARNET Tournament match to enter the leaderboard.'
+            )
 
         await interaction.followup.send(embed=embed)
