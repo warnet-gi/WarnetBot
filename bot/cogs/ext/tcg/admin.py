@@ -15,6 +15,38 @@ from bot.cogs.ext.tcg.utils import (
 ) 
 
 
+async def register_member(self, interaction: Interaction, member: discord.Member) -> None:
+    await interaction.response.defer()
+
+    if interaction.user.guild_permissions.administrator or interaction.user.get_role(config.TCGConfig.TCG_EVENT_STAFF_ROLE_ID) != None:
+        member_id = member.id
+        embed: discord.Embed
+        async with self.db_pool.acquire() as conn:
+            res = await conn.fetchval("SELECT discord_id FROM tcg_leaderboard WHERE discord_id = $1;", member_id)
+            if res == None:
+                await conn.execute("INSERT INTO tcg_leaderboard(discord_id) VALUES ($1);", member_id)
+                embed = discord.Embed(
+                    color=discord.Colour.green(),
+                    title='✅ Registered successfully',
+                    description=f"{member.mention} sudah terdaftar di database TCG WARNET dan rating ELO miliknya sudah diatur menjadi 1500 by default.",
+                    timestamp=datetime.datetime.now()
+                )
+            else:
+                embed = discord.Embed(
+                    color=discord.Colour.red(),
+                    title='❌ member is already registered',
+                    description=f"Akun {member.mention} sudah terdaftar. Tidak perlu didaftarkan lagi.",
+                    timestamp=datetime.datetime.now()
+                )
+
+        await interaction.followup.send(embed=embed)
+
+    else:
+        custom_description = f"Hanya <@&{config.ADMINISTRATOR_ROLE_ID['admin']}>, <@&{config.ADMINISTRATOR_ROLE_ID['mod']}>, " + \
+            f"atau <@&{config.TCGConfig.TCG_EVENT_STAFF_ROLE_ID}> yang bisa menggunakan command ini."
+        await send_missing_permission_error_embed(interaction, custom_description=custom_description)
+
+
 async def reset_member_stats(self, interaction: Interaction, member: discord.Member) -> None:
     await interaction.response.defer()
 
