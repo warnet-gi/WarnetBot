@@ -10,6 +10,8 @@ A bot for Warga Nusantara Teyvat (WARNET) [discord server](https://discord.gg/wa
 5. Make sure to install postgreSQL on local machine.
 6. Create `.env` file. It should contain these variables:
     ```bash
+    DEVELOPMENT_BOT_TOKEN="YOUR_BOT_TOKEN"
+    DEVELOPMENT_BOT_INVITE_LINK="YOUR_BOT_INVITE_LINK"
     BOT_TOKEN="YOUR_BOT_TOKEN"
     BOT_INVITE_LINK="YOUR_BOT_INVITE_LINK"
     LOCAL_DB_HOST="localhost"
@@ -17,5 +19,10 @@ A bot for Warga Nusantara Teyvat (WARNET) [discord server](https://discord.gg/wa
     LOCAL_DB_PORT="YOUR_LOCAL_DB_PORT"
     LOCAL_DB_USERNAME="YOUR_LOCAL_DB_USERNAME"
     LOCAL_DB_PASSWORD="YOUR_LOCAL_DB_PASSWORD"
+    HOSTED_DB_HOST="YOUR_DB_HOST"
+    HOSTED_DB_NAME="YOUR_HOSTED_DB_NAME"
+    HOSTED_DB_PORT="YOUR_HOSTED_DB_PORT"
+    HOSTED_DB_USERNAME="YOUR_HOSTED_DB_USERNAME"
+    HOSTED_DB_PASSWORD="YOUR_HOSTED_DB_PASSWORD"
     ```
 7. To run the bot, use `poetry run task start`
