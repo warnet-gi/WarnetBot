@@ -8,6 +8,7 @@ from bot.bot import WarnetBot
 from bot.config import config
 from bot.cogs.ext.tcg.admin import (
     register_member,
+    unregister_member,
     reset_member_stats,
     reset_all_member_stats,
     set_match_result,
@@ -38,6 +39,11 @@ class TCG(commands.GroupCog, group_name="warnet-tcg"):
     @app_commands.describe(member='Member that you want to register.')
     async def tcg_register_member(self, interaction: Interaction, member: discord.Member) -> None:
         await register_member(self, interaction, member)
+    
+    @app_commands.command(name='unregister-member', description='Administrator can unregister a member from TCG leaderboard.')
+    @app_commands.describe(member='Member that you want to unregister.')
+    async def tcg_register_member(self, interaction: Interaction, member: discord.Member) -> None:
+        await unregister_member(self, interaction, member)
 
     @app_commands.command(name='member-stats', description='Member can check their or someone else\'s TCG stats.')
     @app_commands.describe(member='Member that you want to look at.')

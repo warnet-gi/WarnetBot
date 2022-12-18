@@ -47,6 +47,48 @@ async def register_member(self, interaction: Interaction, member: discord.Member
         await send_missing_permission_error_embed(interaction, custom_description=custom_description)
 
 
+async def unregister_member(self, interaction: Interaction, member: discord.Member) -> None:
+    await interaction.response.defer()
+
+    if interaction.user.guild_permissions.administrator:
+        member_id = member.id
+        embed: discord.Embed
+        async with self.db_pool.acquire() as conn:
+            res = await conn.fetchval("SELECT discord_id FROM tcg_leaderboard WHERE discord_id = $1;", member_id)
+            if res == None:
+                embed = discord.Embed(
+                    color=discord.Colour.red(),
+                    title='❌ member is already not registered',
+                    description=f"Akun {member.mention} tidak terdaftar sejak awal.",
+                    timestamp=datetime.datetime.now()
+                )
+
+                await interaction.followup.send(embed=embed)
+
+            else:
+                embed = discord.Embed(
+                    color=discord.Colour.yellow(),
+                    description=f"Yakin akan menghapus {member.mention} dari leaderboard?"
+                )
+                view = Confirm()
+                msg: discord.Message = await interaction.followup.send(embed=embed, view=view)
+                await view.wait()
+
+                if view.value == None:
+                    await msg.edit(content='**Time Out**', embed=None, view=None)
+                
+                elif view.value:
+                    await conn.execute("DELETE FROM tcg_leaderboard WHERE discord_id = $1;", member_id)
+                    
+                    await msg.edit(content=f'✅ **Sukses menghapus {member.mention} dari leaderboard**', embed=None, view=None)
+
+                else:
+                    await msg.delete()
+
+    else:
+        await send_missing_permission_error_embed(interaction)
+
+
 async def reset_member_stats(self, interaction: Interaction, member: discord.Member) -> None:
     await interaction.response.defer()
 
