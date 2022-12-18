@@ -55,16 +55,6 @@ class WarnetBot(commands.Bot):
             
         await self.load_cogs()
         
-        # This copies the global commands over to your guild.
-        # development_guild = discord.Object(PRIVATE_DEV_GUILD_ID)
-        # if development_guild:
-        #     self.tree.copy_global_to(guild=development_guild)
-        #     synced = await self.tree.sync(guild=development_guild)
-        # else:
-        #     synced = await self.tree.sync()
-        
-        # print("Synced {} command(s)".format(len(synced)))
-
     async def load_cogs(self) -> None:
         for filename in os.listdir('./bot/cogs'):
             if filename.endswith('.py'):
@@ -77,15 +67,28 @@ class WarnetBot(commands.Bot):
     async def start(self, debug: bool = False) -> None:
         self.start_time = time.time()
         self.debug = debug
-        self.db_pool = await asyncpg.create_pool(
-            host=os.getenv('HOSTED_DB_HOST'),
-            user=os.getenv('HOSTED_DB_USERNAME'),
-            database=os.getenv('HOSTED_DB_NAME'),
-            password=os.getenv('HOSTED_DB_PASSWORD'),
-            port=os.getenv('HOSTED_DB_PORT')
-        )
 
-        return await super().start(os.getenv('BOT_TOKEN'), reconnect=True)
+        if self.debug:
+            self.db_pool = await asyncpg.create_pool(
+                host=os.getenv('LOCAL_DB_HOST'),
+                user=os.getenv('LOCAL_DB_USERNAME'),
+                database=os.getenv('LOCAL_DB_NAME'),
+                password=os.getenv('LOCAL_DB_PASSWORD'),
+                port=os.getenv('LOCAL_DB_PORT')
+            )
+
+            return await super().start(os.getenv('DEVELOPMENT_BOT_TOKEN'), reconnect=True)
+        
+        else:
+            self.db_pool = await asyncpg.create_pool(
+                host=os.getenv('HOSTED_DB_HOST'),
+                user=os.getenv('HOSTED_DB_USERNAME'),
+                database=os.getenv('HOSTED_DB_NAME'),
+                password=os.getenv('HOSTED_DB_PASSWORD'),
+                port=os.getenv('HOSTED_DB_PORT')
+            )
+
+            return await super().start(os.getenv('BOT_TOKEN'), reconnect=True)
 
     def get_db_pool(self) -> asyncpg.Pool:
         return self.db_pool

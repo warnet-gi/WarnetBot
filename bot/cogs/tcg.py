@@ -7,6 +7,7 @@ from typing import Optional
 from bot.bot import WarnetBot
 from bot.config import config
 from bot.cogs.ext.tcg.admin import (
+    register_member,
     reset_member_stats,
     reset_all_member_stats,
     set_match_result,
@@ -32,6 +33,11 @@ class TCG(commands.GroupCog, group_name="warnet-tcg"):
     @app_commands.command(name='register', description='Member need to register before using other tcg commands.')
     async def tcg_register(self, interaction: Interaction) -> None:
         await register(self, interaction)
+
+    @app_commands.command(name='register-member', description='Administrator can register a member manually if they haven\'t registered yet.')
+    @app_commands.describe(member='Member that you want to register.')
+    async def tcg_register_member(self, interaction: Interaction, member: discord.Member) -> None:
+        await register_member(self, interaction, member)
 
     @app_commands.command(name='member-stats', description='Member can check their or someone else\'s TCG stats.')
     @app_commands.describe(member='Member that you want to look at.')
