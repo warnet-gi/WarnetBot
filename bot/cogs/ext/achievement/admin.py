@@ -24,7 +24,7 @@ async def give_achievement(self: commands.Cog, interaction: Interaction, member:
     if interaction.user.guild_permissions.administrator:
         async with self.db_pool.acquire() as conn:
             res = await conn.fetchval("SELECT discord_id FROM warnet_user WHERE discord_id = $1;", member_id)
-            if res == None:
+            if res is None:
                 await send_user_not_registered_error_embed(interaction, member_id)
 
             else:
@@ -69,18 +69,18 @@ async def give_achievement(self: commands.Cog, interaction: Interaction, member:
 
                 total_completed = await conn.fetchval("SELECT COUNT(*) FROM achievement_progress WHERE discord_id = $1;", member_id)
                 role_badge_id, prev_role_badge_id = self.get_achievement_badge_id(total_completed) 
-                target_role = None if role_badge_id == None else interaction.guild.get_role(role_badge_id)
-                previous_role = None if prev_role_badge_id == None else interaction.guild.get_role(prev_role_badge_id)
+                target_role = None if role_badge_id is None else interaction.guild.get_role(role_badge_id)
+                previous_role = None if prev_role_badge_id is None else interaction.guild.get_role(prev_role_badge_id)
 
-                if target_role == None:
+                if target_role is None:
                     return
 
                 # Check if the user already has the role or not
-                if member.get_role(role_badge_id) == None:
+                if member.get_role(role_badge_id) is None:
                     try:
                         # give the current role and remove previous role then notify them
                         await member.add_roles(target_role, reason="Completed WARNET achievement level")
-                        if previous_role != None:
+                        if previous_role is not None:
                             await member.remove_roles(previous_role)
 
                         notify_embed = discord.Embed(
@@ -111,7 +111,7 @@ async def revoke_achievement(self: commands.Cog, interaction: Interaction, membe
     if interaction.user.guild_permissions.administrator:
         async with self.db_pool.acquire() as conn:
             res = await conn.fetchval("SELECT discord_id FROM warnet_user WHERE discord_id = $1;", member_id)
-            if res == None:
+            if res is None:
                 await send_user_not_registered_error_embed(interaction, member_id)
 
             else:
@@ -162,7 +162,7 @@ async def reset_achievement(self: commands.Cog, interaction: Interaction, member
     member_id = member.id
     async with self.db_pool.acquire() as conn:
         res = await conn.fetchval("SELECT discord_id FROM warnet_user WHERE discord_id = $1;", member_id)
-        if res == None:
+        if res is None:
             await send_user_not_registered_error_embed(interaction, member_id)
 
         else:
@@ -174,7 +174,7 @@ async def reset_achievement(self: commands.Cog, interaction: Interaction, member
             msg: discord.Message = await interaction.followup.send(embed=embed, view=view, ephemeral=True)
             await view.wait()
 
-            if view.value == None:
+            if view.value is None:
                 await msg.edit(content='**Time Out**', embed=None, view=None)
             
             elif view.value:
@@ -182,7 +182,7 @@ async def reset_achievement(self: commands.Cog, interaction: Interaction, member
                 
                 target_roles = []
                 for roles_id in ACHIEVEMENT_RANK_ROLE_ID:
-                    if member.get_role(roles_id) != None:
+                    if member.get_role(roles_id) is not None:
                         target_roles.append(interaction.guild.get_role(roles_id))
                 await member.remove_roles(*target_roles)
 

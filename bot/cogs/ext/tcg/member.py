@@ -17,7 +17,7 @@ async def register(self: commands.Cog, interaction:Interaction) -> None:
     embed: discord.Embed
     async with self.db_pool.acquire() as conn:
         res = await conn.fetchval("SELECT discord_id FROM tcg_leaderboard WHERE discord_id = $1;", author_id)
-        if res == None:
+        if res is None:
             await conn.execute("INSERT INTO tcg_leaderboard(discord_id) VALUES ($1);", author_id)
             embed = discord.Embed(
                 color=discord.Colour.green(),
@@ -38,14 +38,14 @@ async def register(self: commands.Cog, interaction:Interaction) -> None:
 async def member_stats(self: commands.Cog, interaction:Interaction, member: Optional[discord.Member]) -> None:
     await interaction.response.defer()
 
-    user = interaction.user if member == None else member
+    user = interaction.user if member is None else member
     user_id = user.id
     user_name = user.name
     user_color = user.color
     user_display_avatar_url = user.display_avatar.url
     async with self.db_pool.acquire() as conn:
         res = await conn.fetchval("SELECT discord_id FROM tcg_leaderboard WHERE discord_id = $1;", user_id)
-        if res == None:
+        if res is None:
             await send_user_not_registered_error_embed(interaction, user_id)
 
         else:
@@ -55,7 +55,7 @@ async def member_stats(self: commands.Cog, interaction:Interaction, member: Opti
             win_count = data['win_count']
             loss_count = data['loss_count']
             elo = data['elo']
-            user_tcg_title_role = member.get_role(data['title']) if data['title'] != None else None
+            user_tcg_title_role = member.get_role(data['title']) if data['title'] is not None else None
             match_played = win_count + loss_count
             win_rate = 0 if match_played == 0 else (win_count / match_played) * 100
 
@@ -87,7 +87,7 @@ async def member_stats(self: commands.Cog, interaction:Interaction, member: Opti
             )
             embed.add_field(
                 name=f"TCG Title",
-                value=f"🎖️ {'No TCG title' if user_tcg_title_role == None else user_tcg_title_role.mention}",
+                value=f"🎖️ {'No TCG title' if user_tcg_title_role is None else user_tcg_title_role.mention}",
                 inline=False
             )
 
@@ -123,14 +123,14 @@ async def leaderboard(self, interaction: Interaction) -> None:
         for member_data in member_data_list_top:
             member = interaction.guild.get_member(member_data['discord_id'])
             # Prevent none object if user leaves but they still in the leaderboard
-            if member == None:
+            if member is None:
                 member = await self.bot.fetch_user(member_data['discord_id'])
             
             if len(member.name) > 10:
                 member_name = member.name[:7]+'...'
             else:
                 member_name = member.name
-            member_title_emoji = title_emoji[member_data['title']] if member_data['title'] != None else ''
+            member_title_emoji = title_emoji[member_data['title']] if member_data['title'] is not None else ''
             row_string = f"`{rank_count:>2}` {member_title_emoji:<1} {member_name:<10} ({member_data['win_count']:>2}/{member_data['loss_count']:<2}) **{member_data['elo']:.1f}**\n"
             field_value += row_string
 
@@ -147,14 +147,14 @@ async def leaderboard(self, interaction: Interaction) -> None:
             for member_data in member_data_list_bottom:
                 member = interaction.guild.get_member(member_data['discord_id'])
                 # Prevent none object if user leaves but they still in the leaderboard
-                if member == None:
+                if member is None:
                     member = await self.bot.fetch_user(member_data['discord_id'])
 
                 if len(member.name) > 10:
                     member_name = member.name[:7]+'...'
                 else:
                     member_name = member.name
-                member_title_emoji = title_emoji[member_data['title']] if member_data['title'] != None else ''
+                member_title_emoji = title_emoji[member_data['title']] if member_data['title'] is not None else ''
                 row_string = f"`{rank_count:>2}` {member_title_emoji:<1} {member_name:<10} ({member_data['win_count']:>2}/{member_data['loss_count']:<2}) **{member_data['elo']:.1f}**\n"
                 field_value += row_string
 
