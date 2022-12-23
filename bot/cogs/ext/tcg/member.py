@@ -100,12 +100,11 @@ async def leaderboard(self, interaction: Interaction) -> None:
 
     async with self.db_pool.acquire() as conn:
         records = await conn.fetch("SELECT * FROM tcg_leaderboard WHERE win_count + loss_count > 0 ORDER BY elo DESC;")
-        member_data_list = [dict(row) for row in records]
+        all_records = [dict(row) for row in records]
 
         # Pick only top N
         TOP_N = 40
-        member_data_list_top = member_data_list[:TOP_N//2]
-        member_data_list_bottom = member_data_list[TOP_N//2:TOP_N]
+        all_member_data_list = [all_records[:TOP_N//2], all_records[TOP_N//2:TOP_N]]
 
         embed = discord.Embed(
             color=discord.Color.gold(),
@@ -114,56 +113,40 @@ async def leaderboard(self, interaction: Interaction) -> None:
         )
         embed.set_thumbnail(url='https://cdn.discordapp.com/attachments/929746553944551424/1052431858371133460/Paimon_TCG.png')
         
+        if len(all_member_data_list[0]) == 0:
+            embed.add_field(name='Rank  |  Player  |  W/L  |  ELO', value='**NO PLAYER IN THIS LEADERBOARD YET**')
 
-        title_emoji = config.TCGConfig.TCG_TITLE_EMOJI
+        else:
+            title_emoji = config.TCGConfig.TCG_TITLE_EMOJI
+            rank_count = 1
+            author_rank = 0
 
-        field_value = ''
-        rank_count = 1
-        author_rank = 0
-        for member_data in member_data_list_top:
-            member = interaction.guild.get_member(member_data['discord_id'])
-            # Prevent none object if user leaves but they still in the leaderboard
-            if member is None:
-                member = await self.bot.fetch_user(member_data['discord_id'])
-            
-            if len(member.name) > 10:
-                member_name = member.name[:7]+'...'
-            else:
-                member_name = member.name
-            member_title_emoji = title_emoji[member_data['title']] if member_data['title'] is not None else ''
-            row_string = f"`{rank_count:>2}` {member_title_emoji:<1} {member_name:<10} ({member_data['win_count']:>2}/{member_data['loss_count']:<2}) **{member_data['elo']:.1f}**\n"
-            field_value += row_string
+            for member_data_list in all_member_data_list:
+                if member_data_list == all_member_data_list[1] and len(all_member_data_list[1]) == 0: continue
+                
+                field_value = ''
+                field_name = 'Rank  |  Player  |  W/L  |  ELO' if member_data_list == all_member_data_list[0] else '|'
+                for member_data in member_data_list:
+                    member = interaction.guild.get_member(member_data['discord_id'])
+                    # Prevent none object if user leaves but they still in the leaderboard
+                    if member is None:
+                        member = await self.bot.fetch_user(member_data['discord_id'])
+                    
+                    if len(member.name) > 10:
+                        member_name = member.name[:7]+'...'
+                    else:
+                        member_name = member.name
 
-            if member.id == author.id:
-                author_rank = rank_count
+                    member_title_emoji = title_emoji[member_data['title']] if member_data['title'] is not None else ''
+                    row_string = f"`{rank_count:>2}` {member_title_emoji:<1} {member_name:<10} ({member_data['win_count']:>2}/{member_data['loss_count']:<2}) **{member_data['elo']:.1f}**\n"
+                    field_value += row_string
 
-            rank_count += 1
-        
-        if len(field_value) == 0: field_value = '**NO PLAYER IN THIS LEADERBOARD YET**'
-        embed.add_field(name='Rank  |  Player  |  W/L  |  ELO', value=field_value)
+                    if member.id == author.id:
+                        author_rank = rank_count
 
-        if member_data_list_bottom:
-            field_value = ''
-            for member_data in member_data_list_bottom:
-                member = interaction.guild.get_member(member_data['discord_id'])
-                # Prevent none object if user leaves but they still in the leaderboard
-                if member is None:
-                    member = await self.bot.fetch_user(member_data['discord_id'])
-
-                if len(member.name) > 10:
-                    member_name = member.name[:7]+'...'
-                else:
-                    member_name = member.name
-                member_title_emoji = title_emoji[member_data['title']] if member_data['title'] is not None else ''
-                row_string = f"`{rank_count:>2}` {member_title_emoji:<1} {member_name:<10} ({member_data['win_count']:>2}/{member_data['loss_count']:<2}) **{member_data['elo']:.1f}**\n"
-                field_value += row_string
-
-                if member.id == author.id:
-                    author_rank = rank_count
-
-                rank_count += 1
-
-            embed.add_field(name='|', value=field_value)
+                    rank_count += 1
+                
+                embed.add_field(name=field_name, value=field_value)
 
         if author_rank:
             embed.set_footer(text=f'{len(member_data_list)} members has been listed in this leaderboard. You are in rank #{author_rank}.')
