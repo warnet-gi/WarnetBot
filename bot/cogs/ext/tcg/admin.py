@@ -145,7 +145,10 @@ async def reset_member_stats(self, interaction: Interaction, member: Union[disco
                         description=f"TCG stats milik {member.mention} telah direset",
                         timestamp=datetime.datetime.now(),
                     )
-                    notify_embed.set_footer(text=f'Reset by {interaction.user.name}')
+                    notify_embed.set_footer(
+                        text=f'Reset by {str(interaction.user)}',
+                        icon_url=interaction.user.display_avatar.url
+                    )
 
                     await interaction.channel.send(
                         embed=notify_embed,
@@ -198,7 +201,10 @@ async def reset_all_member_stats(self, interaction: Interaction) -> None:
                     description=f"Semua TCG stats telah direset",
                     timestamp=datetime.datetime.now(),
                 )
-                notify_embed.set_footer(text=f'Reset by {interaction.user.name}')
+                notify_embed.set_footer(
+                    text=f'Reset by {str(interaction.user)}',
+                    icon_url=interaction.user.display_avatar.url
+                )
 
                 await interaction.channel.send(
                     embed=notify_embed,
@@ -328,7 +334,10 @@ async def set_member_stats(
                     description=f'{member.mention} stats has been set.',
                     timestamp=datetime.datetime.now()
                 )
-                embed.set_footer(text=f'Set by {interaction.user.name}')
+                embed.set_footer(
+                    text=f'Set by {str(interaction.user)}',
+                    icon_url=interaction.user.display_avatar.url
+                )
                 
                 await interaction.followup.send(embed=embed)
     else:
