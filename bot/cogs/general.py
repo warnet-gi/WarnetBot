@@ -37,12 +37,11 @@ class General(commands.Cog):
 
         embed = discord.Embed(
             color=interaction.user.color,
-            title='Commands yang tersedia di WarnetBot',
-            timestamp=datetime.datetime.now(),
+            title='📔 Commands yang tersedia di WarnetBot',
         )
         embed.set_thumbnail(url=self.bot.user.display_avatar.url)
         embed.add_field(
-            name='General Commands',
+            name='👥 General Commands',
             value="""
             `/help` - Shows all commands that available to use.
             `/about` - Shows basic information about the bot.
@@ -50,14 +49,14 @@ class General(commands.Cog):
             inline=False
         )
         embed.add_field(
-            name='Admin Commands',
+            name='👮 Admin Commands',
             value="""
             `/admin give-role-on-vc` - Give a role to all members in a voice channel.
             """,
             inline=False
         )
         embed.add_field(
-            name='TCG Commands',
+            name='<:ImmortalDuelist:1052440404135518228> TCG Commands',
             value="""
             `/warnet-tcg register` - Member need to register before using other tcg commands.
             `/warnet-tcg member-stats` - Member can check their or someone else's TCG stats.
