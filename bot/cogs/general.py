@@ -50,11 +50,20 @@ class General(commands.Cog):
             inline=False
         )
         embed.add_field(
+            name='Admin Commands',
+            value="""
+            `/admin give-role-on-vc` - Give a role to all members in a voice channel.
+            """,
+            inline=False
+        )
+        embed.add_field(
             name='TCG Commands',
             value="""
             `/warnet-tcg register` - Member need to register before using other tcg commands.
             `/warnet-tcg member-stats` - Member can check their or someone else's TCG stats.
             `/warnet-tcg leaderboard` - ELO leaderboard for WARNET TCG.
+            `/warnet-tcg register-member` - __**(ADMIN)**__ register a member manually if they haven't registered on TCG leaderboard yet.
+            `/warnet-tcg unregister-member` - __**(ADMIN)**__ Unregister a member from TCG leaderboard.
             `/warnet-tcg reset-stats` - __**(ADMIN)**__ Reset a member TCG stats.
             `/warnet-tcg reset-all-stats` - __**(ADMIN)**__ Reset all member TCG stats.
             `/warnet-tcg set-match-result` - __**(ADMIN)**__ Set the TCG match result between players.
