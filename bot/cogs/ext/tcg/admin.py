@@ -194,23 +194,18 @@ async def reset_all_member_stats(self, interaction: Interaction) -> None:
 
                 await conn.execute("UPDATE tcg_leaderboard SET win_count=0, loss_count=0, elo=1500, title=NULL;")
 
-                await msg.edit(content=f'✅ **Sukses melakukan reset progress TCG kepada semua member**', embed=None, view=None)
-                
                 notify_embed = discord.Embed(
-                    color= discord.Color.default(),
-                    description=f"Semua TCG stats telah direset",
+                    color= discord.Color.blurple(),
+                    title=f"✅ Sukses melakukan reset progress TCG kepada semua member",
                     timestamp=datetime.datetime.now(),
                 )
                 notify_embed.set_footer(
                     text=f'Reset by {str(interaction.user)}',
                     icon_url=interaction.user.display_avatar.url
                 )
-
-                await interaction.channel.send(
-                    embed=notify_embed,
-                    reference=msg
-                )
-
+                
+                await msg.edit(content=None, embed=notify_embed, view=None)
+            
             else:
                 await msg.delete()
 
