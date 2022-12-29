@@ -1,5 +1,5 @@
 import datetime
-from typing import Optional
+from typing import Optional, Union
 
 import discord
 from discord import Interaction, app_commands
@@ -10,13 +10,18 @@ from bot.config import config
 from bot.cogs.ext.tcg.utils import (
     send_user_not_registered_error_embed,
     send_missing_permission_error_embed,
+    send_user_is_not_in_guild_error_embed,
     calculate_elo,
     change_tcg_title_role
 ) 
 
 
-async def register_member(self, interaction: Interaction, member: discord.Member) -> None:
+async def register_member(self, interaction: Interaction, member: Union[discord.Member, discord.User]) -> None:
     await interaction.response.defer()
+
+    if isinstance(member, discord.User):
+        await send_user_is_not_in_guild_error_embed(interaction, member)
+        return
 
     if interaction.user.guild_permissions.administrator or interaction.user.get_role(config.TCGConfig.TCG_EVENT_STAFF_ROLE_ID) is not None:
         member_id = member.id
@@ -47,8 +52,12 @@ async def register_member(self, interaction: Interaction, member: discord.Member
         await send_missing_permission_error_embed(interaction, custom_description=custom_description)
 
 
-async def unregister_member(self, interaction: Interaction, member: discord.Member) -> None:
+async def unregister_member(self, interaction: Interaction, member: Union[discord.Member, discord.User]) -> None:
     await interaction.response.defer()
+
+    if isinstance(member, discord.User):
+        await send_user_is_not_in_guild_error_embed(interaction, member)
+        return
 
     if interaction.user.guild_permissions.administrator:
         member_id = member.id
@@ -89,8 +98,12 @@ async def unregister_member(self, interaction: Interaction, member: discord.Memb
         await send_missing_permission_error_embed(interaction)
 
 
-async def reset_member_stats(self, interaction: Interaction, member: discord.Member) -> None:
+async def reset_member_stats(self, interaction: Interaction, member: Union[discord.Member, discord.User]) -> None:
     await interaction.response.defer()
+
+    if isinstance(member, discord.User):
+        await send_user_is_not_in_guild_error_embed(interaction, member)
+        return
 
     user_id = member.id
     if interaction.user.guild_permissions.administrator:
@@ -199,8 +212,18 @@ async def reset_all_member_stats(self, interaction: Interaction) -> None:
         await send_missing_permission_error_embed(interaction)
 
 
-async def set_match_result(self, interaction: Interaction, winner: discord.Member, loser: discord.Member) -> None:
+async def set_match_result(
+    self,
+    interaction: Interaction,
+    winner: Union[discord.Member, discord.User],
+    loser: Union[discord.Member, discord.User]
+) -> None:
     await interaction.response.defer()
+
+    if isinstance(winner, discord.User):
+        winner = await self.bot.fetch_user(winner.id)
+    if isinstance(loser, discord.User):
+        loser = await self.bot.fetch_user(loser.id)        
 
     if interaction.user.guild_permissions.administrator or interaction.user.get_role(config.TCGConfig.TCG_EVENT_STAFF_ROLE_ID) is not None:
         async with self.db_pool.acquire() as conn:
@@ -276,12 +299,16 @@ async def set_match_result(self, interaction: Interaction, winner: discord.Membe
 
 async def set_member_stats(
     self, interaction:Interaction,
-    member: discord.Member,
+    member: Union[discord.Member, discord.User],
     win_count: Optional[app_commands.Range[int, 0]],
     loss_count: Optional[app_commands.Range[int, 0]],
     elo: Optional[app_commands.Range[float, 0]]
 ) -> None:
     await interaction.response.defer()
+
+    if isinstance(member, discord.User):
+        await send_user_is_not_in_guild_error_embed(interaction, member)
+        return
 
     if interaction.user.guild_permissions.administrator or interaction.user.get_role(config.TCGConfig.TCG_EVENT_STAFF_ROLE_ID) is not None:
         async with self.db_pool.acquire() as conn:

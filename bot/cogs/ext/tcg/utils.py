@@ -39,6 +39,16 @@ async def send_missing_permission_error_embed(interaction: Interaction, custom_d
     await interaction.followup.send(embed=embed)
 
 
+async def send_user_is_not_in_guild_error_embed(interaction: Interaction, user: discord.User) -> None:
+    embed = discord.Embed(
+        color=discord.Colour.red(),
+        title="❌ User is not found",
+        description=f"Can't find user with id `{user.id}` in this server"
+    )
+
+    await interaction.followup.send(embed=embed)
+
+
 def calculate_elo(rating_winner: float, rating_loser: float) -> float:
     k_factor = 30
     score = 1  # consider as win 

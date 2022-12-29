@@ -1,5 +1,5 @@
 import datetime
-from typing import Optional
+from typing import Optional, Union
 
 import discord
 from discord import Interaction
@@ -8,6 +8,7 @@ from discord.ext import commands
 from bot.config import config
 from bot.cogs.ext.tcg.utils import (
     send_user_not_registered_error_embed,
+    send_user_is_not_in_guild_error_embed
 )
 
 async def register(self: commands.Cog, interaction:Interaction) -> None:
@@ -35,8 +36,12 @@ async def register(self: commands.Cog, interaction:Interaction) -> None:
 
     await interaction.followup.send(embed=embed, ephemeral=True)
 
-async def member_stats(self: commands.Cog, interaction:Interaction, member: Optional[discord.Member]) -> None:
+async def member_stats(self: commands.Cog, interaction:Interaction, member: Optional[Union[discord.Member, discord.User]]) -> None:
     await interaction.response.defer()
+
+    if isinstance(member, discord.User):
+        await send_user_is_not_in_guild_error_embed(interaction, member)
+        return
 
     user = interaction.user if member is None else member
     user_id = user.id
@@ -148,12 +153,12 @@ async def leaderboard(self, interaction: Interaction) -> None:
                 
                 embed.add_field(name=field_name, value=field_value)
 
-        if author_rank:
-            embed.set_footer(text=f'{len(member_data_list)} members has been listed in this leaderboard. You are in rank #{author_rank}.')
-        else:
-            embed.set_footer(
-                text=f'{len(member_data_list)} members has been listed in this leaderboard. You are not in the leaderboard yet. ' + \
-                    'Register and play at least 1 official TCG WARNET Tournament match to enter the leaderboard.'
-            )
+            if author_rank:
+                embed.set_footer(text=f'{len(member_data_list)} members has been listed in this leaderboard. You are in rank #{author_rank}.')
+            else:
+                embed.set_footer(
+                    text=f'{len(member_data_list)} members has been listed in this leaderboard. You are not in the leaderboard yet. ' + \
+                        'Register and play at least 1 official TCG WARNET Tournament match to enter the leaderboard.'
+                )
 
         await interaction.followup.send(embed=embed)
