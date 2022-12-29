@@ -9,7 +9,7 @@ from bot.config import config
 
 async def send_user_not_registered_error_embed(interaction: Interaction, member1_id: int, member2_id: Optional[int] = None) -> None:
     desc_msg: str
-    if member2_id != None:
+    if member2_id is not None:
         desc_msg = f"<@{member1_id}> dan <@{member2_id}> belum terdaftar di database. Silakan untuk mendaftar terlebih dahulu menggunakan `/warnet-tcg register`"
     else:
         desc_msg = f"<@{member1_id}> belum terdaftar di database. Silakan <@{member1_id}> untuk mendaftar terlebih dahulu menggunakan `/warnet-tcg register`",
@@ -34,6 +34,16 @@ async def send_missing_permission_error_embed(interaction: Interaction, custom_d
         title="❌ You don't have permission",
         description=description,
         timestamp=datetime.datetime.now(),
+    )
+
+    await interaction.followup.send(embed=embed)
+
+
+async def send_user_is_not_in_guild_error_embed(interaction: Interaction, user: discord.User) -> None:
+    embed = discord.Embed(
+        color=discord.Colour.red(),
+        title="❌ User is not found",
+        description=f"Can't find user with id `{user.id}` in this server"
     )
 
     await interaction.followup.send(embed=embed)

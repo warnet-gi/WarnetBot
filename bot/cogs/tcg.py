@@ -2,7 +2,7 @@ import discord
 from discord import Interaction, app_commands, Embed
 from discord.ext import commands
 
-from typing import Optional
+from typing import Optional, Union
 
 from bot.bot import WarnetBot
 from bot.config import config
@@ -37,17 +37,17 @@ class TCG(commands.GroupCog, group_name="warnet-tcg"):
 
     @app_commands.command(name='register-member', description='Administrator can register a member manually if they haven\'t registered yet.')
     @app_commands.describe(member='Member that you want to register.')
-    async def tcg_register_member(self, interaction: Interaction, member: discord.Member) -> None:
+    async def tcg_register_member(self, interaction: Interaction, member: Union[discord.Member, discord.User]) -> None:
         await register_member(self, interaction, member)
     
     @app_commands.command(name='unregister-member', description='Administrator can unregister a member from TCG leaderboard.')
     @app_commands.describe(member='Member that you want to unregister.')
-    async def tcg_unregister_member(self, interaction: Interaction, member: discord.Member) -> None:
+    async def tcg_unregister_member(self, interaction: Interaction, member: Union[discord.Member, discord.User]) -> None:
         await unregister_member(self, interaction, member)
 
     @app_commands.command(name='member-stats', description='Member can check their or someone else\'s TCG stats.')
     @app_commands.describe(member='Member that you want to look at.')
-    async def tcg_member_stats(self, interaction: Interaction, member: Optional[discord.Member]) -> None:
+    async def tcg_member_stats(self, interaction: Interaction, member: Optional[Union[discord.Member, discord.User]]) -> None:
         await member_stats(self, interaction, member)
 
     @app_commands.command(name='leaderboard', description='ELO leaderboard for WARNET TCG.')
@@ -56,7 +56,7 @@ class TCG(commands.GroupCog, group_name="warnet-tcg"):
 
     @app_commands.command(name='reset-stats', description='Reset a member TCG stats.')
     @app_commands.describe(member='Member that you want to reset their stats.')
-    async def tcg_reset_member_stats(self, interaction: Interaction, member: discord.Member) -> None:
+    async def tcg_reset_member_stats(self, interaction: Interaction, member: Union[discord.Member, discord.User]) -> None:
         await reset_member_stats(self, interaction, member)
 
     @app_commands.command(name='reset-all-stats', description='Reset all member TCG stats.')
@@ -65,7 +65,12 @@ class TCG(commands.GroupCog, group_name="warnet-tcg"):
 
     @app_commands.command(name='set-match-result', description='Set the TCG match result between players.')
     @app_commands.describe(winner='Member who won a match.', loser='Member who lose a match.')
-    async def tcg_set_match_result(self, interaction: Interaction, winner: discord.Member, loser: discord.Member) -> None:
+    async def tcg_set_match_result(
+        self,
+        interaction: Interaction,
+        winner: Union[discord.Member, discord.User],
+        loser: Union[discord.Member, discord.User]
+    ) -> None:
         await set_match_result(self, interaction, winner, loser)
 
     @app_commands.command(name='set-member-stats', description='Set tcg stats for a member manually.')
@@ -78,7 +83,7 @@ class TCG(commands.GroupCog, group_name="warnet-tcg"):
     async def tcg_set_member_stats(
         self,
         interaction: Interaction,
-        member: discord.Member,
+        member: Union[discord.Member, discord.User],
         win_count: Optional[app_commands.Range[int, 0]],
         loss_count: Optional[app_commands.Range[int, 0]],
         elo_rating: Optional[app_commands.Range[float, 0]]

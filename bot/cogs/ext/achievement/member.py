@@ -18,7 +18,7 @@ async def register(self: commands.Cog, interaction: Interaction) -> None:
     embed: discord.Embed
     async with self.db_pool.acquire() as conn:
         res = await conn.fetchval("SELECT discord_id FROM warnet_user WHERE discord_id = $1;", author_id)
-        if res == None:
+        if res is None:
             await conn.execute("INSERT INTO warnet_user(discord_id) VALUES ($1);", author_id)
             embed = discord.Embed(
                 color=discord.Colour.green(),
@@ -85,13 +85,13 @@ async def show_achievement_detail(self: commands.Cog, interaction: Interaction, 
 async def show_achievement_stats(self: commands.Cog, interaction: Interaction, member: Optional[discord.Member]) -> None:
     await interaction.response.defer()
 
-    user_id = interaction.user.id if member == None else member.id
-    user_name = interaction.user.name if member == None else member.name
-    user_color = interaction.user.color if member == None else member.color
-    user_display_avatar_url = interaction.user.display_avatar.url if member == None else member.display_avatar.url
+    user_id = interaction.user.id if member is None else member.id
+    user_name = interaction.user.name if member is None else member.name
+    user_color = interaction.user.color if member is None else member.color
+    user_display_avatar_url = interaction.user.display_avatar.url if member is None else member.display_avatar.url
     async with self.db_pool.acquire() as conn:
         res = await conn.fetchval("SELECT discord_id FROM warnet_user WHERE discord_id = $1;", user_id)
-        if res == None:
+        if res is None:
             await send_user_not_registered_error_embed(interaction, user_id)
 
         else:
@@ -114,7 +114,7 @@ async def show_achievement_stats(self: commands.Cog, interaction: Interaction, m
             )
             embed.add_field(
                 name="Current Badge",
-                value="No Badge" if badge_id == None else f"<@&{badge_id}>",
+                value="No Badge" if badge_id is None else f"<@&{badge_id}>",
                 inline=False
             )
 

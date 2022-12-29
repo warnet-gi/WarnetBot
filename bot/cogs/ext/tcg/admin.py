@@ -1,5 +1,5 @@
 import datetime
-from typing import Optional
+from typing import Optional, Union
 
 import discord
 from discord import Interaction, app_commands
@@ -10,20 +10,25 @@ from bot.config import config
 from bot.cogs.ext.tcg.utils import (
     send_user_not_registered_error_embed,
     send_missing_permission_error_embed,
+    send_user_is_not_in_guild_error_embed,
     calculate_elo,
     change_tcg_title_role
 ) 
 
 
-async def register_member(self, interaction: Interaction, member: discord.Member) -> None:
+async def register_member(self, interaction: Interaction, member: Union[discord.Member, discord.User]) -> None:
     await interaction.response.defer()
 
-    if interaction.user.guild_permissions.administrator or interaction.user.get_role(config.TCGConfig.TCG_EVENT_STAFF_ROLE_ID) != None:
+    if isinstance(member, discord.User):
+        await send_user_is_not_in_guild_error_embed(interaction, member)
+        return
+
+    if interaction.user.guild_permissions.administrator or interaction.user.get_role(config.TCGConfig.TCG_EVENT_STAFF_ROLE_ID) is not None:
         member_id = member.id
         embed: discord.Embed
         async with self.db_pool.acquire() as conn:
             res = await conn.fetchval("SELECT discord_id FROM tcg_leaderboard WHERE discord_id = $1;", member_id)
-            if res == None:
+            if res is None:
                 await conn.execute("INSERT INTO tcg_leaderboard(discord_id) VALUES ($1);", member_id)
                 embed = discord.Embed(
                     color=discord.Colour.green(),
@@ -47,15 +52,19 @@ async def register_member(self, interaction: Interaction, member: discord.Member
         await send_missing_permission_error_embed(interaction, custom_description=custom_description)
 
 
-async def unregister_member(self, interaction: Interaction, member: discord.Member) -> None:
+async def unregister_member(self, interaction: Interaction, member: Union[discord.Member, discord.User]) -> None:
     await interaction.response.defer()
+
+    if isinstance(member, discord.User):
+        await send_user_is_not_in_guild_error_embed(interaction, member)
+        return
 
     if interaction.user.guild_permissions.administrator:
         member_id = member.id
         embed: discord.Embed
         async with self.db_pool.acquire() as conn:
             res = await conn.fetchval("SELECT discord_id FROM tcg_leaderboard WHERE discord_id = $1;", member_id)
-            if res == None:
+            if res is None:
                 embed = discord.Embed(
                     color=discord.Colour.red(),
                     title='❌ member is already not registered',
@@ -74,7 +83,7 @@ async def unregister_member(self, interaction: Interaction, member: discord.Memb
                 msg: discord.Message = await interaction.followup.send(embed=embed, view=view)
                 await view.wait()
 
-                if view.value == None:
+                if view.value is None:
                     await msg.edit(content='**Time Out**', embed=None, view=None)
                 
                 elif view.value:
@@ -89,14 +98,18 @@ async def unregister_member(self, interaction: Interaction, member: discord.Memb
         await send_missing_permission_error_embed(interaction)
 
 
-async def reset_member_stats(self, interaction: Interaction, member: discord.Member) -> None:
+async def reset_member_stats(self, interaction: Interaction, member: Union[discord.Member, discord.User]) -> None:
     await interaction.response.defer()
+
+    if isinstance(member, discord.User):
+        await send_user_is_not_in_guild_error_embed(interaction, member)
+        return
 
     user_id = member.id
     if interaction.user.guild_permissions.administrator:
         async with self.db_pool.acquire() as conn:
             res = await conn.fetchval("SELECT discord_id FROM tcg_leaderboard WHERE discord_id = $1;", user_id)
-            if res == None:
+            if res is None:
                 await send_user_not_registered_error_embed(interaction, user_id)
 
             else:
@@ -108,7 +121,7 @@ async def reset_member_stats(self, interaction: Interaction, member: discord.Mem
                 msg: discord.Message = await interaction.followup.send(embed=embed, view=view, ephemeral=True)
                 await view.wait()
 
-                if view.value == None:
+                if view.value is None:
                     await msg.edit(content='**Time Out**', embed=None, view=None)
                 
                 elif view.value:
@@ -158,7 +171,7 @@ async def reset_all_member_stats(self, interaction: Interaction) -> None:
             msg: discord.Message = await interaction.followup.send(embed=embed, view=view, ephemeral=True)
             await view.wait()
 
-            if view.value == None:
+            if view.value is None:
                 await msg.edit(content='**Time Out**', embed=None, view=None)
             
             elif view.value:
@@ -199,18 +212,28 @@ async def reset_all_member_stats(self, interaction: Interaction) -> None:
         await send_missing_permission_error_embed(interaction)
 
 
-async def set_match_result(self, interaction: Interaction, winner: discord.Member, loser: discord.Member) -> None:
+async def set_match_result(
+    self,
+    interaction: Interaction,
+    winner: Union[discord.Member, discord.User],
+    loser: Union[discord.Member, discord.User]
+) -> None:
     await interaction.response.defer()
 
-    if interaction.user.guild_permissions.administrator or interaction.user.get_role(config.TCGConfig.TCG_EVENT_STAFF_ROLE_ID) != None:
+    if isinstance(winner, discord.User):
+        winner = await self.bot.fetch_user(winner.id)
+    if isinstance(loser, discord.User):
+        loser = await self.bot.fetch_user(loser.id)        
+
+    if interaction.user.guild_permissions.administrator or interaction.user.get_role(config.TCGConfig.TCG_EVENT_STAFF_ROLE_ID) is not None:
         async with self.db_pool.acquire() as conn:
             res1 = await conn.fetchval("SELECT discord_id FROM tcg_leaderboard WHERE discord_id = $1;", winner.id)
             res2 = await conn.fetchval("SELECT discord_id FROM tcg_leaderboard WHERE discord_id = $1;", loser.id)
-            if res1 == None and res2 == None:
+            if res1 is None and res2 is None:
                 await send_user_not_registered_error_embed(interaction, winner.id, member2_id=loser.id)
-            elif res1 == None:
+            elif res1 is None:
                 await send_user_not_registered_error_embed(interaction, winner.id)
-            elif res2 == None:
+            elif res2 is None:
                 await send_user_not_registered_error_embed(interaction, loser.id)
             elif winner == loser:
                 await interaction.followup.send(content="Winner and Loser must be different user!")
@@ -257,7 +280,7 @@ async def set_match_result(self, interaction: Interaction, winner: discord.Membe
                 await conn.execute(
                     "UPDATE tcg_leaderboard SET win_count=win_count+1, elo=$1, title=$2 WHERE discord_id = $3;",
                     elo_after_win,
-                    new_tcg_role.id if new_tcg_role != None else None,
+                    new_tcg_role.id if new_tcg_role is not None else None,
                     winner_data['discord_id']
                 )
                 
@@ -265,7 +288,7 @@ async def set_match_result(self, interaction: Interaction, winner: discord.Membe
                 await conn.execute(
                     "UPDATE tcg_leaderboard SET loss_count=loss_count+1, elo=$1, title=$2 WHERE discord_id = $3;",
                     elo_after_loss,
-                    new_tcg_role.id if new_tcg_role != None else None,
+                    new_tcg_role.id if new_tcg_role is not None else None,
                     loser_data['discord_id']
                 )
     
@@ -276,24 +299,28 @@ async def set_match_result(self, interaction: Interaction, winner: discord.Membe
 
 async def set_member_stats(
     self, interaction:Interaction,
-    member: discord.Member,
+    member: Union[discord.Member, discord.User],
     win_count: Optional[app_commands.Range[int, 0]],
     loss_count: Optional[app_commands.Range[int, 0]],
     elo: Optional[app_commands.Range[float, 0]]
 ) -> None:
     await interaction.response.defer()
 
-    if interaction.user.guild_permissions.administrator or interaction.user.get_role(config.TCGConfig.TCG_EVENT_STAFF_ROLE_ID) != None:
+    if isinstance(member, discord.User):
+        await send_user_is_not_in_guild_error_embed(interaction, member)
+        return
+
+    if interaction.user.guild_permissions.administrator or interaction.user.get_role(config.TCGConfig.TCG_EVENT_STAFF_ROLE_ID) is not None:
         async with self.db_pool.acquire() as conn:
             res = await conn.fetchval("SELECT discord_id FROM tcg_leaderboard WHERE discord_id = $1;", member.id)
-            if res == None:
+            if res is None:
                 await send_user_not_registered_error_embed(interaction, member.id)
             
             else:
                 await conn.execute(
-                    f"UPDATE tcg_leaderboard SET win_count={win_count if win_count != None else 'win_count'}, " +
-                    f"loss_count={loss_count if loss_count != None else 'loss_count'}, " +
-                    f"elo={elo if elo != None else 'elo'}  WHERE discord_id = {member.id};"
+                    f"UPDATE tcg_leaderboard SET win_count={win_count if win_count is not None else 'win_count'}, " +
+                    f"loss_count={loss_count if loss_count is not None else 'loss_count'}, " +
+                    f"elo={elo if elo is not None else 'elo'}  WHERE discord_id = {member.id};"
                 )
 
                 embed = discord.Embed(

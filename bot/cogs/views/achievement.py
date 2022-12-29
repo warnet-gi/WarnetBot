@@ -90,7 +90,7 @@ class StatsProgressDetail(discord.ui.View):
         total_pages = total_data//10 + 1 if total_data % 10 else total_data//10
 
         embeds = []
-        mention_text = self.Member.name+"'s" if self.Member != None else 'Your'
+        mention_text = self.Member.name+"'s" if self.Member is not None else 'Your'
         for page in range(total_pages):
             embed = discord.Embed(
                 color=0xfcba03,
