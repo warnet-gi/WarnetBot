@@ -1,8 +1,9 @@
 import datetime, time
+import random
 
 import discord
 from discord import Interaction, app_commands
-from discord.ext import commands
+from discord.ext import commands, tasks
 
 from bot.bot import WarnetBot
 
@@ -62,6 +63,32 @@ class General(commands.Cog):
             inline=False
         )
         await interaction.followup.send(embed=embed)
+
+    @commands.Cog.listener()
+    async def on_connect(self) -> None:
+        self._change_presence.start()
+
+    @tasks.loop(minutes=1)
+    async def _change_presence(self) -> None:
+        humans = 0
+        for g in self.bot.guilds:
+            humans += sum(not m.bot for m in g.members)
+
+        activity_status = [
+            discord.Game(name='PC WARNET'),
+            discord.Activity(type=discord.ActivityType.watching, name=f'{humans} Pengguna WARNET'),
+            discord.Activity(type=discord.ActivityType.competing, name='TCG WARNET OPEN'),
+        ]
+        discord_status = [
+            discord.Status.online,
+            discord.Status.idle,
+            discord.Status.do_not_disturb,
+        ]
+        
+        await self.bot.change_presence(
+            status=random.choice(discord_status),
+            activity=random.choice(activity_status)
+        )
 
 
 async def setup(bot: WarnetBot) -> None:

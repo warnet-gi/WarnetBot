@@ -5,7 +5,7 @@ import asyncpg
 import time
 
 import discord
-from discord.ext import commands
+from discord.ext.commands import Bot
 
 from dotenv import load_dotenv
 from bot.config import config
@@ -18,7 +18,7 @@ BOT_PREFIX = config.DEFAULT['prefix']
 PRIVATE_DEV_GUILD_ID = config.PRIVATE_DEV_GUILD_ID
 WARNET_GUILD_ID = config.WARNET_GUILD_ID
 
-class WarnetBot(commands.Bot):
+class WarnetBot(Bot):
     debug: bool    
     bot_app_info: discord.AppInfo
     db_pool: asyncpg.Pool
@@ -26,22 +26,11 @@ class WarnetBot(commands.Bot):
     def __init__(self) -> None:
         super().__init__(command_prefix=BOT_PREFIX, strip_after_prefix=True, intents=discord.Intents.all(), help_command=None)
         self.session: aiohttp.ClientSession = None
-        # self.synced = False
 
-    @commands.Cog.listener()
     async def on_ready(self) -> None:
         print("The bot is online!")
         print("Logged in as {}".format(self.user))
         print("------------------")
-
-        humans = 0
-        for g in self.guilds:
-            humans += sum(not m.bot for m in g.members)
-
-        await self.change_presence(
-            status=discord.Status.online,
-            activity=discord.Activity(type=discord.ActivityType.watching, name=f'{humans} Pengguna WARNET')
-        )
 
     async def setup_hook(self) -> None:
         if self.session is None:
