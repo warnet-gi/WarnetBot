@@ -12,6 +12,8 @@ python-dotenv = "^0.21.0"
 discord-py-pagination = "^0.0.5"
 asyncpg = "^0.27.0"
 discord-py = "^2.1.0"
+apscheduler = "^3.9.1.post1"
+tzdata = "^2022.7"
 
 
 [tool.poetry.group.dev.dependencies]
