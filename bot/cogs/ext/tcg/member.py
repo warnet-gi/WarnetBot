@@ -44,32 +44,28 @@ async def member_stats(self: commands.Cog, interaction:Interaction, member: Opti
         return
 
     user = interaction.user if member is None else member
-    user_id = user.id
-    user_name = user.name
-    user_color = user.color
-    user_display_avatar_url = user.display_avatar.url
     async with self.db_pool.acquire() as conn:
-        res = await conn.fetchval("SELECT discord_id FROM tcg_leaderboard WHERE discord_id = $1;", user_id)
+        res = await conn.fetchval("SELECT discord_id FROM tcg_leaderboard WHERE discord_id = $1;", user.id)
         if res is None:
-            await send_user_not_registered_error_embed(interaction, user_id)
+            await send_user_not_registered_error_embed(interaction, user.id)
 
         else:
-            records = await conn.fetch("SELECT * FROM tcg_leaderboard WHERE discord_id = $1;", user_id)
+            records = await conn.fetch("SELECT * FROM tcg_leaderboard WHERE discord_id = $1;", user.id)
             data = dict(records[0])
 
             win_count = data['win_count']
             loss_count = data['loss_count']
             elo = data['elo']
-            user_tcg_title_role = member.get_role(data['title']) if data['title'] is not None else None
+            user_tcg_title_role = user.get_role(data['title']) if data['title'] is not None else None
             match_played = win_count + loss_count
             win_rate = 0 if match_played == 0 else (win_count / match_played) * 100
 
             embed = discord.Embed(
-                color=user_color,
-                title=f"{user_name}'s TCG Stats",
+                color=user.color,
+                title=f"{user.name}'s TCG Stats",
                 timestamp=datetime.datetime.now()
             )
-            embed.set_thumbnail(url=user_display_avatar_url)
+            embed.set_thumbnail(url=user.display_avatar.url)
             embed.add_field(
                 name=f"Total Win",
                 value=f"🏆 {win_count}",
@@ -154,10 +150,10 @@ async def leaderboard(self, interaction: Interaction) -> None:
                 embed.add_field(name=field_name, value=field_value)
 
             if author_rank:
-                embed.set_footer(text=f'{len(member_data_list)} members has been listed in this leaderboard. You are in rank #{author_rank}.')
+                embed.set_footer(text=f'{len(all_records)} members has been listed in this leaderboard. You are in rank #{author_rank}.')
             else:
                 embed.set_footer(
-                    text=f'{len(member_data_list)} members has been listed in this leaderboard. You are not in the leaderboard yet. ' + \
+                    text=f'{len(all_records)} members has been listed in this leaderboard. You are not in the leaderboard yet. ' + \
                         'Register and play at least 1 official TCG WARNET Tournament match to enter the leaderboard.'
                 )
 
