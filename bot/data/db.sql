@@ -84,8 +84,8 @@ CREATE TABLE tcg_leaderboard(
 CREATE INDEX IF NOT EXISTS tcg_leaderboard_discord_id_idx ON tcg_leaderboard (discord_id);
 
 
------- WARN FEATURE -----
--------------------------
+-- WARN AND MUTE FEATURE --
+---------------------------
 CREATE TABLE warned_members(
 	discord_id BIGINT NOT NULL,
 	warn_level INT DEFAULT 1 NOT NULL,
@@ -98,3 +98,16 @@ CREATE TABLE warned_members(
 );
 CREATE INDEX IF NOT EXISTS warned_members_discord_id_idx ON warned_members (discord_id);
 CREATE INDEX IF NOT EXISTS warned_members_warn_level_idx ON warned_members (warn_level);
+
+
+CREATE TABLE muted_members(
+	discord_id BIGINT NOT NULL,
+	date_given TIMESTAMP DEFAULT NOW() NOT NULL,
+	date_expire TIMESTAMP NOT NULL,
+	reason VARCHAR(256),
+	leave_server BOOLEAN DEFAULT '0' NOT NULL,
+	roles_store BIGINT[],
+	PRIMARY KEY(discord_id),
+	UNIQUE(discord_id)
+);
+CREATE INDEX IF NOT EXISTS muted_members_discord_id_idx ON muted_members (discord_id);
