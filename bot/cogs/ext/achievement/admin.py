@@ -63,7 +63,10 @@ async def give_achievement(self: commands.Cog, interaction: Interaction, member:
                     timestamp=datetime.datetime.now()
                 )
                 embed.add_field(name=f"🏅**{achievement_detail['name']}**", value=f"> {achievement_detail['desc']}")
-                embed.set_footer(text=f"Given by {author_name}")
+                embed.set_footer(
+                    text=f"Given by {author_name}",
+                    icon_url=interaction.user.display_avatar.url
+                )
 
                 followup_msg = await interaction.followup.send(embed=embed)
 
@@ -138,7 +141,10 @@ async def revoke_achievement(self: commands.Cog, interaction: Interaction, membe
                         timestamp=datetime.datetime.now()
                     )
                     embed.add_field(name=f"~~🏅**{achievement_detail['name']}**~~", value=f"> ~~{achievement_detail['desc']}~~")
-                    embed.set_footer(text=f"Revoked by {author_name}")
+                    embed.set_footer(
+                        text=f"Revoked by {author_name}",
+                        icon_url=interaction.user.display_avatar.url    
+                    )
 
                     await interaction.followup.send(embed=embed)
 

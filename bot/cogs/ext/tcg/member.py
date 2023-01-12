@@ -154,10 +154,10 @@ async def leaderboard(self, interaction: Interaction) -> None:
                 embed.add_field(name=field_name, value=field_value)
 
             if author_rank:
-                embed.set_footer(text=f'{len(member_data_list)} members has been listed in this leaderboard. You are in rank #{author_rank}.')
+                embed.set_footer(text=f'{len(all_records)} members has been listed in this leaderboard. You are in rank #{author_rank}.')
             else:
                 embed.set_footer(
-                    text=f'{len(member_data_list)} members has been listed in this leaderboard. You are not in the leaderboard yet. ' + \
+                    text=f'{len(all_records)} members has been listed in this leaderboard. You are not in the leaderboard yet. ' + \
                         'Register and play at least 1 official TCG WARNET Tournament match to enter the leaderboard.'
                 )
 
