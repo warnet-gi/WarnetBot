@@ -254,13 +254,15 @@ async def set_match_result(
                 embed = discord.Embed(
                     title='Match Result',
                     color=discord.Color.blurple(),
+                    timestamp=datetime.datetime.now()
                 )
                 embed.add_field(
                     name=f"{str(winner)} VS {str(loser)}",
-                    value=f"""
-                    🏆 {winner.name} ({elo_after_win:.1f}) (+{elo_diff})
-                    ❌ {loser.name} ({elo_after_loss:.1f}) (-{elo_diff})
-                    """
+                    value=f"🏆 {winner.name} ({elo_after_win:.1f}) (+{elo_diff})\n❌ {loser.name} ({elo_after_loss:.1f}) (-{elo_diff})"
+                )
+                embed.set_footer(
+                    text=f'Score added by {interaction.user}',
+                    icon_url=interaction.user.display_avatar.url
                 )
 
                 await interaction.followup.send(embed=embed)
