@@ -50,7 +50,7 @@ async def send_user_is_not_in_guild_error_embed(interaction: Interaction, user: 
 
 
 def calculate_elo(rating_winner: float, rating_loser: float) -> float:
-    k_factor = 30
+    k_factor = 40
     score = 1  # consider as win 
     diff = rating_loser-rating_winner
     ratio = diff/400
@@ -83,20 +83,20 @@ def check_for_eligible_tcg_title(interaction: Interaction, elo_rating: float) ->
     """
     return current tcg title role id and previous role id based on total ELO rating.
     
-    * Novice Duelist   = 1600
-    * Expert Duelist   = 1800
-    * Master Duelist   = 2000
-    * Immortal Duelist = 2200
+    * Novice Duelist   = 1550
+    * Expert Duelist   = 1600
+    * Master Duelist   = 1650
+    * Immortal Duelist = 1700
     """
     TCG_TITLE_ROLE_LIST = [interaction.guild.get_role(role_id) for role_id in config.TCGConfig.TCG_TITLE_ROLE_ID]
 
-    if elo_rating < 1600:
+    if elo_rating < 1550:
         return None
-    elif elo_rating < 1800:
+    elif elo_rating < 1600:
         return TCG_TITLE_ROLE_LIST[0]
-    elif elo_rating < 2000:
+    elif elo_rating < 1650:
         return TCG_TITLE_ROLE_LIST[1]
-    elif elo_rating < 2200:
+    elif elo_rating < 1700:
         return TCG_TITLE_ROLE_LIST[2]
     else:
         return TCG_TITLE_ROLE_LIST[3]
