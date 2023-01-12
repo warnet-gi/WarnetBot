@@ -3,6 +3,9 @@ import aiohttp
 import logging
 import asyncpg
 import time
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
+from apscheduler.executors.pool import ProcessPoolExecutor
 
 import discord
 from discord.ext.commands import Bot
@@ -10,22 +13,38 @@ from discord.ext.commands import Bot
 from dotenv import load_dotenv
 from bot.config import config
 
-load_dotenv()
 
+load_dotenv()
 discord.utils.setup_logging(level=logging.INFO, root=False)
 
 BOT_PREFIX = config.DEFAULT['prefix']
 PRIVATE_DEV_GUILD_ID = config.PRIVATE_DEV_GUILD_ID
 WARNET_GUILD_ID = config.WARNET_GUILD_ID
 
+
 class WarnetBot(Bot):
     debug: bool    
     bot_app_info: discord.AppInfo
     db_pool: asyncpg.Pool
 
-    def __init__(self) -> None:
+    def __init__(self, debug: bool = False) -> None:
         super().__init__(command_prefix=BOT_PREFIX, strip_after_prefix=True, intents=discord.Intents.all(), help_command=None)
         self.session: aiohttp.ClientSession = None
+        self.debug = debug
+
+        db_uri = os.getenv('LOCAL_DB_URI') if self.debug else os.getenv('HOSTED_DB_URI')
+        jobstores = {
+            'default': SQLAlchemyJobStore(url=db_uri)
+        }
+        executors = {
+            'default': {'type': 'threadpool', 'max_workers': 20},
+            'processpool': ProcessPoolExecutor(max_workers=5)
+        }
+        job_defaults = {
+            'coalesce': False,
+            'max_instances': 3
+        }
+        self.scheduler = AsyncIOScheduler(jobstores=jobstores, executors=executors, job_defaults=job_defaults)
 
     async def on_ready(self) -> None:
         print("The bot is online!")
@@ -53,9 +72,9 @@ class WarnetBot(Bot):
         await self.session.close()
         await super().close()
 
-    async def start(self, debug: bool = False) -> None:
+    async def start(self) -> None:
         self.start_time = time.time()
-        self.debug = debug
+        self.scheduler.start()
 
         if self.debug:
             self.db_pool = await asyncpg.create_pool(

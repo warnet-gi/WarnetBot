@@ -1,18 +1,24 @@
 import discord
-from discord import Interaction, app_commands, ui
+from discord import Interaction, app_commands
 from discord.ext import commands
 
 from bot.bot import WarnetBot
-from bot.cogs.ext.tcg.utils import send_missing_permission_error_embed
+from bot.cogs.ext.admin.general import admin_give_role_on_vc
+from bot.cogs.ext.admin.warn import admin_warn_give
 
-import datetime, time
-from typing import Optional, Literal
+from typing import Optional, Literal, Union
 
-
+@commands.guild_only()
+@app_commands.checks.has_permissions(administrator=True)
 class Admin(commands.GroupCog, group_name="admin"):
-    
+    """Admin commands"""
+
+    warn = app_commands.Group(name='warn', description='Subgroup to manage Warn features.')
+
     def __init__(self, bot: WarnetBot) -> None:
         self.bot = bot
+        self.db_pool = bot.get_db_pool()
+        self.scheduler = bot.scheduler
 
     @commands.command()
     @commands.guild_only()
@@ -47,33 +53,29 @@ class Admin(commands.GroupCog, group_name="admin"):
 
         await ctx.send(f"Synced the tree to {ret}/{len(guilds)}.")
 
-    @commands.guild_only()
     @app_commands.command(name='give-role-on-vc', description='Give a role to all members in a voice channel.')
     @app_commands.describe(vc='Voice channel target.', role='Role that will be given to all members in voice channel target.')
     async def give_role_on_vc(self, interaction: Interaction, vc: discord.VoiceChannel, role: discord.Role) -> None:
-        await interaction.response.defer()
+        await admin_give_role_on_vc(self, interaction, vc, role)
 
-        if interaction.user.guild_permissions.administrator:
-            cnt = 0
-            for member in vc.members:
-                if member.get_role(role.id) is None:
-                    await member.add_roles(role)
-                    cnt += 1
+    @warn.command(
+        name='give',
+        description='Warn and mute member based on their warn level. Will set expiration time for the warn role.'
+    )
+    @app_commands.describe(
+        member='Member that will be given a warning.',
+        warn_level='Warn level from 1 to 3.',
+        reason='Reason why the warn is given.'
+    )
+    async def warn_give(
+        self,
+        interaction: Interaction,
+        member: Union[discord.Member, discord.User],
+        warn_level: app_commands.Range[int, 1, 3],
+        reason: Optional[str]
+    ) -> None:
+        await admin_warn_give(self, interaction, member, warn_level, reason)
 
-            embed = discord.Embed(
-                color=discord.Color.green(),
-                title='✅ Role successfully given',
-                description=f"Role {role.mention} telah diberikan kepada **{cnt}** member di voice channel {vc.mention}.",
-                timestamp=datetime.datetime.now()
-            )
-            embed.set_footer(
-                text=f'Given by {str(interaction.user)}',
-                icon_url=interaction.user.display_avatar.url
-            )
-            await interaction.followup.send(embed=embed)
-
-        else:
-            await send_missing_permission_error_embed(interaction)
 
 async def setup(bot: WarnetBot) -> None:
     await bot.add_cog(Admin(bot))
