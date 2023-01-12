@@ -145,7 +145,10 @@ async def reset_member_stats(self, interaction: Interaction, member: Union[disco
                         description=f"TCG stats milik {member.mention} telah direset",
                         timestamp=datetime.datetime.now(),
                     )
-                    notify_embed.set_footer(text=f'Reset by {interaction.user.name}')
+                    notify_embed.set_footer(
+                        text=f'Reset by {str(interaction.user)}',
+                        icon_url=interaction.user.display_avatar.url
+                    )
 
                     await interaction.channel.send(
                         embed=notify_embed,
@@ -191,20 +194,18 @@ async def reset_all_member_stats(self, interaction: Interaction) -> None:
 
                 await conn.execute("UPDATE tcg_leaderboard SET win_count=0, loss_count=0, elo=1500, title=NULL;")
 
-                await msg.edit(content=f'✅ **Sukses melakukan reset progress TCG kepada semua member**', embed=None, view=None)
-                
                 notify_embed = discord.Embed(
-                    color= discord.Color.default(),
-                    description=f"Semua TCG stats telah direset",
+                    color= discord.Color.blurple(),
+                    title=f"✅ Sukses melakukan reset progress TCG kepada semua member",
                     timestamp=datetime.datetime.now(),
                 )
-                notify_embed.set_footer(text=f'Reset by {interaction.user.name}')
-
-                await interaction.channel.send(
-                    embed=notify_embed,
-                    reference=msg
+                notify_embed.set_footer(
+                    text=f'Reset by {str(interaction.user)}',
+                    icon_url=interaction.user.display_avatar.url
                 )
-
+                
+                await msg.edit(content=None, embed=notify_embed, view=None)
+            
             else:
                 await msg.delete()
 
@@ -253,13 +254,15 @@ async def set_match_result(
                 embed = discord.Embed(
                     title='Match Result',
                     color=discord.Color.blurple(),
+                    timestamp=datetime.datetime.now()
                 )
                 embed.add_field(
                     name=f"{str(winner)} VS {str(loser)}",
-                    value=f"""
-                    🏆 {winner.name} ({elo_after_win:.1f}) (+{elo_diff})
-                    ❌ {loser.name} ({elo_after_loss:.1f}) (-{elo_diff})
-                    """
+                    value=f"🏆 {winner.name} ({elo_after_win:.1f}) (+{elo_diff})\n❌ {loser.name} ({elo_after_loss:.1f}) (-{elo_diff})"
+                )
+                embed.set_footer(
+                    text=f'Score added by {interaction.user}',
+                    icon_url=interaction.user.display_avatar.url
                 )
 
                 await interaction.followup.send(embed=embed)
@@ -328,7 +331,10 @@ async def set_member_stats(
                     description=f'{member.mention} stats has been set.',
                     timestamp=datetime.datetime.now()
                 )
-                embed.set_footer(text=f'Set by {interaction.user.name}')
+                embed.set_footer(
+                    text=f'Set by {str(interaction.user)}',
+                    icon_url=interaction.user.display_avatar.url
+                )
                 
                 await interaction.followup.send(embed=embed)
     else:
