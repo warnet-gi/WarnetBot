@@ -37,7 +37,7 @@ class WarnetBot(Bot):
             'default': SQLAlchemyJobStore(url=db_uri)
         }
         executors = {
-            'default': {'type': 'threadpool', 'max_workers': 20},
+            'default': {'type': 'threadpool', 'max_workers': 30},
             'processpool': ProcessPoolExecutor(max_workers=5)
         }
         job_defaults = {
