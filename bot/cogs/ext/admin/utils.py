@@ -102,6 +102,49 @@ async def send_warn_log(
     await warn_log_channel.send(embed=log_embed)
 
 
+# alur: cek status warn terkiini -> kurangi level warn
+    # jika warn 1 menjadi 0, maka hapus entry
+    # jika warn 3 menjadi 2 atau warn 2 menjadi 1, maka update entry -> add job lagi
+# TODO edge case: member keluar server setelah kena warn sampai job pengecekan datang
+# TODO edge case: member keluar server setelah kena warn lalu kembali lagi sebelum job pengecekan datang
+async def decrease_warn_status(self: commands.Cog, member: discord.Member) -> None:
+    bot: WarnetBot = self.bot
+    warnet_guild = bot.get_guild(config.WARNET_GUILD_ID)
+
+    db_pool: asyncpg.Pool = self.get_db_pool()
+    async with db_pool.acquire() as conn:
+        res = await conn.fetchval("SELECT * FROM warned_members WHERE discord_id = $1;", member.id)
+        res = dict(res)
+
+        current_warn_level: int = res['warn_level']
+        current_warn_role = warnet_guild.get_role(config.WarnConfig.WARN_ROLE_ID[f'warn{current_warn_level}'])
+        await member.remove_roles(current_warn_role)
+
+        # Decrease warn level
+        if current_warn_level > 1:
+            next_warn_level = current_warn_level - 1
+            next_warn_role = warnet_guild.get_role(config.WarnConfig.WARN_ROLE_ID[f'warn{next_warn_level}'])
+            await member.add_roles(next_warn_role)
+
+            date_given = datetime.now(ZoneInfo('Asia/Jakarta'))
+            date_expire = date_given + timedelta(days=30)
+
+            await conn.execute(
+                "UPDATE warned_members SET warn_level=$1, date_given=$2, date_expire=$3, leave_server=0 WHERE discord_id = $4;",
+                next_warn_level,
+                date_given,
+                date_expire,
+                member.id
+            )
+
+            scheduler: AsyncIOScheduler = self.scheduler
+            scheduler.add_job(decrease_warn_status, trigger='date', args=[self, member], run_date=date_expire)
+
+        # No warn anymore
+        else:
+            await conn.execute("DELETE FROM warned_members WHERE discord_id = $1;", member.id)
+
+
 # alur: simpan role member -> mute member (copot semua role dan tambahkan role mute) ->
 # simpan data org yang kena mute di database -> kasih tahu kalau dia kena mute ->
 # bikin job buat cek status mute dia setelah beberapa hari -> unmute
