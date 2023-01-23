@@ -1,12 +1,15 @@
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from datetime import datetime, timedelta
 from typing import Optional
+import asyncpg
 from asyncpg.connection import Connection
 from zoneinfo import ZoneInfo
 
 import discord
 from discord import Interaction
+from discord.ext import commands
 
+from bot.bot import WarnetBot
 from bot.config import config
 
 
@@ -149,8 +152,8 @@ async def decrease_warn_status(self: commands.Cog, member: discord.Member) -> No
 # simpan data org yang kena mute di database -> kasih tahu kalau dia kena mute ->
 # bikin job buat cek status mute dia setelah beberapa hari -> unmute
 #
-# edge case: member keluar server setelah kena mute sampai job pengecekan datang
-# edge case: member keluar server setelah kena mute lalu kembali lagi sebelum job pengecekan datang
+# TODO edge case: member keluar server setelah kena mute sampai job pengecekan datang
+# TODO edge case: member keluar server setelah kena mute lalu kembali lagi sebelum job pengecekan datang
 async def mute_member(
     scheduler: AsyncIOScheduler,
     interaction: Interaction,
@@ -185,7 +188,11 @@ async def mute_member(
     await send_mute_message_to_member(member, reason, posix_date_expire)
 
     # TODO: Add apscheduler to run job to unmute member 
-    scheduler.add_job()
+    scheduler.add_job(unmute_member, trigger='date', args=[], id=f'unmute-{str(member)}', run_time=date_expire)
+
+
+async def unmute_member(member: discord.Member) -> None:
+    pass
 
 
 async def send_mute_message_to_member(
@@ -216,7 +223,3 @@ async def send_mute_message_to_member(
     )
 
     await dm_channel.send(embed=mute_embed)
-
-
-async def check_warn_status(member: discord.member) -> None:
-    pass
