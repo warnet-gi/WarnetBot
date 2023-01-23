@@ -380,6 +380,11 @@ async def undo_match_result(
                     embed.add_field(name=f'{str(winner)} VS {str(loser)}', value='Match has been reverted to previous stats')
                     embed.set_footer(text=f'Reverted by {str(interaction.user)}', icon_url=interaction.user.display_avatar.url)
 
+                    # Send reverted match log 
+                    if interaction.channel_id == config.TCGConfig.TCG_MATCH_REPORT_CHANNEL_ID:
+                        match_log_channel = interaction.guild.get_channel(config.TCGConfig.TCG_MATCH_LOG_CHANNEL_ID)
+                        await match_log_channel.send(embed=embed)
+
                     return await interaction.followup.send(embed=embed)
 
                 else:
