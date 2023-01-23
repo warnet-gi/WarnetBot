@@ -247,6 +247,9 @@ async def set_match_result(
                     winner_data = dict(records[1])
                     loser_data = dict(records[0])
 
+                # save the current data to history list for /undo-match-result command
+                self.match_history.append([winner_data, loser_data])
+
                 elo_diff = calculate_elo(winner_data['elo'], loser_data['elo'])
                 elo_after_win = winner_data['elo'] + elo_diff
                 elo_after_loss = loser_data['elo'] - elo_diff
@@ -299,6 +302,91 @@ async def set_match_result(
         custom_description = f"Hanya <@&{config.ADMINISTRATOR_ROLE_ID['admin']}>, <@&{config.ADMINISTRATOR_ROLE_ID['mod']}>, " + \
             f"atau <@&{config.TCGConfig.TCG_EVENT_STAFF_ROLE_ID}> yang bisa menggunakan command ini."
         await send_missing_permission_error_embed(interaction, custom_description=custom_description)
+
+
+async def undo_match_result(
+    self,
+    interaction: Interaction,
+    member: Union[discord.Member, discord.User]
+) -> None:
+    await interaction.response.defer()
+
+    match_history: list = self.match_history
+    if len(match_history) == 0:
+        return await interaction.followup.send(content=f'Match history for {str(member)} is not found.')
+    
+    if interaction.user.guild_permissions.administrator or interaction.user.get_role(config.TCGConfig.TCG_EVENT_STAFF_ROLE_ID) is not None:
+        if isinstance(member, discord.User):
+            member = await self.bot.fetch_user(member.id)
+
+        async with self.db_pool.acquire() as conn:
+            res = await conn.fetchval("SELECT discord_id FROM tcg_leaderboard WHERE discord_id = $1;", member.id)
+            if res is None:
+                await send_user_not_registered_error_embed(interaction, member.id)
+
+            else:
+                winner: discord.Member = None
+                loser: discord.Member = None
+
+                # Search member in match history
+                idx = len(match_history) - 1
+                found = False
+                while idx >= 0 and not found:
+                    winner_data, loser_data = match_history[idx]
+                    if winner_data['discord_id'] != member.id and loser_data['discord_id'] != member.id:
+                        idx -= 1
+
+                    else:
+                        found = True
+
+                        if winner_data['discord_id'] == member.id:
+                            winner = member
+                            loser = interaction.guild.get_member(loser_data['discord_id'])
+                            if loser is None:
+                                await self.bot.fetch_user(loser_data['discord_id'])
+
+                        elif loser_data['discord_id'] == member.id:
+                            loser = member
+                            winner = interaction.guild.get_member(winner_data['discord_id'])
+                            if winner is None:
+                                await self.bot.fetch_user(winner_data['discord_id'])
+
+                        await conn.execute(
+                            "UPDATE tcg_leaderboard SET win_count=$1, loss_count=$2, elo=$3, title=$4 WHERE discord_id = $5;",
+                            winner_data['win_count'],
+                            winner_data['loss_count'],
+                            winner_data['elo'],
+                            winner_data['title'],
+                            winner_data['discord_id']
+                        )
+                        await conn.execute(
+                            "UPDATE tcg_leaderboard SET win_count=$1, loss_count=$2, elo=$3, title=$4 WHERE discord_id = $5;",
+                            loser_data['win_count'],
+                            loser_data['loss_count'],
+                            loser_data['elo'],
+                            loser_data['title'],
+                            loser_data['discord_id']
+                        )
+
+                        match_history.pop(idx)
+
+                
+                if found:
+                    embed = discord.Embed(
+                        title='Match Reverted',
+                        color=discord.Color.yellow(),
+                        timestamp=datetime.datetime.now()
+                    )
+                    embed.add_field(name=f'{str(winner)} VS {str(loser)}', value='Match has been reverted to previous stats')
+                    embed.set_footer(text=f'Reverted by {str(interaction.user)}', icon_url=interaction.user.display_avatar.url)
+
+                    return await interaction.followup.send(embed=embed)
+
+                else:
+                    return await interaction.followup.send(content=f'Match history for {str(member)} is not found.')
+
+    else:
+        await send_missing_permission_error_embed(interaction)
 
 async def set_member_stats(
     self, interaction:Interaction,

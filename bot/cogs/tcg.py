@@ -12,6 +12,7 @@ from bot.cogs.ext.tcg.admin import (
     reset_member_stats,
     reset_all_member_stats,
     set_match_result,
+    undo_match_result,
     set_member_stats
 )
 from bot.cogs.ext.tcg.member import (
@@ -30,6 +31,7 @@ class TCG(commands.GroupCog, group_name="warnet-tcg"):
     def __init__(self, bot: WarnetBot) -> None:
         self.bot = bot
         self.db_pool = bot.get_db_pool()
+        self.match_history = []
 
     @app_commands.command(name='register', description='Member need to register before using other tcg commands.')
     async def tcg_register(self, interaction: Interaction) -> None:
@@ -90,6 +92,16 @@ class TCG(commands.GroupCog, group_name="warnet-tcg"):
     ) -> None:
         await set_member_stats(self, interaction, member, win_count, loss_count, elo_rating)
 
+    @app_commands.command(name='undo-match-result', description='Undo the TCG match result between players.')
+    @app_commands.describe(member='Member that you want to revert their result against other members previously.',)
+    async def tcg_undo_match_result(self, interaction: Interaction, member: Union[discord.Member, discord.User]) -> None:
+        await undo_match_result(self, interaction, member)
+
+    @app_commands.command(name='rules', description='Return TCG WARNET OPEN ruleset document link.')
+    async def tcg_rules(self, interaction: Interaction) -> None:
+        await interaction.response.send_message(
+            content="Silakan membaca ruleset TCG WARNET OPEN pada link berikut:\n**https://s.id/TCG-WARNET-RULESET**"
+        )
 
 async def setup(bot: WarnetBot) -> None:
     await bot.add_cog(

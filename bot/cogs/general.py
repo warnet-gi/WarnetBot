@@ -62,11 +62,13 @@ class General(commands.Cog):
             `/warnet-tcg register` - Member need to register before using other tcg commands.
             `/warnet-tcg member-stats` - Member can check their or someone else's TCG stats.
             `/warnet-tcg leaderboard` - ELO leaderboard for WARNET TCG.
+            `/warnet-tcg rules` - Return TCG WARNET OPEN ruleset document link.
             `/warnet-tcg register-member` - __**(ADMIN)**__ register a member manually if they haven't registered on TCG leaderboard yet.
             `/warnet-tcg unregister-member` - __**(ADMIN)**__ Unregister a member from TCG leaderboard.
             `/warnet-tcg reset-stats` - __**(ADMIN)**__ Reset a member TCG stats.
             `/warnet-tcg reset-all-stats` - __**(ADMIN)**__ Reset all member TCG stats.
             `/warnet-tcg set-match-result` - __**(ADMIN)**__ Set the TCG match result between players.
+            `/warnet-tcg undo-match-result` - __**(ADMIN)**__ Revert the TCG match result between players to the previous data.
             `/warnet-tcg set-member-stats` - __**(ADMIN)**__ Set tcg stats for a member manually.
             """,
             inline=False
