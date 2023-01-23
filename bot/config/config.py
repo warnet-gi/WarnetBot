@@ -18,7 +18,7 @@ ACHIEVEMENT_RANK_ROLE_ID = (
 
 DEFAULT = {
     'guild_id': '761644411486339073',
-    'prefix': 'war!',
+    'prefix': ['war!', 'War!', 'WAR!'],
 }
 
 class TCGConfig:
