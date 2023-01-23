@@ -52,6 +52,7 @@ class General(commands.Cog):
             name='👮 Admin Commands',
             value="""
             `/admin give-role-on-vc` - Give a role to all members in a voice channel.
+            `war! ct` - Return channel topic where this command is executed.
             """,
             inline=False
         )

@@ -2,6 +2,7 @@ import discord
 from discord import Interaction, app_commands, ui
 from discord.ext import commands
 
+from bot.config import config
 from bot.bot import WarnetBot
 from bot.cogs.ext.tcg.utils import send_missing_permission_error_embed
 
@@ -14,8 +15,8 @@ class Admin(commands.GroupCog, group_name="admin"):
     def __init__(self, bot: WarnetBot) -> None:
         self.bot = bot
 
-    @commands.command()
     @commands.guild_only()
+    @commands.command()
     @commands.is_owner()
     async def sync(self, ctx: commands.Context, guilds: commands.Greedy[discord.Object], spec: Optional[Literal["~", "*", "^"]] = None) -> None:
         if not guilds:
@@ -46,6 +47,32 @@ class Admin(commands.GroupCog, group_name="admin"):
                 ret += 1
 
         await ctx.send(f"Synced the tree to {ret}/{len(guilds)}.")
+
+    @commands.guild_only()
+    @commands.command(name='Channel Topic', aliases=['ct'])
+    async def channel_topic(self, ctx: commands.Context) -> None:
+        if ctx.author.guild_permissions.administrator or ctx.author.get_role(config.STAFF_ROLE_ID) is not None:
+            await ctx.message.delete()
+
+            topic: Optional[str] = None
+            if isinstance(ctx.channel, discord.TextChannel):
+                topic = ctx.channel.topic
+
+            embed: discord.Embed
+            if topic is not None:
+                embed = discord.Embed(
+                    title=f'Channel #{ctx.channel.name}',
+                    description=topic,
+                    color=discord.Color.green()
+                )
+            else:
+                embed = discord.Embed(
+                    title='Channel Topic Not Found',
+                    description=f'**{str(ctx.author)}** No topic set.',
+                    color=discord.Color.red()
+                )
+
+            await ctx.send(embed=embed)
 
     @commands.guild_only()
     @app_commands.command(name='give-role-on-vc', description='Give a role to all members in a voice channel.')
