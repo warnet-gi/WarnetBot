@@ -31,49 +31,30 @@ class General(commands.Cog):
 
         await interaction.followup.send(embed=embed, view=view)
 
-    @app_commands.command(description='Shows all commands that available to use.')
-    async def help(self, interaction: Interaction) -> None:
-        await interaction.response.defer()
-
+    @commands.hybrid_command(description='Shows all commands that available to use.')
+    async def help(self, ctx: commands.Context) -> None:
         embed = discord.Embed(
-            color=interaction.user.color,
-            title='📔 Commands yang tersedia di WarnetBot',
+            color=ctx.author.color,
+            title='📔 WarnetBot Wiki',
+            description='WarnetBot Wiki merupakan dokumentasi command yang tersedia di bot. Kamu dapat mengakses dokumentasi bot ini melalui link di bawah.'
         )
         embed.set_thumbnail(url=self.bot.user.display_avatar.url)
         embed.add_field(
             name='👥 General Commands',
-            value="""
-            `/help` - Shows all commands that available to use.
-            `/about` - Shows basic information about the bot.
-            """,
+            value="[Link dokumentasi](https://github.com/Iqrar99/WarnetBot/wiki/Bot-Commands#-general-commands)",
+            inline=False
+        )
+        embed.add_field(
+            name='🎲 TCG Commands',
+            value="[Link dokumentasi](https://github.com/Iqrar99/WarnetBot/wiki/Bot-Commands#-tcg-commands)",
             inline=False
         )
         embed.add_field(
             name='👮 Admin Commands',
-            value="""
-            `/admin give-role-on-vc` - Give a role to all members in a voice channel.
-            `war! ct` - Return channel topic where this command is executed.
-            """,
+            value="[Link dokumentasi](https://github.com/Iqrar99/WarnetBot/wiki/Bot-Commands#-tcg-commands)",
             inline=False
         )
-        embed.add_field(
-            name='<:ImmortalDuelist:1052440404135518228> TCG Commands',
-            value="""
-            `/warnet-tcg register` - Member need to register before using other tcg commands.
-            `/warnet-tcg member-stats` - Member can check their or someone else's TCG stats.
-            `/warnet-tcg leaderboard` - ELO leaderboard for WARNET TCG.
-            `/warnet-tcg rules` - Return TCG WARNET OPEN ruleset document link.
-            `/warnet-tcg register-member` - __**(ADMIN)**__ register a member manually if they haven't registered on TCG leaderboard yet.
-            `/warnet-tcg unregister-member` - __**(ADMIN)**__ Unregister a member from TCG leaderboard.
-            `/warnet-tcg reset-stats` - __**(ADMIN)**__ Reset a member TCG stats.
-            `/warnet-tcg reset-all-stats` - __**(ADMIN)**__ Reset all member TCG stats.
-            `/warnet-tcg set-match-result` - __**(ADMIN)**__ Set the TCG match result between players.
-            `/warnet-tcg undo-match-result` - __**(ADMIN)**__ Revert the TCG match result between players to the previous data.
-            `/warnet-tcg set-member-stats` - __**(ADMIN)**__ Set tcg stats for a member manually.
-            """,
-            inline=False
-        )
-        await interaction.followup.send(embed=embed)
+        await ctx.send(embed=embed)
 
     @commands.Cog.listener()
     async def on_connect(self) -> None:
