@@ -49,7 +49,7 @@ class Admin(commands.GroupCog, group_name="admin"):
         await ctx.send(f"Synced the tree to {ret}/{len(guilds)}.")
 
     @commands.guild_only()
-    @commands.command(name='Channel Topic', aliases=['ct'])
+    @commands.command(name='channeltopic', aliases=['ct'])
     async def channel_topic(self, ctx: commands.Context) -> None:
         if ctx.author.guild_permissions.administrator or ctx.author.get_role(config.STAFF_ROLE_ID) is not None:
             await ctx.message.delete()
