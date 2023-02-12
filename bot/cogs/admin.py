@@ -102,5 +102,19 @@ class Admin(commands.GroupCog, group_name="admin"):
         else:
             await send_missing_permission_error_embed(interaction)
 
+    @commands.guild_only()
+    @app_commands.command(name='send-message', description='Send message via bot.')
+    @app_commands.describe(message='Message you want to send.')
+    async def send_message(self, interaction: discord.Interaction, message: str) -> None:
+        if interaction.user.guild_permissions.administrator:
+            if len(message) <= 2000: 
+                await interaction.channel.send(content=message)
+                await interaction.response.send_message(content="Message sent!", ephemeral=True)
+            else:
+                await interaction.response.send_message(content="Message failed to sent. Message can't exceed 2000 characters.", ephemeral=True)
+        else:
+            await interaction.response.send_message(content="You don't have permission to execute this command!", ephemeral=True)
+
+
 async def setup(bot: WarnetBot) -> None:
     await bot.add_cog(Admin(bot))
