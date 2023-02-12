@@ -111,6 +111,7 @@ class General(commands.Cog):
 
         activity_status = [
             discord.Game(name='PC WARNET'),
+            discord.Game(name='with Monnie'),
             discord.Activity(type=discord.ActivityType.watching, name=f'{humans} Pengguna WARNET'),
             discord.Activity(type=discord.ActivityType.competing, name='TCG WARNET OPEN'),
         ]
