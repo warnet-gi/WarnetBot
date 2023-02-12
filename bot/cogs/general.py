@@ -1,5 +1,6 @@
 import datetime, time
 import random
+import io
 
 import discord
 from discord import Interaction, app_commands
@@ -56,9 +57,51 @@ class General(commands.Cog):
         )
         await ctx.send(embed=embed)
 
+    @commands.guild_only()
+    @commands.hybrid_command(name='rolemembers', aliases=['rm'], description='Shows all members associated with a given role.')
+    @app_commands.describe(role='Guild role that you want to see the members associated in it.')
+    async def role_members(self, ctx: commands.Context, role: discord.Role) -> None:
+        await ctx.typing()
+        content = f"Members with **{role.name}** role\n"
+        content += "```arm\n"
+        members_content = ''
+        if role.members:
+            for member in role.members:
+                members_content += f"{str(member)} ({member.id})\n"
+            content += members_content
+        else:
+            content += "No members associated with this role"
+        content += "```"
+
+        if len(content) > 2000:
+            buffer = io.BytesIO(members_content.encode('utf-8'))
+            await ctx.reply(content=f"Members with **{role.name}** role", file=discord.File(buffer, filename=f"{role.name}.txt"))
+            buffer.close()
+
+        else:
+            await ctx.reply(content=content, mention_author=True)
+
     @commands.Cog.listener()
     async def on_connect(self) -> None:
         self._change_presence.start()
+
+    @commands.Cog.listener()
+    async def on_command_error(self, ctx: commands.Context, error) -> None:
+        if hasattr(ctx.command, 'on_error'):
+            return
+
+        ignored = (commands.CommandNotFound, )
+
+        # Allows us to check for original exceptions raised and sent to CommandInvokeError.
+        # If nothing is found. We keep the exception passed to on_command_error.
+        error = getattr(error, 'original', error)
+
+        # Anything in ignored will return and prevent anything happening.
+        if isinstance(error, ignored):
+            return
+        
+        if isinstance(error, commands.errors.RoleNotFound):
+            await ctx.send(content='**Role not found!**')
 
     @tasks.loop(minutes=1)
     async def _change_presence(self) -> None:
