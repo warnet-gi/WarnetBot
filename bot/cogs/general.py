@@ -75,11 +75,11 @@ class General(commands.Cog):
 
         if len(content) > 2000:
             buffer = io.BytesIO(members_content.encode('utf-8'))
-            await ctx.reply(content=f"Members with **{role.name}** role", file=discord.File(buffer, filename=f"{role.name}.txt"))
+            await ctx.reply(content=f"Members with **{role.name}** role", file=discord.File(buffer, filename=f"{role.name}.txt"), mention_author=False)
             buffer.close()
 
         else:
-            await ctx.reply(content=content, mention_author=True)
+            await ctx.reply(content=content, mention_author=False)
 
     @commands.Cog.listener()
     async def on_connect(self) -> None:
