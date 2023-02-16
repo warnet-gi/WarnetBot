@@ -15,10 +15,10 @@
 
 ## How to contribute?
 1. Clone the project
-2. Create python virtual env by using `python -m venv env`. Enter the virtual environment by using command `source env/Scripts/Activate` (Linux) or `env\Scripts\Activate.bat` (Windows)
-3. Make sure you have installed `poetry`
-4. Install the depedencies using `poetry install`
-5. Make sure to install postgreSQL on local machine.
+2. Create python virtual environment by using `python -m venv env`. Enter the virtual environment by using command `source env/Scripts/Activate` (Linux) or `env\Scripts\Activate.bat` (Windows)
+3. Make sure you have installed `poetry`. Install it using `pip install poetry` on your virtual environment.
+4. Install the depedencies using `poetry install`.
+5. Make sure to install postgreSQL on local machine and execute the database creation script on `bot\data\db.sql`.
 6. Create `.env` file. It should contain these variables:
     ```bash
     DEVELOPMENT_BOT_TOKEN="YOUR_BOT_TOKEN"
@@ -33,6 +33,8 @@
     LOCAL_DB_USERNAME="YOUR_LOCAL_DB_USERNAME"
     LOCAL_DB_PASSWORD="YOUR_LOCAL_DB_PASSWORD"
 
+    # Use these env variables only if you want to
+    # test your hosted database when debug = False
     HOSTED_DB_URI="YOUR_HOSTED_DB_URI"
     HOSTED_DB_HOST="YOUR_DB_HOST"
     HOSTED_DB_NAME="YOUR_HOSTED_DB_NAME"
