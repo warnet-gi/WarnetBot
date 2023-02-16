@@ -17,11 +17,11 @@
 1. Clone the project
 2. Create a [New Application](https://discord.com/developers/applications).
 3. Create a bot by going to Bot -> Add Bot -> Yes, do it!
-4. Copy the bot token and paste it into the `BOT_TOKEN` environment variable (see the next step).
+4. Copy the bot token and paste it into the `DEVELOPMENT_BOT_TOKEN` environment variable (see the next step).
 5. Create `.env` file. It should contain these variables:
     ```bash
-    DEVELOPMENT_BOT_TOKEN="YOUR_BOT_TOKEN"  # Optional
-    BOT_TOKEN="YOUR_BOT_TOKEN"
+    DEVELOPMENT_BOT_TOKEN="YOUR_BOT_TOKEN"  
+    BOT_TOKEN="YOUR_BOT_TOKEN"  # Variable when debug = False
 
     LOCAL_DB_URI="YOUR_LOCAL_DB_URI"
     LOCAL_DB_HOST="localhost"
