@@ -1,7 +1,8 @@
-OWNER_ID = 278821688894947328
-PRIVATE_DEV_GUILD_ID = 835725357423919104
+OWNER_ID = 278821688894947328  # Change this value with your discord ID
+PRIVATE_DEV_GUILD_ID = 835725357423919104  # Change this value with your own private guild for bot testing
 WARNET_GUILD_ID = 761644411486339073
 
+# These are administrator role on Warnet guild
 ADMINISTRATOR_ROLE_ID = {
     'admin': '761650159833841674',
     'mod': '761662280541798421'
@@ -9,16 +10,12 @@ ADMINISTRATOR_ROLE_ID = {
 STAFF_ROLE_ID = 951170972671701063
 
 DEFAULT = {
-    'guild_id': '761644411486339073',
+    'guild_id': WARNET_GUILD_ID,
     'prefix': ['war!', 'War!', 'WAR!'],
 }
 
 class TCGConfig:
     TCG_TITLE_ROLE_ID = (
-        # 1043864006370267146,  # test role
-        # 1044980740238098452,  # test role
-        # 1052443871117848637,  # test role
-        # 1052443930152681473,  # test role
         1051867676202512415,  # Novice Duelist
         1051865453208801361,  # Expert Duelist
         1051865448980942948,  # Master Duelist

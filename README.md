@@ -15,16 +15,13 @@
 
 ## How to contribute?
 1. Clone the project
-2. Create python virtual environment by using `python -m venv env`. Enter the virtual environment by using command `source env/Scripts/Activate` (Linux) or `env\Scripts\Activate.bat` (Windows)
-3. Make sure you have installed `poetry`. Install it using `pip install poetry` on your virtual environment.
-4. Install the depedencies using `poetry install`.
-5. Make sure to install postgreSQL on local machine and execute the database creation script on `bot\data\db.sql`.
-6. Create `.env` file. It should contain these variables:
+2. Create a [New Application](https://discord.com/developers/applications).
+3. Create a bot by going to Bot -> Add Bot -> Yes, do it!
+4. Copy the bot token and paste it into the `BOT_TOKEN` environment variable (see the next step).
+5. Create `.env` file. It should contain these variables:
     ```bash
-    DEVELOPMENT_BOT_TOKEN="YOUR_BOT_TOKEN"
-    DEVELOPMENT_BOT_INVITE_LINK="YOUR_BOT_INVITE_LINK"
+    DEVELOPMENT_BOT_TOKEN="YOUR_BOT_TOKEN"  # Optional
     BOT_TOKEN="YOUR_BOT_TOKEN"
-    BOT_INVITE_LINK="YOUR_BOT_INVITE_LINK"
 
     LOCAL_DB_URI="YOUR_LOCAL_DB_URI"
     LOCAL_DB_HOST="localhost"
@@ -42,7 +39,14 @@
     HOSTED_DB_USERNAME="YOUR_HOSTED_DB_USERNAME"
     HOSTED_DB_PASSWORD="YOUR_HOSTED_DB_PASSWORD"
     ```
-7. To run the bot, use `poetry run task start`
+6. Create python virtual environment by using `python -m venv env`.
+7. Enter the virtual environment by using command `source env/Scripts/Activate` (Linux) or `env\Scripts\Activate.bat` (Windows)
+8. Make sure you have installed `poetry`. Install it using `pip install poetry` on your virtual environment.
+9. Install the depedencies using `poetry install`.
+10. Make sure to install postgreSQL on local machine and execute the database creation script on `bot\data\db.sql`.
+11. Change the `OWNER_ID` on config file `bot\config\config.py` with your own id for testing.
+12. Set `debug=True` to run the bot in debug mode on `bot\__main__.py`.
+13. To start the bot, use `poetry run task start`.
 
 ## Usage Guide
 To learn how to use this bot, please visit our [wiki documentation](https://github.com/Iqrar99/WarnetBot/wiki) for the commands info.
