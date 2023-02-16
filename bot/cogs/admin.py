@@ -10,13 +10,12 @@ import io
 import datetime, time
 from typing import Optional, Literal
 
-
+@commands.guild_only()
 class Admin(commands.GroupCog, group_name="admin"):
     
     def __init__(self, bot: WarnetBot) -> None:
         self.bot = bot
 
-    @commands.guild_only()
     @commands.command()
     @commands.is_owner()
     async def sync(self, ctx: commands.Context, guilds: commands.Greedy[discord.Object], spec: Optional[Literal["~", "*", "^"]] = None) -> None:
@@ -49,7 +48,6 @@ class Admin(commands.GroupCog, group_name="admin"):
 
         await ctx.send(f"Synced the tree to {ret}/{len(guilds)}.")
 
-    @commands.guild_only()
     @commands.command(name='channeltopic', aliases=['ct'])
     async def channel_topic(self, ctx: commands.Context) -> None:
         if ctx.author.guild_permissions.administrator or ctx.author.get_role(config.STAFF_ROLE_ID) is not None:
@@ -75,7 +73,6 @@ class Admin(commands.GroupCog, group_name="admin"):
 
             await ctx.send(embed=embed)
 
-    @commands.guild_only()
     @app_commands.command(name='give-role-on-vc', description='Give a role to all members in a voice channel.')
     @app_commands.describe(vc='Voice channel target.', role='Role that will be given to all members in voice channel target.')
     async def give_role_on_vc(self, interaction: Interaction, vc: discord.VoiceChannel, role: discord.Role) -> None:
@@ -103,7 +100,6 @@ class Admin(commands.GroupCog, group_name="admin"):
         else:
             await send_missing_permission_error_embed(interaction)
 
-    @commands.guild_only()
     @app_commands.command(name='send-message', description='Send message via bot.')
     @app_commands.describe(
         message='Message you want to send.',

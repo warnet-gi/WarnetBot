@@ -1,6 +1,24 @@
-OWNER_ID = 278821688894947328  # Change this value with your discord ID
-PRIVATE_DEV_GUILD_ID = 835725357423919104  # Change this value with your own private guild for bot testing
-WARNET_GUILD_ID = 761644411486339073
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+BOT_DEBUG = os.getenv("BOT_DEBUG")
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+
+GUILD_ID = int(os.getenv("GUILD_ID"))
+
+LOCAL_DB_HOST = os.getenv("LOCAL_DB_HOST")
+LOCAL_DB_NAME = os.getenv("LOCAL_DB_NAME")
+LOCAL_DB_USERNAME = os.getenv("LOCAL_DB_USERNAME")
+LOCAL_DB_PASSWORD = os.getenv("LOCAL_DB_PASSWORD")
+LOCAL_DB_PORT = int(os.getenv("LOCAL_DB_PORT"))
+
+HOSTED_DB_HOST = os.getenv("HOSTED_DB_HOST")
+HOSTED_DB_NAME = os.getenv("HOSTED_DB_NAME")
+HOSTED_DB_USERNAME = os.getenv("HOSTED_DB_USERNAME")
+HOSTED_DB_PASSWORD = os.getenv("HOSTED_DB_PASSWORD")
+HOSTED_DB_PORT = int(os.getenv("HOSTED_DB_PORT"))
 
 # These are administrator role on Warnet guild
 ADMINISTRATOR_ROLE_ID = {
@@ -10,9 +28,10 @@ ADMINISTRATOR_ROLE_ID = {
 STAFF_ROLE_ID = 951170972671701063
 
 DEFAULT = {
-    'guild_id': WARNET_GUILD_ID,
+    'guild_id': GUILD_ID,
     'prefix': ['war!', 'War!', 'WAR!'],
 }
+
 
 class TCGConfig:
     TCG_TITLE_ROLE_ID = (

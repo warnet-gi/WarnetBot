@@ -22,8 +22,7 @@ from bot.cogs.ext.tcg.member import (
 )
 
 
-PRIVATE_DEV_GUILD_ID = config.PRIVATE_DEV_GUILD_ID
-WARNET_GUILD_ID = config.WARNET_GUILD_ID
+GUILD_ID = config.GUILD_ID
 
 @commands.guild_only()
 class TCG(commands.GroupCog, group_name="warnet-tcg"):
@@ -106,5 +105,5 @@ class TCG(commands.GroupCog, group_name="warnet-tcg"):
 async def setup(bot: WarnetBot) -> None:
     await bot.add_cog(
         TCG(bot),
-        guilds=[discord.Object(PRIVATE_DEV_GUILD_ID), discord.Object(WARNET_GUILD_ID)]
+        guilds=[discord.Object(GUILD_ID)]
     )
