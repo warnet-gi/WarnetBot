@@ -6,6 +6,7 @@ from bot.config import config
 from bot.bot import WarnetBot
 from bot.cogs.ext.tcg.utils import send_missing_permission_error_embed
 
+import io
 import datetime, time
 from typing import Optional, Literal
 
@@ -104,14 +105,44 @@ class Admin(commands.GroupCog, group_name="admin"):
 
     @commands.guild_only()
     @app_commands.command(name='send-message', description='Send message via bot.')
-    @app_commands.describe(message='Message you want to send.')
-    async def send_message(self, interaction: discord.Interaction, message: str) -> None:
+    @app_commands.describe(
+        message='Message you want to send.',
+        attachment='File to be attached on message.',
+        spoiler='Set whether the attachment need to be spoilered or not.'
+    )
+    async def send_message(
+        self, interaction: discord.Interaction,
+        message: Optional[str],
+        attachment: Optional[discord.Attachment],
+        spoiler: Optional[bool] = False
+    ) -> None:
         if interaction.user.guild_permissions.administrator:
-            if len(message) <= 2000: 
-                await interaction.channel.send(content=message)
-                await interaction.response.send_message(content="Message sent!", ephemeral=True)
-            else:
-                await interaction.response.send_message(content="Message failed to sent. Message can't exceed 2000 characters.", ephemeral=True)
+            if message is None and attachment is None:
+                return await interaction.response.send_message(content="You need to fill `message` and/or `attachment`.", ephemeral=True)
+            
+            await interaction.response.defer(ephemeral=True)
+
+            message_valid = True
+            file_valid = True
+            if message and len(message) > 2000:
+                    message_valid = False
+
+            file: discord.File = None
+            if attachment:
+                if attachment.size > 8e6:  # Discord attachment size limit is 8 MB
+                    file_valid = False
+                else:
+                    file = await attachment.to_file(spoiler=spoiler)
+
+            if not message_valid:
+                return await interaction.followup.send(content="Message failed to sent. Message can't exceed 2000 characters.", ephemeral=True)
+            
+            if not file_valid:
+                return await interaction.followup.send(content="File failed to sent. File can't exceed 8 MB size.", ephemeral=True)
+
+            await interaction.channel.send(content=message, file=file)
+            await interaction.followup.send(content="Message sent!", ephemeral=True)
+
         else:
             await interaction.response.send_message(content="You don't have permission to execute this command!", ephemeral=True)
 
