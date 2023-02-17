@@ -59,7 +59,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
         if interaction.permissions.manage_channels:
             async with self.db_pool.acquire() as conn:
                 res = await conn.fetch(
-                    "SELECT channel_id FROM sticky WHERE channel_id = $1", channel.id
+                    "SELECT channel_id FROM sticky WHERE channel_id = $1;", channel.id
                 )
             if not res:
                 target = self.bot.get_channel(channel.id)
@@ -112,7 +112,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
         if interaction.permissions.manage_channels:
             async with self.db_pool.acquire() as conn:
                 res = await conn.fetch(
-                    "SELECT channel_id,message_id FROM sticky WHERE channel_id = $1", channel.id
+                    "SELECT channel_id,message_id FROM sticky WHERE channel_id = $1;", channel.id
                 )
             if not res:
                 embed = discord.Embed(
@@ -166,7 +166,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
         if interaction.permissions.manage_channels:
             async with self.db_pool.acquire() as conn:
                 res = await conn.fetch(
-                    "SELECT channel_id,message_id FROM sticky WHERE channel_id = $1", channel.id
+                    "SELECT channel_id,message_id FROM sticky WHERE channel_id = $1;", channel.id
                 )
             if not res:
                 embed = discord.Embed(
@@ -192,6 +192,51 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                     description=f"Berhasil menghapus sticky message pada channel <#{channel.id}>",
                     timestamp=datetime.now()
                 )
+        else:
+            embed = discord.Embed(
+                color=discord.Color.red(),
+                title="❌ You Don't Have Permission To Delete Sticky Message",
+                description=f"Permission Manage Channel Dibutuhkan",
+                timestamp=datetime.now()
+            )
+
+        embed.set_footer(
+            text=f"{str(interaction.user)}",
+            icon_url=interaction.user.display_avatar.url
+        )
+
+        await interaction.followup.send(embed=embed)
+
+    @commands.guild_only()
+    @app_commands.command(name="purge-sticky", description="Remove all sticky message from channels")
+    async def purge_sticky_message(
+        self,
+        interaction: Interaction
+    ) -> None:
+        await interaction.response.defer()
+        if interaction.permissions.manage_channels:
+            async with self.db_pool.acquire() as conn:
+                res = await conn.fetch(
+                    "SELECT * FROM sticky;"
+                )
+                data = [dict(row) for row in res]
+                for sticky in data:
+                    channel = await self.bot.fetch_channel(sticky['channel_id'])
+                    message = await channel.fetch_message(sticky['message_id'])
+                    await message.delete()
+                
+            async with self.db_pool.acquire() as conn:
+                await conn.execute(
+                    "TRUNCATE TABLE sticky;"
+                )
+
+            embed = discord.Embed(
+                color=discord.Color.green(),
+                title="✅ All sticky message removed successfully",
+                description=f"Berhasil menghapus seluruh sticky message pada channel",
+                timestamp=datetime.now()
+            )
+                
         else:
             embed = discord.Embed(
                 color=discord.Color.red(),
