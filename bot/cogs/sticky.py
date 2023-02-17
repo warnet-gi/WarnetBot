@@ -9,8 +9,6 @@ from datetime import datetime
 from typing import Union, List, Dict, Any
 
 
-#TODO make the computation more efficient by doing pre-fetch on channel id
-
 @commands.guild_only()
 class Sticky(commands.GroupCog, group_name="sticky"):
     def __init__(self, bot: WarnetBot) -> None:
