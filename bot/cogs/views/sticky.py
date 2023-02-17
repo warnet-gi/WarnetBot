@@ -11,16 +11,14 @@ from typing import Optional, List, Any, Dict
 class StickyPagination(discord.ui.View):
 
     def __init__(self, *,
-                 timeout: Optional[float] = 180,
-                 PreviousButton: discord.ui.Button = discord.ui.Button(
-                     emoji=discord.PartialEmoji(name="\U000025c0")),
-                 NextButton: discord.ui.Button = discord.ui.Button(
-                     emoji=discord.PartialEmoji(name="\U000025b6")),
-                 PageCounterStyle: discord.ButtonStyle = discord.ButtonStyle.grey,
-                 initial_page_number: int = 0,
-                 ephemeral: bool = False,
-                 list_data: List[Dict[str, Any]]
-                 ) -> None:
+        timeout: Optional[float] = 180,
+        PreviousButton: discord.ui.Button = discord.ui.Button(emoji=discord.PartialEmoji(name="\U000025c0")),
+        NextButton: discord.ui.Button = discord.ui.Button(emoji=discord.PartialEmoji(name="\U000025b6")),
+        PageCounterStyle: discord.ButtonStyle = discord.ButtonStyle.grey,
+        initial_page_number: int = 0,
+        ephemeral: bool = False,
+        list_data: List[Dict[str, Any]]
+    ) -> None:
         super().__init__(timeout=timeout)
 
         self.PreviousButton = PreviousButton
@@ -46,13 +44,6 @@ class StickyPagination(discord.ui.View):
         else:
             self.total_page_count = total_data//N_LIST
 
-        embed = discord.Embed(
-            color=discord.Color.gold(),
-            title='WARNET STICKY MESSAGE',
-            description='**Sticky message yang terdapat pada server WARNET**',
-            timestamp=datetime.now()
-        )
-
         if self.total_page_count:
             for page_num in range(self.total_page_count):
                 page_data_list = [
@@ -60,12 +51,20 @@ class StickyPagination(discord.ui.View):
                     list_data[(page_num * N_LIST) + N_LIST // 2:(page_num + 1) * N_LIST]
                 ]
 
+                embed = discord.Embed(
+                    color=discord.Color.gold(),
+                    title='WARNET STICKY MESSAGE',
+                    description='**Sticky message yang terdapat pada server WARNET**',
+                    timestamp=datetime.now()
+                )
+
                 for sticky_data_list in page_data_list:
                     if sticky_data_list == page_data_list[1] and len(page_data_list[1]) == 0:
                         continue
 
                     field_value = ''
-                    field_name = 'Channel  |  Message' if sticky_data_list == page_data_list[0] else '|'
+                    field_name = 'Channel  |  Message' if sticky_data_list == page_data_list[
+                        0] else '|'
                     for sticky_data in sticky_data_list:
                         if len(sticky_data['message']) > 25:
                             message = sticky_data['message'][:20]+"..."
@@ -75,15 +74,28 @@ class StickyPagination(discord.ui.View):
                         field_value += row_string
 
                     embed.add_field(name=field_name, value=field_value)
-        else:
-            embed.add_field(name='Channel  |  Message',
-                            value='**NO STICKY MESSAGE IN THIS SERVER**')
 
-        embed.set_footer(
-            text=f"{str(self.ctx.author)}",
-            icon_url=self.ctx.author.avatar.url
-        )
-        self.pages.append(embed)
+                embed.set_footer(
+                    text=f"{str(self.ctx.author)}",
+                    icon_url=self.ctx.author.avatar.url
+                )
+                self.pages.append(embed)
+
+        else:
+            embed = discord.Embed(
+                color=discord.Color.gold(),
+                title='WARNET STICKY MESSAGE',
+                description='**Sticky message yang terdapat pada server WARNET**',
+                timestamp=datetime.now()
+            )
+
+            embed.add_field(name='Channel | Message', value='**NO STICKY MESSAGE IN THIS SERVER**')
+
+            embed.set_footer(
+                text=f"{str(self.ctx.author)}",
+                icon_url=self.ctx.author.avatar.url
+            )
+            self.pages.append(embed)
 
     async def on_timeout(self) -> None:
         for child in self.children:

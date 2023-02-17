@@ -25,10 +25,9 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                     sticky = await message.channel.fetch_message(data['message_id'])
                     await sticky.delete()
                     msg = await message.channel.send(data['message'])
-                    async with self.db_pool.acquire() as conn:
-                        await conn.execute(
-                            "UPDATE sticky SET message_id = $2 WHERE channel_id = $1;", message.channel.id, msg.id
-                        )
+                    await conn.execute(
+                        "UPDATE sticky SET message_id = $2 WHERE channel_id = $1;", message.channel.id, msg.id
+                    )
     
     @commands.guild_only()
     @app_commands.command(name="list", description="List channel with sticky message")
@@ -63,25 +62,25 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                 )
             if not res:
                 target = self.bot.get_channel(channel.id)
-                id = await target.send(message)
+                msg = await target.send(message)
             
                 async with self.db_pool.acquire() as conn:
-                    await conn.executemany(
+                    await conn.execute(
                         "INSERT INTO sticky (channel_id,message_id,message) VALUES ($1,$2,$3);",
-                        [(channel.id, id.id, message)]
-                 )
+                        channel.id, msg.id, message
+                    )
 
                 embed = discord.Embed(
                     color=discord.Color.green(),
                     title="✅ Sticky message successfully given",
-                    description=f"Berhasil menambahkan sticky message pada channel <#{channel.id}>",
+                    description=f"Berhasil menambahkan sticky message pada channel {channel.mention}",
                     timestamp=datetime.now()
                 )
             else:
                 embed = discord.Embed(
                     color=discord.Color.red(),
                     title="❌ Sticky message already exist",
-                    description=f"Sticky message telah terpasang pada channel <#{channel.id}>",
+                    description=f"Sticky message telah terpasang pada channel {channel.mention}",
                     timestamp=datetime.now()
                 )
         else:
@@ -118,7 +117,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                 embed = discord.Embed(
                     color=discord.Color.red(),
                     title="❌ Sticky message not exist",
-                    description=f"Tidak ada sticky message pada channel <#{channel.id}>",
+                    description=f"Tidak ada sticky message pada channel {channel.mention}",
                     timestamp=datetime.now()
                 )
             else:
@@ -135,7 +134,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                 embed = discord.Embed(
                     color=discord.Color.green(),
                     title="✅ Sticky message update successfully",
-                    description=f"Berhasil memperbaharui sticky message pada channel <#{channel.id}>",
+                    description=f"Berhasil memperbaharui sticky message pada channel {channel.mention}",
                     timestamp=datetime.now()
                 )
         else:
@@ -172,7 +171,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                 embed = discord.Embed(
                     color=discord.Color.red(),
                     title="❌ Sticky message not exist",
-                    description=f"Tidak ada sticky message pada channel <#{channel.id}>",
+                    description=f"Tidak ada sticky message pada channel {channel.mention}",
                     timestamp=datetime.now()
                 )
             else:
@@ -189,7 +188,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                 embed = discord.Embed(
                     color=discord.Color.green(),
                     title="✅ Sticky message removed successfully",
-                    description=f"Berhasil menghapus sticky message pada channel <#{channel.id}>",
+                    description=f"Berhasil menghapus sticky message pada channel {channel.mention}",
                     timestamp=datetime.now()
                 )
         else:
@@ -225,10 +224,9 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                     message = await channel.fetch_message(sticky['message_id'])
                     await message.delete()
                 
-            async with self.db_pool.acquire() as conn:
                 await conn.execute(
                     "TRUNCATE TABLE sticky;"
-                )
+                )   
 
             embed = discord.Embed(
                 color=discord.Color.green(),

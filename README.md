@@ -26,12 +26,12 @@
 2. Create a [New Application](https://discord.com/developers/applications).
 3. Create a bot by going to Bot -> Add Bot -> Yes, do it!
 4. Copy the bot token and paste it into the `BOT_TOKEN` environment variable (see the next step).
-5. Open console and run `cp .env.example .env` and edit `.env` to your bot.
+5. Rename `.env.example` to `.env` and edit `.env` to your bot.
 6. Create python virtual environment by using `python -m venv env`.
 7. Enter the virtual environment by using command `source env/Scripts/Activate` (Linux) or `env\Scripts\Activate.bat` (Windows)
 8. Make sure you have installed `poetry`. Install it using `pip install poetry` on your virtual environment.
 9.  Install the depedencies using `poetry install`.
-10. Execute the database creation script on `bot\data\db.sql`.
+10. Execute the database creation script from `bot\data\db.sql` on your database console.
 11. Set `BOT_DEBUG=true` to run the bot in debug mode on `.env`. Set to `false` only for production.
 12. To start the bot, use `poetry run task start`.
 
