@@ -31,7 +31,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                         )
     
     @commands.guild_only()
-    @app_commands.command(name="list-sticky", description="List channel with sticky message")
+    @app_commands.command(name="list", description="List channel with sticky message")
     async def list_sticky_messages(
         self,
         interaction: Interaction
@@ -47,7 +47,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
             await view.start(interaction)
 
     @commands.guild_only()
-    @app_commands.command(name="add-sticky", description="Add sticky message to channel")
+    @app_commands.command(name="add", description="Add sticky message to channel")
     @app_commands.describe(message="Sticky Message", channel="Target Channel")
     async def add_sticky_message(
         self,
@@ -100,7 +100,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
         await interaction.followup.send(embed=embed)
     
     @commands.guild_only()
-    @app_commands.command(name="edit-sticky", description="Edit sticky message")
+    @app_commands.command(name="edit", description="Edit sticky message")
     @app_commands.describe(message="New sticky message", channel="Channel Name")
     async def edit_sticky_message(
         self, 
@@ -155,7 +155,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
         
 
     @commands.guild_only()
-    @app_commands.command(name="remove-sticky", description="Remove sticky message from channel")
+    @app_commands.command(name="remove", description="Remove sticky message from channel")
     @app_commands.describe(channel="Target Channel")
     async def remove_sticky_message(
         self,
@@ -208,7 +208,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
         await interaction.followup.send(embed=embed)
 
     @commands.guild_only()
-    @app_commands.command(name="purge-sticky", description="Remove all sticky message from channels")
+    @app_commands.command(name="purge", description="Remove all sticky message from channels")
     async def purge_sticky_message(
         self,
         interaction: Interaction
