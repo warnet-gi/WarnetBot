@@ -11,7 +11,7 @@ from bot.config import config
 
 discord.utils.setup_logging(level=logging.INFO, root=False)
 
-BOT_PREFIX = config.DEFAULT['prefix']
+BOT_PREFIX = config.BOT_PREFIX
 
 class WarnetBot(Bot):
     debug: bool

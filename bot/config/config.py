@@ -23,16 +23,16 @@ HOSTED_DB_USERNAME = os.getenv("HOSTED_DB_USERNAME")
 HOSTED_DB_PASSWORD = os.getenv("HOSTED_DB_PASSWORD")
 HOSTED_DB_PORT = int(os.getenv("HOSTED_DB_PORT"))
 
+BOT_PREFIX = ['war!', 'War!', 'WAR!']
+
 # These are administrator role on Warnet guild
 ADMINISTRATOR_ROLE_ID = {
     'admin': '761650159833841674',
     'mod': '761662280541798421'
 }
-STAFF_ROLE_ID = 951170972671701063
 
-DEFAULT = {
-    'guild_id': GUILD_ID,
-    'prefix': ['war!', 'War!', 'WAR!'],
+NON_ADMINISTRATOR_ROLE_ID = {
+    'staff': '951170972671701063'
 }
 
 
