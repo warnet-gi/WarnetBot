@@ -24,3 +24,4 @@ CREATE TABLE sticky (
     UNIQUE(message_id)
 );
 CREATE INDEX IF NOT EXISTS sticky_channel_id_idx ON sticky (channel_id);
+CREATE INDEX IF NOT EXISTS sticky_message_id_idx ON sticky (message_id);
