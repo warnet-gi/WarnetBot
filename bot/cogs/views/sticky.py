@@ -63,8 +63,11 @@ class StickyPagination(discord.ui.View):
                         continue
 
                     field_value = ''
-                    field_name = 'Channel  |  Message' if sticky_data_list == page_data_list[
-                        0] else '|'
+                    field_name = ''
+                    if sticky_data_list == page_data_list[0]:
+                        field_name = 'Channel  |  Message'
+                    else:
+                        field_name = '|'
                     for sticky_data in sticky_data_list:
                         if len(sticky_data['message']) > 25:
                             message = sticky_data['message'][:20]+"..."
