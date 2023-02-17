@@ -32,7 +32,7 @@
 8. Make sure you have installed `poetry`. Install it using `pip install poetry` on your virtual environment.
 9.  Install the depedencies using `poetry install`.
 10. Execute the database creation script on `bot\data\db.sql`.
-11. Set `BOT_DEBUG=True` to run the bot in debug mode on `.env`.
+11. Set `BOT_DEBUG=true` to run the bot in debug mode on `.env`. Set to `false` only for production.
 12. To start the bot, use `poetry run task start`.
 
 ## Usage Guide
