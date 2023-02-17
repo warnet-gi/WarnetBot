@@ -17,8 +17,12 @@
 
 ---
 
+## Requirement
+- python 3.10
+- postgresql
+
 ## How to contribute?
-1. Clone the project
+1. Fork or clone the project
 2. Create a [New Application](https://discord.com/developers/applications).
 3. Create a bot by going to Bot -> Add Bot -> Yes, do it!
 4. Copy the bot token and paste it into the `BOT_TOKEN` environment variable (see the next step).
@@ -27,10 +31,12 @@
 7. Enter the virtual environment by using command `source env/Scripts/Activate` (Linux) or `env\Scripts\Activate.bat` (Windows)
 8. Make sure you have installed `poetry`. Install it using `pip install poetry` on your virtual environment.
 9.  Install the depedencies using `poetry install`.
-10. Make sure to install postgreSQL on local machine and execute the database creation script on `bot\data\db.sql`.
-11. Change the `OWNER_ID` on config file `bot\config\config.py` with your own id for testing.
-12. Set `BOT_DEBUG=True` to run the bot in debug mode on `.env`.
-13. To start the bot, use `poetry run task start`.
+10. Execute the database creation script on `bot\data\db.sql`.
+11. Set `BOT_DEBUG=True` to run the bot in debug mode on `.env`.
+12. To start the bot, use `poetry run task start`.
 
 ## Usage Guide
 To learn how to use this bot, please visit our [wiki documentation](https://github.com/Iqrar99/WarnetBot/wiki) for the commands info.
+
+## License
+The Warnet Bot is open-sourced software licensed under the [MIT License](https://opensource.org/licenses/MIT).
