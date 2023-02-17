@@ -37,29 +37,14 @@ class Sticky(commands.GroupCog, group_name="sticky"):
         interaction: Interaction
     ) -> None:
         await interaction.response.defer()
-        if interaction.permissions.manage_channels:
-            async with self.db_pool.acquire() as conn:
-                res = await conn.fetch(
-                    "SELECT * FROM sticky ORDER BY channel_id ASC;"
-                )
-                record = [dict(row) for row in res]
+        async with self.db_pool.acquire() as conn:
+            res = await conn.fetch(
+                "SELECT * FROM sticky ORDER BY channel_id ASC;"
+            )
+            record = [dict(row) for row in res]
                 
-                view = StickyPagination(list_data=record)
-                await view.start(interaction)
-        else:
-            embed = discord.Embed(
-                color=discord.Color.red(),
-                title="❌ You Don't Have Permission To View List Sticky Message",
-                description=f"Permission Manage Channel Dibutuhkan",
-                timestamp=datetime.now()
-            )
-
-            embed.set_footer(
-                text=f"{str(interaction.user)}",
-                icon_url=interaction.user.display_avatar.url
-            )
-
-            await interaction.followup.send(embed=embed)
+            view = StickyPagination(list_data=record)
+            await view.start(interaction)
 
     @commands.guild_only()
     @app_commands.command(name="add-sticky", description="Add sticky message to channel")

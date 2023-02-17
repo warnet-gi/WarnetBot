@@ -4,6 +4,7 @@ from discord.ext import commands
 
 from bot.config import config
 
+from datetime import datetime
 from typing import Optional, List, Any, Dict
 
 
@@ -52,6 +53,7 @@ class LeaderboardPagination(discord.ui.View):
             color=discord.Color.gold(),
             title='WARNET TCG ELO RATING LEADERBOARD',
             description='**Berikut rank ELO tertinggi di server WARNET**',
+            timestamp=datetime.now()
         )
 
         if self.total_page_count:
@@ -93,7 +95,11 @@ class LeaderboardPagination(discord.ui.View):
         else:
             embed.set_thumbnail(url='https://cdn.discordapp.com/attachments/929746553944551424/1052431858371133460/Paimon_TCG.png')
             embed.add_field(name='Rank  |  Player  |  W/L  |  ELO', value='**NO PLAYER IN THIS LEADERBOARD YET**')
-
+        
+        embed.set_footer(
+            text=f"{str(self.ctx.author)}",
+            icon_url=self.ctx.author.avatar.url
+        )
         self.pages.append(embed)
 
         for embed in self.pages:

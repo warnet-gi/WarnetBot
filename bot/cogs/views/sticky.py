@@ -38,7 +38,6 @@ class StickyPagination(discord.ui.View):
         self.message = None
 
     async def construct_pages(self, ctx: commands.Context, list_data: List[Dict[str, Any]]) -> None:
-        # Pick only N members per embed
         N_LIST = 20
 
         total_data = len(list_data)
@@ -61,7 +60,6 @@ class StickyPagination(discord.ui.View):
                     list_data[(page_num * N_LIST) + N_LIST // 2:(page_num + 1) * N_LIST]
                 ]
 
-
                 for sticky_data_list in page_data_list:
                     if sticky_data_list == page_data_list[1] and len(page_data_list[1]) == 0:
                         continue
@@ -82,7 +80,7 @@ class StickyPagination(discord.ui.View):
                             value='**NO STICKY MESSAGE IN THIS SERVER**')
 
         embed.set_footer(
-            text=f"{str(self.ctx.author.name)}",
+            text=f"{str(self.ctx.author)}",
             icon_url=self.ctx.author.avatar.url
         )
         self.pages.append(embed)
