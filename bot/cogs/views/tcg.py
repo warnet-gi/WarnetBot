@@ -48,18 +48,18 @@ class LeaderboardPagination(discord.ui.View):
         rank_count = 1
         author_rank = 0
 
+        embed = discord.Embed(
+            color=discord.Color.gold(),
+            title='WARNET TCG ELO RATING LEADERBOARD',
+            description='**Berikut rank ELO tertinggi di server WARNET**',
+        )
+
         if self.total_page_count:
             for page_num in range(self.total_page_count):
                 page_member_data_list = [
                     leaderboard_data[(page_num * N_MEMBERS):(page_num * N_MEMBERS) + N_MEMBERS//2],
                     leaderboard_data[(page_num * N_MEMBERS) + N_MEMBERS//2:(page_num + 1) * N_MEMBERS]
                 ]
-
-                embed = discord.Embed(
-                    color=discord.Color.gold(),
-                    title='WARNET TCG ELO RATING LEADERBOARD',
-                    description='**Berikut rank ELO tertinggi di server WARNET**',
-                )
                 embed.set_thumbnail(url='https://cdn.discordapp.com/attachments/929746553944551424/1052431858371133460/Paimon_TCG.png')
                 
                 for member_data_list in page_member_data_list:
@@ -88,20 +88,13 @@ class LeaderboardPagination(discord.ui.View):
                         rank_count += 1
                     
                     embed.add_field(name=field_name, value=field_value)
-
-                self.pages.append(embed)
-
+                    
         # Null leaderboard
         else:
-            embed = discord.Embed(
-                color=discord.Color.gold(),
-                title='WARNET TCG ELO RATING LEADERBOARD',
-                description='**Berikut rank ELO tertinggi di server WARNET**',
-            )
             embed.set_thumbnail(url='https://cdn.discordapp.com/attachments/929746553944551424/1052431858371133460/Paimon_TCG.png')
             embed.add_field(name='Rank  |  Player  |  W/L  |  ELO', value='**NO PLAYER IN THIS LEADERBOARD YET**')
 
-            self.pages.append(embed)
+        self.pages.append(embed)
 
         for embed in self.pages:
             if author_rank:
