@@ -19,7 +19,8 @@ CREATE TABLE sticky (
     channel_id bigint NOT NULL,
     message_id bigint NOT NULL,
     message text NOT NULL,
-		PRIMARY KEY(channel_id),
-		UNIQUE(channel_id)
+    PRIMARY KEY(channel_id),
+    UNIQUE(channel_id),
+    UNIQUE(message_id)
 );
 CREATE INDEX IF NOT EXISTS sticky_channel_id_idx ON sticky (channel_id);
