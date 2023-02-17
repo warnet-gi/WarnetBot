@@ -59,7 +59,7 @@ class WarnetBot(Bot):
                 port=config.LOCAL_DB_PORT,
             )
 
-            return await super().start(config.BOT_TOKEN, reconnect=True)
+            return await super().start(config.DEV_BOT_TOKEN, reconnect=True)
 
         else:
             self.db_pool = await asyncpg.create_pool(

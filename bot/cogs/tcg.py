@@ -21,8 +21,8 @@ from bot.cogs.ext.tcg.member import (
     leaderboard,
 )
 
-
 GUILD_ID = config.GUILD_ID
+DEV_GUILD_ID = config.DEV_GUILD_ID
 
 @commands.guild_only()
 class TCG(commands.GroupCog, group_name="warnet-tcg"):
@@ -40,7 +40,7 @@ class TCG(commands.GroupCog, group_name="warnet-tcg"):
     @app_commands.describe(member='Member that you want to register.')
     async def tcg_register_member(self, interaction: Interaction, member: Union[discord.Member, discord.User]) -> None:
         await register_member(self, interaction, member)
-    
+
     @app_commands.command(name='unregister-member', description='Administrator can unregister a member from TCG leaderboard.')
     @app_commands.describe(member='Member that you want to unregister.')
     async def tcg_unregister_member(self, interaction: Interaction, member: Union[discord.Member, discord.User]) -> None:
@@ -105,5 +105,5 @@ class TCG(commands.GroupCog, group_name="warnet-tcg"):
 async def setup(bot: WarnetBot) -> None:
     await bot.add_cog(
         TCG(bot),
-        guilds=[discord.Object(GUILD_ID)]
+        guilds=[discord.Object(DEV_GUILD_ID), discord.Object(GUILD_ID)]
     )

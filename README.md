@@ -22,10 +22,7 @@
 2. Create a [New Application](https://discord.com/developers/applications).
 3. Create a bot by going to Bot -> Add Bot -> Yes, do it!
 4. Copy the bot token and paste it into the `BOT_TOKEN` environment variable (see the next step).
-5. Copy `.env.example` to `.env` on the root folder or run:
-   ```
-    cp .env.example .env
-   ```
+5. Open console and run `cp .env.example .env` and edit `.env` to your bot.
 6. Create python virtual environment by using `python -m venv env`.
 7. Enter the virtual environment by using command `source env/Scripts/Activate` (Linux) or `env\Scripts\Activate.bat` (Windows)
 8. Make sure you have installed `poetry`. Install it using `pip install poetry` on your virtual environment.
