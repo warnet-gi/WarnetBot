@@ -78,7 +78,7 @@ class Admin(commands.GroupCog, group_name="admin"):
     async def give_role_on_vc(self, interaction: Interaction, vc: discord.VoiceChannel, role: discord.Role) -> None:
         await interaction.response.defer()
 
-        if interaction.user.guild_permissions.administrator:
+        if interaction.user.guild_permissions.manage_roles:
             cnt = 0
             for member in vc.members:
                 if member.get_role(role.id) is None:
