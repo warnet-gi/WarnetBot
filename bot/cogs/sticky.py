@@ -6,35 +6,52 @@ from bot.bot import WarnetBot
 from bot.cogs.views.sticky import StickyPagination
 
 from datetime import datetime
-from typing import Union
+from typing import Union, List, Dict, Any
 
 
+#TODO make the computation more efficient by doing pre-fetch on channel id
+
+@commands.guild_only()
 class Sticky(commands.GroupCog, group_name="sticky"):
     def __init__(self, bot: WarnetBot) -> None:
         self.bot = bot
         self.db_pool = bot.get_db_pool()
+        self.sticky_data: Dict[int, List[int, str]] = dict()
+
+    @commands.Cog.listener()
+    async def on_connect(self) -> None:
+        async with self.db_pool.acquire() as conn:
+            records = await conn.fetch("SELECT * FROM sticky ORDER BY channel_id ASC;")
+            data_list = [dict(row) for row in records]
+            for data in data_list:
+                self.sticky_data[data['channel_id']] = [
+                    data['message_id'],
+                    data['message']
+                ]
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message) -> None:
-        async with self.db_pool.acquire() as conn:
-            res = await conn.fetch(
-                "SELECT channel_id,message_id,message FROM sticky WHERE channel_id = $1",
-                message.channel.id,
-            )
-            if not message.author.bot and res:
-                data = dict(res[0])
-                if message.channel.id == data["channel_id"]:
-                    sticky = await message.channel.fetch_message(data["message_id"])
-                    await sticky.delete()
-                    msg = await message.channel.send(bytes(data['message'], "utf-8").decode("unicode_escape"))
-                    await conn.execute(
-                        "UPDATE sticky SET message_id = $2 WHERE channel_id = $1;",
-                        message.channel.id,
-                        msg.id,
-                    )
+        res = None
+        if message.channel.id in self.sticky_data:
+            res = self.sticky_data[message.channel.id]
+            sticky_message_id = res[0] 
+            sticky_message = res[1] 
 
-    @commands.guild_only()
-    @app_commands.command(name="list", description="List channel with sticky message")
+        if not message.author.bot and res:
+            sticky = await message.channel.fetch_message(sticky_message_id)
+            await sticky.delete()
+            msg = await message.channel.send(bytes(sticky_message, "utf-8").decode("unicode_escape"))
+            
+            async with self.db_pool.acquire() as conn:
+                await conn.execute(
+                    "UPDATE sticky SET message_id = $2 WHERE channel_id = $1;",
+                    message.channel.id,
+                    msg.id,
+                )
+
+            self.sticky_data[message.channel.id] = [msg.id, sticky_message]
+
+    @app_commands.command(name="list", description="List channel with sticky message.")
     async def list_sticky_messages(self, interaction: Interaction) -> None:
         await interaction.response.defer()
         async with self.db_pool.acquire() as conn:
@@ -44,9 +61,8 @@ class Sticky(commands.GroupCog, group_name="sticky"):
             view = StickyPagination(list_data=record)
             await view.start(interaction)
 
-    @commands.guild_only()
-    @app_commands.command(name="add", description="Add sticky message to channel")
-    @app_commands.describe(message="Sticky Message", channel="Target Channel")
+    @app_commands.command(name="add", description="Add sticky message to a channel.")
+    @app_commands.describe(message="Sticky message.", channel="Target channel.")
     async def add_sticky_message(
         self,
         interaction: Interaction,
@@ -71,12 +87,15 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                         message,
                     )
 
+                self.sticky_data[channel.id] = [msg.id, message]
+
                 embed = discord.Embed(
                     color=discord.Color.green(),
                     title="✅ Sticky message successfully given",
                     description=f"Berhasil menambahkan sticky message pada channel {channel.mention}",
                     timestamp=datetime.now(),
                 )
+
             else:
                 embed = discord.Embed(
                     color=discord.Color.red(),
@@ -84,6 +103,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                     description=f"Sticky message telah terpasang pada channel {channel.mention}",
                     timestamp=datetime.now(),
                 )
+
         else:
             embed = discord.Embed(
                 color=discord.Color.red(),
@@ -99,9 +119,8 @@ class Sticky(commands.GroupCog, group_name="sticky"):
 
         await interaction.followup.send(embed=embed)
 
-    @commands.guild_only()
-    @app_commands.command(name="edit", description="Edit sticky message")
-    @app_commands.describe(message="New sticky message", channel="Channel Name")
+    @app_commands.command(name="edit", description="Edit sticky message.")
+    @app_commands.describe(message="New sticky message.", channel="Channel name.")
     async def edit_sticky_message(
         self,
         interaction: Interaction,
@@ -135,6 +154,9 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                         message,
                     )
 
+                current_msg_id = self.sticky_data[channel.id][0]
+                self.sticky_data[channel.id] = [current_msg_id, message]
+
                 embed = discord.Embed(
                     color=discord.Color.green(),
                     title="✅ Sticky message update successfully",
@@ -156,11 +178,10 @@ class Sticky(commands.GroupCog, group_name="sticky"):
 
         await interaction.followup.send(embed=embed)
 
-    @commands.guild_only()
     @app_commands.command(
-        name="remove", description="Remove sticky message from channel"
+        name="remove", description="Remove sticky message from channel."
     )
-    @app_commands.describe(channel="Target Channel")
+    @app_commands.describe(channel="Target channel.")
     async def remove_sticky_message(
         self,
         interaction: Interaction,
@@ -173,6 +194,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                     "SELECT channel_id,message_id FROM sticky WHERE channel_id = $1;",
                     channel.id,
                 )
+
             if not res:
                 embed = discord.Embed(
                     color=discord.Color.red(),
@@ -191,12 +213,15 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                         "DELETE FROM sticky WHERE channel_id = $1;", channel.id
                     )
 
+                self.sticky_data.pop(channel.id)
+
                 embed = discord.Embed(
                     color=discord.Color.green(),
                     title="✅ Sticky message removed successfully",
                     description=f"Berhasil menghapus sticky message pada channel {channel.mention}",
                     timestamp=datetime.now(),
                 )
+
         else:
             embed = discord.Embed(
                 color=discord.Color.red(),
@@ -212,9 +237,8 @@ class Sticky(commands.GroupCog, group_name="sticky"):
 
         await interaction.followup.send(embed=embed)
 
-    @commands.guild_only()
     @app_commands.command(
-        name="purge", description="Remove all sticky message from channels"
+        name="purge", description="Remove all sticky message from channels."
     )
     async def purge_sticky_message(self, interaction: Interaction) -> None:
         await interaction.response.defer()
