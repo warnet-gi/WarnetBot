@@ -25,6 +25,7 @@ class General(commands.Cog):
         embed.set_author(name='Warnet Bot', icon_url='https://cdn.discordapp.com/attachments/761684443915485184/1038313075260002365/warnet_logo_putih.png')
         embed.set_thumbnail(url=self.bot.user.display_avatar.url)
         embed.add_field(name='Developer', value=f"monarch99#1999", inline=False)
+        embed.add_field(name='Contributor', value=f"Irvan#1845", inline=False)
         embed.add_field(name='Uptime', value=uptime, inline=False)
 
         view = discord.ui.View()
