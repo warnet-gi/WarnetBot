@@ -26,7 +26,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                 if message.channel.id == data["channel_id"]:
                     sticky = await message.channel.fetch_message(data["message_id"])
                     await sticky.delete()
-                    msg = await message.channel.send(data["message"])
+                    msg = await message.channel.send(bytes(data['message'], "utf-8").decode("unicode_escape"))
                     await conn.execute(
                         "UPDATE sticky SET message_id = $2 WHERE channel_id = $1;",
                         message.channel.id,
@@ -61,7 +61,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                 )
             if not res:
                 target = self.bot.get_channel(channel.id)
-                msg = await target.send(message)
+                msg = await target.send(bytes(message, "utf-8").decode("unicode_escape"))
 
                 async with self.db_pool.acquire() as conn:
                     await conn.execute(
@@ -126,7 +126,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                 data = dict(res[0])
 
                 sticky = await channel.fetch_message(data["message_id"])
-                await sticky.edit(content=message)
+                await sticky.edit(content=bytes(message, "utf-8").decode("unicode_escape"))
 
                 async with self.db_pool.acquire() as conn:
                     await conn.execute(
