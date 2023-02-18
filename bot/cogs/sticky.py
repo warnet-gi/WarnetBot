@@ -5,6 +5,7 @@ from discord.ext import commands
 from bot.bot import WarnetBot
 from bot.cogs.views.sticky import StickyPagination
 
+import asyncio
 from datetime import datetime
 from typing import Union, List, Dict, Any
 
@@ -35,9 +36,14 @@ class Sticky(commands.GroupCog, group_name="sticky"):
             sticky_message_id = res[0] 
             sticky_message = res[1] 
 
-        if not message.author.bot and res:
-            sticky = await message.channel.fetch_message(sticky_message_id)
+        if res and message.author != self.bot.user:
+            try:
+                sticky = await message.channel.fetch_message(sticky_message_id)
+            except discord.errors.NotFound:  # This is happened when the chat is going fast
+                return
+            
             await sticky.delete()
+            await asyncio.sleep(2)
             msg = await message.channel.send(bytes(sticky_message, "utf-8").decode("unicode_escape"))
             
             async with self.db_pool.acquire() as conn:
