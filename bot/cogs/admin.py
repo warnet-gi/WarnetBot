@@ -122,6 +122,8 @@ class Admin(commands.GroupCog, group_name="admin"):
             file_valid = True
             if message and len(message) > 2000:
                     message_valid = False
+            elif message:
+                message = bytes(message, "utf-8").decode("unicode_escape")
 
             file: discord.File = None
             if attachment:

@@ -1,4 +1,7 @@
-import datetime, time
+from typing import Optional
+from datetime import datetime, timedelta
+import pytz
+import time
 import random
 import io
 
@@ -17,7 +20,7 @@ class General(commands.Cog):
     async def about(self, interaction) -> None:
         await interaction.response.defer()
 
-        uptime = str(datetime.timedelta(seconds=int(round(time.time()-self.bot.start_time))))  
+        uptime = str(timedelta(seconds=int(round(time.time()-self.bot.start_time))))  
 
         saweria_url = 'https://saweria.co/warnetGI'
 
@@ -86,6 +89,65 @@ class General(commands.Cog):
 
         else:
             await ctx.reply(content=content, mention_author=False)
+
+    @app_commands.command(name='unix-timestamp', description='Get a UNIX timestamp to be used on discord timestamp format.')
+    @app_commands.describe(
+        day='Set specific day. Default is today.',
+        month='Set specific month. Default is current month.',
+        year='Set specific year. Default is current year.',
+        hour='Set specific hour. Default is current hour.',
+        minute='Set specific minute. Default is current minute.',
+        idn_timezone='Your Indonesia timezone',
+    )
+    @app_commands.choices(idn_timezone=[
+        app_commands.Choice(name="WIB (GMT+7)", value=7),
+        app_commands.Choice(name="WITA (GMT+8)", value=8),
+        app_commands.Choice(name="WIT (GMT+9)", value=9),
+    ])
+    async def unix_timestamp(
+        self,
+        interaction: Interaction,
+        day: Optional[app_commands.Range[int, 1, 31]],
+        month: Optional[app_commands.Range[int, 1, 12]],
+        year: Optional[app_commands.Range[int, 1970]],
+        hour: Optional[app_commands.Range[int, 0, 23]],
+        minute: Optional[app_commands.Range[int, 0, 59]],
+        idn_timezone: app_commands.Choice[int] = 7,
+    ) -> None:
+        day = datetime.today().day if day is None else day
+        month = datetime.today().month if month is None else month
+        year = datetime.today().year if year is None else year
+        hour = datetime.today().hour if hour is None else hour
+        minute = datetime.today().minute if minute is None else minute
+   
+        idn_tz = {
+            7: pytz.timezone('Asia/Jakarta'),
+            8: pytz.timezone('Asia/Shanghai'),
+            9: pytz.timezone('Asia/Jayapura'),
+        }
+        tz = idn_tz[idn_timezone] if not isinstance(idn_timezone, app_commands.Choice) else idn_tz[idn_timezone.value]
+
+        try:
+            idn_dt = tz.localize(datetime(year, month, day, hour=hour, minute=minute))
+        except ValueError:
+            return await interaction.response.send_message(
+                content="Waktu dan tanggal yang dimasukkan ada yang salah. Silakan periksa kembali.",
+                ephemeral=True
+            )
+
+        unix = int(idn_dt.timestamp())
+        content = (
+            f"`<t:{unix}>` = <t:{unix}>\n"
+            f"`<t:{unix}:t>` = <t:{unix}:t>\n"
+            f"`<t:{unix}:T>` = <t:{unix}:T>\n"
+            f"`<t:{unix}:d>` = <t:{unix}:d>\n"
+            f"`<t:{unix}:D>` = <t:{unix}:D>\n"
+            f"`<t:{unix}:f>` = <t:{unix}:f>\n"
+            f"`<t:{unix}:F>` = <t:{unix}:F>\n"
+            f"`<t:{unix}:R>` = <t:{unix}:R>\n"
+        )
+
+        await interaction.response.send_message(content=content)
 
     @commands.Cog.listener()
     async def on_connect(self) -> None:
