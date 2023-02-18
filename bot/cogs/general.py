@@ -121,11 +121,12 @@ class General(commands.Cog):
         }
         tz = idn_tz[idn_timezone] if not isinstance(idn_timezone, app_commands.Choice) else idn_tz[idn_timezone.value]
 
-        day = tz.localize(datetime.today()).day if day is None else day
-        month = tz.localize(datetime.today()).month if month is None else month
-        year = tz.localize(datetime.today()).year if year is None else year
-        hour = tz.localize(datetime.today()).hour if hour is None else hour
-        minute = tz.localize(datetime.today()).minute if minute is None else minute
+        current_time = tz.localize(datetime.now())
+        day = current_time.day if day is None else day
+        month = current_time.month if month is None else month
+        year = current_time.year if year is None else year
+        hour = current_time.hour if hour is None else hour
+        minute = current_time.minute if minute is None else minute
 
         try:
             idn_dt = tz.localize(datetime(year, month, day, hour=hour, minute=minute))
