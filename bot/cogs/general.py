@@ -114,18 +114,18 @@ class General(commands.Cog):
         minute: Optional[app_commands.Range[int, 0, 59]],
         idn_timezone: app_commands.Choice[int] = 7,
     ) -> None:
-        day = datetime.today().day if day is None else day
-        month = datetime.today().month if month is None else month
-        year = datetime.today().year if year is None else year
-        hour = datetime.today().hour if hour is None else hour
-        minute = datetime.today().minute if minute is None else minute
-   
         idn_tz = {
             7: pytz.timezone('Asia/Jakarta'),
             8: pytz.timezone('Asia/Shanghai'),
             9: pytz.timezone('Asia/Jayapura'),
         }
         tz = idn_tz[idn_timezone] if not isinstance(idn_timezone, app_commands.Choice) else idn_tz[idn_timezone.value]
+
+        day = tz.localize(datetime.today()).day if day is None else day
+        month = tz.localize(datetime.today()).month if month is None else month
+        year = tz.localize(datetime.today()).year if year is None else year
+        hour = tz.localize(datetime.today()).hour if hour is None else hour
+        minute = tz.localize(datetime.today()).minute if minute is None else minute
 
         try:
             idn_dt = tz.localize(datetime(year, month, day, hour=hour, minute=minute))
