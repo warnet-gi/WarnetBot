@@ -114,14 +114,14 @@ class General(commands.Cog):
         minute: Optional[app_commands.Range[int, 0, 59]],
         idn_timezone: app_commands.Choice[int] = 7,
     ) -> None:
-        idn_tz = {
+        idn_tz_code = {
             7: pytz.timezone('Asia/Jakarta'),
             8: pytz.timezone('Asia/Shanghai'),
             9: pytz.timezone('Asia/Jayapura'),
         }
-        tz = idn_tz[idn_timezone] if not isinstance(idn_timezone, app_commands.Choice) else idn_tz[idn_timezone.value]
+        idn_tz = idn_tz_code[idn_timezone] if not isinstance(idn_timezone, app_commands.Choice) else idn_tz_code[idn_timezone.value]
 
-        current_time = tz.localize(datetime.now())
+        current_time = datetime.now(tz=pytz.utc).astimezone(idn_tz)
         day = current_time.day if day is None else day
         month = current_time.month if month is None else month
         year = current_time.year if year is None else year
@@ -129,7 +129,7 @@ class General(commands.Cog):
         minute = current_time.minute if minute is None else minute
 
         try:
-            idn_dt = tz.localize(datetime(year, month, day, hour=hour, minute=minute))
+            idn_dt = idn_tz.localize(datetime(year, month, day, hour=hour, minute=minute))
         except ValueError:
             return await interaction.response.send_message(
                 content="Waktu dan tanggal yang dimasukkan ada yang salah. Silakan periksa kembali.",
