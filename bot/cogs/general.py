@@ -52,6 +52,11 @@ class General(commands.Cog):
             inline=False
         )
         embed.add_field(
+            name='🧷 Sticky Command',
+            value="[Link dokumentasi](https://github.com/Iqrar99/WarnetBot/wiki/Bot-Commands#-sticky-commands)",
+            inline=False
+        )
+        embed.add_field(
             name='👮 Admin Commands',
             value="[Link dokumentasi](https://github.com/Iqrar99/WarnetBot/wiki/Bot-Commands#-admin-commands)",
             inline=False
