@@ -36,10 +36,10 @@ class Sticky(commands.GroupCog, group_name="sticky"):
         if res and message.author != self.bot.user:
             try:
                 sticky = await message.channel.fetch_message(sticky_message_id)
-            except discord.errors.NotFound:  # This is happened when the chat is going fast
-                return
+                await sticky.delete()
+            except discord.errors.NotFound:
+                pass
 
-            await sticky.delete()
             await asyncio.sleep(2)
             msg = await message.channel.send(sticky_message)
 
@@ -67,7 +67,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
     async def add_sticky_message(
         self,
         interaction: Interaction,
-        message: app_commands.Range[str, 0],
+        message: app_commands.Range[str, 0, 2000],
         channel: Union[discord.TextChannel, discord.ForumChannel, discord.Thread],
     ) -> None:
         await interaction.response.defer()
@@ -126,7 +126,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
     async def edit_sticky_message(
         self,
         interaction: Interaction,
-        message: app_commands.Range[str, 0],
+        message: app_commands.Range[str, 0, 2000],
         channel: Union[discord.TextChannel, discord.ForumChannel, discord.Thread],
     ) -> None:
         await interaction.response.defer()
@@ -146,9 +146,14 @@ class Sticky(commands.GroupCog, group_name="sticky"):
             else:
                 data = dict(res[0])
 
-                sticky = await channel.fetch_message(data["message_id"])
-                message = '\n'.join(message.split('\\n'))
-                await sticky.edit(content=message)
+                try:
+                    sticky = await channel.fetch_message(data["message_id"])
+                    message = '\n'.join(message.split('\\n'))
+                    await sticky.edit(content=message)
+                except discord.errors.NotFound:
+                    sticky = self.bot.get_channel(channel.id)
+                    message = '\n'.join(message.split('\\n'))
+                    await sticky.send(message)
 
                 async with self.db_pool.acquire() as conn:
                     await conn.execute(
@@ -205,9 +210,11 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                 )
             else:
                 data = dict(res[0])
-
-                sticky = await channel.fetch_message(data["message_id"])
-                await sticky.delete()
+                try:
+                    sticky = await channel.fetch_message(data["message_id"])
+                    await sticky.delete()
+                except discord.errors.NotFound:
+                    pass
 
                 async with self.db_pool.acquire() as conn:
                     await conn.execute("DELETE FROM sticky WHERE channel_id = $1;", channel.id)
@@ -220,7 +227,6 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                     description=f"Berhasil menghapus sticky message pada channel {channel.mention}",
                     timestamp=datetime.now(),
                 )
-
         else:
             embed = discord.Embed(
                 color=discord.Color.red(),
@@ -244,9 +250,12 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                 res = await conn.fetch("SELECT * FROM sticky;")
                 data = [dict(row) for row in res]
                 for sticky in data:
-                    channel = await self.bot.fetch_channel(sticky["channel_id"])
-                    message = await channel.fetch_message(sticky["message_id"])
-                    await message.delete()
+                    try:
+                        channel = await self.bot.fetch_channel(sticky["channel_id"])
+                        message = await channel.fetch_message(sticky["message_id"])
+                        await message.delete()
+                    except discord.errors.NotFound:
+                        pass
 
                 await conn.execute("TRUNCATE TABLE sticky;")
 
