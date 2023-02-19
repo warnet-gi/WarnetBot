@@ -26,14 +26,9 @@ HOSTED_DB_PORT = int(os.getenv("HOSTED_DB_PORT"))
 BOT_PREFIX = ['war!', 'War!', 'WAR!']
 
 # These are administrator role on Warnet guild
-ADMINISTRATOR_ROLE_ID = {
-    'admin': '761650159833841674',
-    'mod': '761662280541798421'
-}
+ADMINISTRATOR_ROLE_ID = {'admin': '761650159833841674', 'mod': '761662280541798421'}
 
-NON_ADMINISTRATOR_ROLE_ID = {
-    'staff': '951170972671701063'
-}
+NON_ADMINISTRATOR_ROLE_ID = {'staff': '951170972671701063'}
 
 
 class TCGConfig:
@@ -50,5 +45,5 @@ class TCGConfig:
         TCG_TITLE_ROLE_ID[0]: '<:NoviceDuelist:1052440393461022760>',
         TCG_TITLE_ROLE_ID[1]: '<:ExpertDuelist:1052440396489314304>',
         TCG_TITLE_ROLE_ID[2]: '<:MasterDuelist:1052440400822018078>',
-        TCG_TITLE_ROLE_ID[3]: '<:ImmortalDuelist:1052440404135518228>'
+        TCG_TITLE_ROLE_ID[3]: '<:ImmortalDuelist:1052440404135518228>',
     }

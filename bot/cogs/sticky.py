@@ -23,29 +23,28 @@ class Sticky(commands.GroupCog, group_name="sticky"):
             records = await conn.fetch("SELECT * FROM sticky ORDER BY channel_id ASC;")
             data_list = [dict(row) for row in records]
             for data in data_list:
-                self.sticky_data[data['channel_id']] = [
-                    data['message_id'],
-                    data['message']
-                ]
+                self.sticky_data[data['channel_id']] = [data['message_id'], data['message']]
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message) -> None:
         res = None
         if message.channel.id in self.sticky_data:
             res = self.sticky_data[message.channel.id]
-            sticky_message_id = res[0] 
-            sticky_message = res[1] 
+            sticky_message_id = res[0]
+            sticky_message = res[1]
 
         if res and message.author != self.bot.user:
             try:
                 sticky = await message.channel.fetch_message(sticky_message_id)
             except discord.errors.NotFound:  # This is happened when the chat is going fast
                 return
-            
+
             await sticky.delete()
             await asyncio.sleep(2)
-            msg = await message.channel.send(bytes(sticky_message, "utf-8").decode("unicode_escape"))
-            
+            msg = await message.channel.send(
+                bytes(sticky_message, "utf-8").decode("unicode_escape")
+            )
+
             async with self.db_pool.acquire() as conn:
                 await conn.execute(
                     "UPDATE sticky SET message_id = $2 WHERE channel_id = $1;",
@@ -182,9 +181,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
 
         await interaction.followup.send(embed=embed)
 
-    @app_commands.command(
-        name="remove", description="Remove sticky message from channel."
-    )
+    @app_commands.command(name="remove", description="Remove sticky message from channel.")
     @app_commands.describe(channel="Target channel.")
     async def remove_sticky_message(
         self,
@@ -213,9 +210,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                 await sticky.delete()
 
                 async with self.db_pool.acquire() as conn:
-                    await conn.execute(
-                        "DELETE FROM sticky WHERE channel_id = $1;", channel.id
-                    )
+                    await conn.execute("DELETE FROM sticky WHERE channel_id = $1;", channel.id)
 
                 self.sticky_data.pop(channel.id)
 
@@ -241,9 +236,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
 
         await interaction.followup.send(embed=embed)
 
-    @app_commands.command(
-        name="purge", description="Remove all sticky message from channels."
-    )
+    @app_commands.command(name="purge", description="Remove all sticky message from channels.")
     async def purge_sticky_message(self, interaction: Interaction) -> None:
         await interaction.response.defer()
         if interaction.permissions.manage_channels:

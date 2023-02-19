@@ -11,8 +11,8 @@ from discord.ext import commands, tasks
 
 from bot.bot import WarnetBot
 
-class General(commands.Cog):
 
+class General(commands.Cog):
     def __init__(self, bot: WarnetBot) -> None:
         self.bot = bot
 
@@ -20,12 +20,15 @@ class General(commands.Cog):
     async def about(self, interaction) -> None:
         await interaction.response.defer()
 
-        uptime = str(timedelta(seconds=int(round(time.time()-self.bot.start_time))))  
+        uptime = str(timedelta(seconds=int(round(time.time() - self.bot.start_time))))
 
         saweria_url = 'https://saweria.co/warnetGI'
 
-        embed = discord.Embed(color=0x4e24d6)
-        embed.set_author(name='Warnet Bot', icon_url='https://cdn.discordapp.com/attachments/761684443915485184/1038313075260002365/warnet_logo_putih.png')
+        embed = discord.Embed(color=0x4E24D6)
+        embed.set_author(
+            name='Warnet Bot',
+            icon_url='https://cdn.discordapp.com/attachments/761684443915485184/1038313075260002365/warnet_logo_putih.png',
+        )
         embed.set_thumbnail(url=self.bot.user.display_avatar.url)
         embed.add_field(name='Developer', value=f"monarch99#1999", inline=False)
         embed.add_field(name='Contributor', value=f"Irvan#1845", inline=False)
@@ -41,33 +44,37 @@ class General(commands.Cog):
         embed = discord.Embed(
             color=ctx.author.color,
             title='📔 WarnetBot Wiki',
-            description='WarnetBot Wiki merupakan dokumentasi command yang tersedia di bot. Kamu dapat mengakses dokumentasi bot ini melalui link di bawah.'
+            description='WarnetBot Wiki merupakan dokumentasi command yang tersedia di bot. Kamu dapat mengakses dokumentasi bot ini melalui link di bawah.',
         )
         embed.set_thumbnail(url=self.bot.user.display_avatar.url)
         embed.add_field(
             name='👥 General Commands',
             value="[Link dokumentasi](https://github.com/Iqrar99/WarnetBot/wiki/Bot-Commands#-general-commands)",
-            inline=False
+            inline=False,
         )
         embed.add_field(
             name='🎲 TCG Commands',
             value="[Link dokumentasi](https://github.com/Iqrar99/WarnetBot/wiki/Bot-Commands#-tcg-commands)",
-            inline=False
+            inline=False,
         )
         embed.add_field(
             name='🧷 Sticky Command',
             value="[Link dokumentasi](https://github.com/Iqrar99/WarnetBot/wiki/Bot-Commands#-sticky-commands)",
-            inline=False
+            inline=False,
         )
         embed.add_field(
             name='👮 Admin Commands',
             value="[Link dokumentasi](https://github.com/Iqrar99/WarnetBot/wiki/Bot-Commands#-admin-commands)",
-            inline=False
+            inline=False,
         )
         await ctx.send(embed=embed)
 
     @commands.guild_only()
-    @commands.hybrid_command(name='rolemembers', aliases=['rm'], description='Shows all members associated with a given role.')
+    @commands.hybrid_command(
+        name='rolemembers',
+        aliases=['rm'],
+        description='Shows all members associated with a given role.',
+    )
     @app_commands.describe(role='Guild role that you want to see the members associated in it.')
     async def role_members(self, ctx: commands.Context, role: discord.Role) -> None:
         await ctx.typing()
@@ -84,13 +91,20 @@ class General(commands.Cog):
 
         if len(content) > 2000:
             buffer = io.BytesIO(members_content.encode('utf-8'))
-            await ctx.reply(content=f"Members with **{role.name}** role", file=discord.File(buffer, filename=f"{role.name}.txt"), mention_author=False)
+            await ctx.reply(
+                content=f"Members with **{role.name}** role",
+                file=discord.File(buffer, filename=f"{role.name}.txt"),
+                mention_author=False,
+            )
             buffer.close()
 
         else:
             await ctx.reply(content=content, mention_author=False)
 
-    @app_commands.command(name='unix-timestamp', description='Get a UNIX timestamp to be used on discord timestamp format.')
+    @app_commands.command(
+        name='unix-timestamp',
+        description='Get a UNIX timestamp to be used on discord timestamp format.',
+    )
     @app_commands.describe(
         day='Set specific day. Default is today.',
         month='Set specific month. Default is current month.',
@@ -99,11 +113,13 @@ class General(commands.Cog):
         minute='Set specific minute. Default is current minute.',
         idn_timezone='Your Indonesia timezone',
     )
-    @app_commands.choices(idn_timezone=[
-        app_commands.Choice(name="WIB (GMT+7)", value=7),
-        app_commands.Choice(name="WITA (GMT+8)", value=8),
-        app_commands.Choice(name="WIT (GMT+9)", value=9),
-    ])
+    @app_commands.choices(
+        idn_timezone=[
+            app_commands.Choice(name="WIB (GMT+7)", value=7),
+            app_commands.Choice(name="WITA (GMT+8)", value=8),
+            app_commands.Choice(name="WIT (GMT+9)", value=9),
+        ]
+    )
     async def unix_timestamp(
         self,
         interaction: Interaction,
@@ -119,7 +135,11 @@ class General(commands.Cog):
             8: pytz.timezone('Asia/Shanghai'),
             9: pytz.timezone('Asia/Jayapura'),
         }
-        idn_tz = idn_tz_code[idn_timezone] if not isinstance(idn_timezone, app_commands.Choice) else idn_tz_code[idn_timezone.value]
+        idn_tz = (
+            idn_tz_code[idn_timezone]
+            if not isinstance(idn_timezone, app_commands.Choice)
+            else idn_tz_code[idn_timezone.value]
+        )
 
         current_time = datetime.now(tz=pytz.utc).astimezone(idn_tz)
         day = current_time.day if day is None else day
@@ -133,7 +153,7 @@ class General(commands.Cog):
         except ValueError:
             return await interaction.response.send_message(
                 content="Waktu dan tanggal yang dimasukkan ada yang salah. Silakan periksa kembali.",
-                ephemeral=True
+                ephemeral=True,
             )
 
         unix = int(idn_dt.timestamp())
@@ -159,7 +179,7 @@ class General(commands.Cog):
         if hasattr(ctx.command, 'on_error'):
             return
 
-        ignored = (commands.CommandNotFound, )
+        ignored = (commands.CommandNotFound,)
 
         # Allows us to check for original exceptions raised and sent to CommandInvokeError.
         # If nothing is found. We keep the exception passed to on_command_error.
@@ -168,7 +188,7 @@ class General(commands.Cog):
         # Anything in ignored will return and prevent anything happening.
         if isinstance(error, ignored):
             return
-        
+
         if isinstance(error, commands.errors.RoleNotFound):
             await ctx.send(content='**Role not found!**')
 
@@ -189,10 +209,9 @@ class General(commands.Cog):
             discord.Status.idle,
             discord.Status.do_not_disturb,
         ]
-        
+
         await self.bot.change_presence(
-            status=random.choice(discord_status),
-            activity=random.choice(activity_status)
+            status=random.choice(discord_status), activity=random.choice(activity_status)
         )
 
 
