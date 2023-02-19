@@ -1,6 +1,7 @@
-name: black-action
+name: formatter
 
 on:
+  workflow_dispatch:
   push:
     branches:
     - master
