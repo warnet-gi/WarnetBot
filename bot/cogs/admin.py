@@ -10,15 +10,20 @@ import io
 import datetime, time
 from typing import Optional, Literal
 
+
 @commands.guild_only()
 class Admin(commands.GroupCog, group_name="admin"):
-    
     def __init__(self, bot: WarnetBot) -> None:
         self.bot = bot
 
     @commands.command()
     @commands.is_owner()
-    async def sync(self, ctx: commands.Context, guilds: commands.Greedy[discord.Object], spec: Optional[Literal["~", "*", "^"]] = None) -> None:
+    async def sync(
+        self,
+        ctx: commands.Context,
+        guilds: commands.Greedy[discord.Object],
+        spec: Optional[Literal["~", "*", "^"]] = None,
+    ) -> None:
         if not guilds:
             if spec == "~":
                 synced = await ctx.bot.tree.sync(guild=ctx.guild)
@@ -50,7 +55,10 @@ class Admin(commands.GroupCog, group_name="admin"):
 
     @commands.command(name='channeltopic', aliases=['ct'])
     async def channel_topic(self, ctx: commands.Context) -> None:
-        if ctx.author.guild_permissions.administrator or ctx.author.get_role(config.NON_ADMINISTRATOR_ROLE_ID['staff']) is not None:
+        if (
+            ctx.author.guild_permissions.administrator
+            or ctx.author.get_role(config.NON_ADMINISTRATOR_ROLE_ID['staff']) is not None
+        ):
             await ctx.message.delete()
 
             topic: Optional[str] = None
@@ -62,20 +70,27 @@ class Admin(commands.GroupCog, group_name="admin"):
                 embed = discord.Embed(
                     title=f'Channel #{ctx.channel.name}',
                     description=topic,
-                    color=discord.Color.green()
+                    color=discord.Color.green(),
                 )
             else:
                 embed = discord.Embed(
                     title='Channel Topic Not Found',
                     description=f'**{str(ctx.author)}** No topic set.',
-                    color=discord.Color.red()
+                    color=discord.Color.red(),
                 )
 
             await ctx.send(embed=embed)
 
-    @app_commands.command(name='give-role-on-vc', description='Give a role to all members in a voice channel.')
-    @app_commands.describe(vc='Voice channel target.', role='Role that will be given to all members in voice channel target.')
-    async def give_role_on_vc(self, interaction: Interaction, vc: discord.VoiceChannel, role: discord.Role) -> None:
+    @app_commands.command(
+        name='give-role-on-vc', description='Give a role to all members in a voice channel.'
+    )
+    @app_commands.describe(
+        vc='Voice channel target.',
+        role='Role that will be given to all members in voice channel target.',
+    )
+    async def give_role_on_vc(
+        self, interaction: Interaction, vc: discord.VoiceChannel, role: discord.Role
+    ) -> None:
         await interaction.response.defer()
 
         if interaction.user.guild_permissions.manage_roles:
@@ -89,11 +104,11 @@ class Admin(commands.GroupCog, group_name="admin"):
                 color=discord.Color.green(),
                 title='✅ Role successfully given',
                 description=f"Role {role.mention} telah diberikan kepada **{cnt}** member di voice channel {vc.mention}.",
-                timestamp=datetime.datetime.now()
+                timestamp=datetime.datetime.now(),
             )
             embed.set_footer(
                 text=f'Given by {str(interaction.user)}',
-                icon_url=interaction.user.display_avatar.url
+                icon_url=interaction.user.display_avatar.url,
             )
             await interaction.followup.send(embed=embed)
 
@@ -104,24 +119,27 @@ class Admin(commands.GroupCog, group_name="admin"):
     @app_commands.describe(
         message='Message you want to send.',
         attachment='File to be attached on message.',
-        spoiler='Set whether the attachment need to be spoilered or not.'
+        spoiler='Set whether the attachment need to be spoilered or not.',
     )
     async def send_message(
-        self, interaction: discord.Interaction,
+        self,
+        interaction: discord.Interaction,
         message: Optional[str],
         attachment: Optional[discord.Attachment],
-        spoiler: Optional[bool] = False
+        spoiler: Optional[bool] = False,
     ) -> None:
         if interaction.user.guild_permissions.administrator:
             if message is None and attachment is None:
-                return await interaction.response.send_message(content="You need to fill `message` and/or `attachment`.", ephemeral=True)
-            
+                return await interaction.response.send_message(
+                    content="You need to fill `message` and/or `attachment`.", ephemeral=True
+                )
+
             await interaction.response.defer(ephemeral=True)
 
             message_valid = True
             file_valid = True
             if message and len(message) > 2000:
-                    message_valid = False
+                message_valid = False
             elif message:
                 message = bytes(message, "utf-8").decode("unicode_escape")
 
@@ -133,16 +151,23 @@ class Admin(commands.GroupCog, group_name="admin"):
                     file = await attachment.to_file(spoiler=spoiler)
 
             if not message_valid:
-                return await interaction.followup.send(content="Message failed to sent. Message can't exceed 2000 characters.", ephemeral=True)
-            
+                return await interaction.followup.send(
+                    content="Message failed to sent. Message can't exceed 2000 characters.",
+                    ephemeral=True,
+                )
+
             if not file_valid:
-                return await interaction.followup.send(content="File failed to sent. File can't exceed 8 MB size.", ephemeral=True)
+                return await interaction.followup.send(
+                    content="File failed to sent. File can't exceed 8 MB size.", ephemeral=True
+                )
 
             await interaction.channel.send(content=message, file=file)
             await interaction.followup.send(content="Message sent!", ephemeral=True)
 
         else:
-            await interaction.response.send_message(content="You don't have permission to execute this command!", ephemeral=True)
+            await interaction.response.send_message(
+                content="You don't have permission to execute this command!", ephemeral=True
+            )
 
 
 async def setup(bot: WarnetBot) -> None:

@@ -13,14 +13,19 @@ discord.utils.setup_logging(level=logging.INFO, root=False)
 
 BOT_PREFIX = config.BOT_PREFIX
 
+
 class WarnetBot(Bot):
     debug: bool
     bot_app_info: discord.AppInfo
     db_pool: asyncpg.Pool
 
     def __init__(self) -> None:
-        super().__init__(command_prefix=BOT_PREFIX, strip_after_prefix=True,
-                         intents=discord.Intents.all(), help_command=None)
+        super().__init__(
+            command_prefix=BOT_PREFIX,
+            strip_after_prefix=True,
+            intents=discord.Intents.all(),
+            help_command=None,
+        )
         self.session: aiohttp.ClientSession = None
 
     async def on_ready(self) -> None:
@@ -34,7 +39,7 @@ class WarnetBot(Bot):
 
         self.bot_app_info = await self.application_info()
         self.owner_id = self.bot_app_info.owner.id
-   
+
         await self.load_cogs()
 
     async def load_cogs(self) -> None:

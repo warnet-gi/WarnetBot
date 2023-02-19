@@ -16,7 +16,7 @@ class Confirm(discord.ui.View):
     async def confirm(self, interaction: Interaction, button: discord.ui.Button):
         self.value = True
         self.stop()
-    
+
     @discord.ui.button(label='Tidak', style=discord.ButtonStyle.primary)
     async def cancel(self, interaction: Interaction, button: discord.ui.Button):
         self.value = False
