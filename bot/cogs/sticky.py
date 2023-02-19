@@ -41,9 +41,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
 
             await sticky.delete()
             await asyncio.sleep(2)
-            msg = await message.channel.send(
-                bytes(sticky_message, "utf-8").decode("unicode_escape")
-            )
+            msg = await message.channel.send(sticky_message)
 
             async with self.db_pool.acquire() as conn:
                 await conn.execute(
@@ -80,7 +78,8 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                 )
             if not res:
                 target = self.bot.get_channel(channel.id)
-                msg = await target.send(bytes(message, "utf-8").decode("unicode_escape"))
+                message = '\n'.join(message.split('\\n'))
+                msg = await target.send(message)
 
                 async with self.db_pool.acquire() as conn:
                     await conn.execute(
@@ -148,7 +147,8 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                 data = dict(res[0])
 
                 sticky = await channel.fetch_message(data["message_id"])
-                await sticky.edit(content=bytes(message, "utf-8").decode("unicode_escape"))
+                message = '\n'.join(message.split('\\n'))
+                await sticky.edit(content=message)
 
                 async with self.db_pool.acquire() as conn:
                     await conn.execute(

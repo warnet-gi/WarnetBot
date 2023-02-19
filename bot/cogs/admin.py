@@ -141,7 +141,8 @@ class Admin(commands.GroupCog, group_name="admin"):
             if message and len(message) > 2000:
                 message_valid = False
             elif message:
-                message = bytes(message, "utf-8").decode("unicode_escape")
+                # support newline by typing '\n' on slash command parameter
+                message = '\n'.join(message.split('\\n'))
 
             file: discord.File = None
             if attachment:
