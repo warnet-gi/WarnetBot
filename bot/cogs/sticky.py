@@ -140,13 +140,13 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                 data = dict(res[0])
 
                 try:
-                    sticky = await channel.fetch_message(data["message_id"])
+                    sticky_msg = await channel.fetch_message(data["message_id"])
                     message = '\n'.join(message.split('\\n'))
-                    msg = await sticky.edit(content=message)
+                    sticky_data = await sticky_msg.edit(content=message)
                 except discord.errors.NotFound:
-                    sticky = self.bot.get_channel(channel.id)
+                    sticky_channel = self.bot.get_channel(channel.id)
                     message = '\n'.join(message.split('\\n'))
-                    msg = await sticky.send(message)
+                    sticky_data = await sticky_channel.send(message)
 
                 async with self.db_pool.acquire() as conn:
                     await conn.execute(
@@ -155,7 +155,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                         message,
                     )
 
-                self.sticky_data[channel.id] = [msg.id, message]
+                self.sticky_data[channel.id] = [sticky_data.id, message]
 
                 await send_interaction(
                     interaction,
