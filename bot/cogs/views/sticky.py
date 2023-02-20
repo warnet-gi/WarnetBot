@@ -41,7 +41,7 @@ class StickyPagination(discord.ui.View):
         self.message = None
 
     async def construct_pages(self, ctx: commands.Context, list_data: List[Dict[str, Any]]) -> None:
-        N_LIST = 5
+        N_LIST = 10
 
         total_data = len(list_data)
         if total_data % N_LIST:
@@ -51,7 +51,10 @@ class StickyPagination(discord.ui.View):
 
         if self.total_page_count:
             for page_num in range(self.total_page_count):
-                page_data_list = [list_data[(page_num * N_LIST) : (page_num * N_LIST) + N_LIST]]
+                page_data_list = [
+                    list_data[(page_num * N_LIST) : (page_num * N_LIST) + N_LIST // 2],
+                    list_data[(page_num * N_LIST) + N_LIST // 2 : (page_num + 1) * N_LIST],
+                ]
 
                 embed = discord.Embed(
                     color=discord.Color.gold(),
@@ -61,20 +64,19 @@ class StickyPagination(discord.ui.View):
                 )
 
                 for sticky_data_list in page_data_list:
+                    if sticky_data_list == page_data_list[1] and len(page_data_list[1]) == 0:
+                        continue
+
                     field_value = ""
                     field_name = ""
 
                     if sticky_data_list == page_data_list[0]:
-                        field_name = "Channel  Name"
+                        field_name = "Channel Name"
                     else:
-                        field_name = ""
+                        field_name = "_ _"
 
                     for sticky_data in sticky_data_list:
-                        if len(sticky_data["message"]) > 250:
-                            message = sticky_data["message"][:250] + "..."
-                        else:
-                            message = sticky_data["message"]
-                        row_string = f"<#{sticky_data['channel_id']}> \n > {message} \n\n"
+                        row_string = f"<#{sticky_data['channel_id']}>\n"
                         field_value += row_string
 
                     embed.add_field(name=field_name, value=field_value)
