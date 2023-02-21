@@ -16,6 +16,10 @@ class General(commands.Cog):
     def __init__(self, bot: WarnetBot) -> None:
         self.bot = bot
 
+    @commands.command(name='ping')
+    async def ping(self, ctx: commands.Context) -> None:
+        await ctx.send(f"🏓 **Pong!** Your ping is `{round(self.bot.latency * 1000)}` ms")
+
     @app_commands.command(description='Shows basic information about the bot.')
     async def about(self, interaction) -> None:
         await interaction.response.defer()
