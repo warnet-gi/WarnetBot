@@ -91,7 +91,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
 
                 self.sticky_data[channel.id] = [msg.id, message]
 
-                await send_interaction(
+                await self._send_interaction(
                     interaction,
                     color=discord.Color.green(),
                     title="✅ Sticky message successfully given",
@@ -99,7 +99,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                 )
 
             else:
-                await send_interaction(
+                await self._send_interaction(
                     interaction,
                     color=discord.Color.red(),
                     title="❌ Sticky message already exist",
@@ -107,7 +107,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                 )
 
         else:
-            await send_interaction(
+            await self._send_interaction(
                 interaction,
                 color=discord.Color.red(),
                 title="❌ You Don't Have Permission To Create Sticky Message",
@@ -130,7 +130,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                     channel.id,
                 )
             if not res:
-                await send_interaction(
+                await self._send_interaction(
                     interaction,
                     color=discord.Color.red(),
                     title="❌ Sticky message not exist",
@@ -157,14 +157,14 @@ class Sticky(commands.GroupCog, group_name="sticky"):
 
                 self.sticky_data[channel.id] = [sticky_data.id, message]
 
-                await send_interaction(
+                await self._send_interaction(
                     interaction,
                     color=discord.Color.green(),
                     title="✅ Sticky message update successfully",
                     description=f"Berhasil memperbaharui sticky message pada channel {channel.mention}",
                 )
         else:
-            await send_interaction(
+            await self._send_interaction(
                 interaction,
                 color=discord.Color.red(),
                 title="❌ You Don't Have Permission To Delete Sticky Message",
@@ -187,7 +187,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                 )
 
             if not res:
-                await send_interaction(
+                await self._send_interaction(
                     interaction,
                     color=discord.Color.red(),
                     title="❌ Sticky message not exist",
@@ -206,14 +206,14 @@ class Sticky(commands.GroupCog, group_name="sticky"):
 
                 self.sticky_data.pop(channel.id)
 
-                await send_interaction(
+                await self._send_interaction(
                     interaction,
                     color=discord.Color.green(),
                     title="✅ Sticky message removed successfully",
                     description=f"Berhasil menghapus sticky message pada channel {channel.mention}",
                 )
         else:
-            await send_interaction(
+            await self._send_interaction(
                 interaction,
                 color=discord.Color.red(),
                 title="❌ You Don't Have Permission To Delete Sticky Message",
@@ -236,7 +236,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                 )
 
             if not res:
-                await send_interaction(
+                await self._send_interaction(
                     interaction,
                     color=discord.Color.red(),
                     title="❌ Sticky message not exist",
@@ -246,7 +246,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                 data = dict(res[0])
                 try:
                     await channel.fetch_message(data["message_id"])
-                    return await send_interaction(
+                    return await self._send_interaction(
                         interaction,
                         color=discord.Color.red(),
                         title="❌ Sticky message already exist",
@@ -265,7 +265,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
 
                     self.sticky_data[channel.id] = [msg.id, data["message"]]
 
-                await send_interaction(
+                await self._send_interaction(
                     interaction,
                     color=discord.Color.green(),
                     title="✅ Sticky message re-send successfully",
@@ -289,7 +289,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
 
                 await conn.execute("TRUNCATE TABLE sticky;")
 
-            await send_interaction(
+            await self._send_interaction(
                 interaction,
                 color=discord.Color.green(),
                 title="✅ All sticky message removed successfully",
@@ -297,28 +297,28 @@ class Sticky(commands.GroupCog, group_name="sticky"):
             )
 
         else:
-            await send_interaction(
+            await self._send_interaction(
                 interaction,
                 color=discord.Color.red(),
                 title="❌ You Don't Have Permission To Delete Sticky Message",
                 description=f"Permission Manage Channel Dibutuhkan",
             )
 
-
-async def send_interaction(
-    interaction: Interaction, color: discord.Color, title: str, description: str
-) -> None:
-    embed = discord.Embed(
-        color=color,
-        title=title,
-        description=description,
-        timestamp=datetime.now(),
-    )
-    embed.set_footer(
-        text=f"{str(interaction.user)}",
-        icon_url=interaction.user.display_avatar.url,
-    )
-    await interaction.followup.send(embed=embed)
+    @staticmethod
+    async def _send_interaction(
+        interaction: Interaction, color: discord.Color, title: str, description: str
+    ) -> None:
+        embed = discord.Embed(
+            color=color,
+            title=title,
+            description=description,
+            timestamp=datetime.now(),
+        )
+        embed.set_footer(
+            text=f"{str(interaction.user)}",
+            icon_url=interaction.user.display_avatar.url,
+        )
+        await interaction.followup.send(embed=embed)
 
 
 async def setup(bot: WarnetBot) -> None:
