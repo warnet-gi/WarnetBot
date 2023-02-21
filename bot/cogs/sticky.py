@@ -222,7 +222,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
 
     @app_commands.command(name="re-send", description="Re-send sticky message to channels.")
     @app_commands.describe(channel="Target Channel")
-    async def fix_sticky_message(
+    async def resend_sticky_message(
         self,
         interaction: Interaction,
         channel: Union[discord.TextChannel, discord.ForumChannel, discord.Thread],
