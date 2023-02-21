@@ -285,7 +285,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                         message = await channel.fetch_message(sticky["message_id"])
                         await message.delete()
                     except discord.errors.NotFound:
-                        pass
+                        continue
 
                 await conn.execute("TRUNCATE TABLE sticky;")
 
