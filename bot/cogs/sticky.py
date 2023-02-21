@@ -36,7 +36,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
         if res and message.author != self.bot.user:
             try:
                 sticky = await message.channel.fetch_message(sticky_message_id)
-            except discord.errors.NotFound:  # This is happened when the chat is going fast
+            except discord.errors.NotFound:
                 return
 
             await sticky.delete()
@@ -67,7 +67,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
     async def add_sticky_message(
         self,
         interaction: Interaction,
-        message: app_commands.Range[str, 0],
+        message: app_commands.Range[str, 0, 2000],
         channel: Union[discord.TextChannel, discord.ForumChannel, discord.Thread],
     ) -> None:
         await interaction.response.defer()
@@ -91,42 +91,35 @@ class Sticky(commands.GroupCog, group_name="sticky"):
 
                 self.sticky_data[channel.id] = [msg.id, message]
 
-                embed = discord.Embed(
+                await send_interaction(
+                    interaction,
                     color=discord.Color.green(),
                     title="✅ Sticky message successfully given",
                     description=f"Berhasil menambahkan sticky message pada channel {channel.mention}",
-                    timestamp=datetime.now(),
                 )
 
             else:
-                embed = discord.Embed(
+                await send_interaction(
+                    interaction,
                     color=discord.Color.red(),
                     title="❌ Sticky message already exist",
                     description=f"Sticky message telah terpasang pada channel {channel.mention}",
-                    timestamp=datetime.now(),
                 )
 
         else:
-            embed = discord.Embed(
+            await send_interaction(
+                interaction,
                 color=discord.Color.red(),
                 title="❌ You Don't Have Permission To Create Sticky Message",
                 description=f"Permission Manage Channel Dibutuhkan",
-                timestamp=datetime.now(),
             )
-
-        embed.set_footer(
-            text=f"{str(interaction.user)}",
-            icon_url=interaction.user.display_avatar.url,
-        )
-
-        await interaction.followup.send(embed=embed)
 
     @app_commands.command(name="edit", description="Edit sticky message.")
     @app_commands.describe(message="New sticky message.", channel="Channel name.")
     async def edit_sticky_message(
         self,
         interaction: Interaction,
-        message: app_commands.Range[str, 0],
+        message: app_commands.Range[str, 0, 2000],
         channel: Union[discord.TextChannel, discord.ForumChannel, discord.Thread],
     ) -> None:
         await interaction.response.defer()
@@ -137,18 +130,23 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                     channel.id,
                 )
             if not res:
-                embed = discord.Embed(
+                await send_interaction(
+                    interaction,
                     color=discord.Color.red(),
                     title="❌ Sticky message not exist",
                     description=f"Tidak ada sticky message pada channel {channel.mention}",
-                    timestamp=datetime.now(),
                 )
             else:
                 data = dict(res[0])
 
-                sticky = await channel.fetch_message(data["message_id"])
-                message = '\n'.join(message.split('\\n'))
-                await sticky.edit(content=message)
+                try:
+                    sticky_msg = await channel.fetch_message(data["message_id"])
+                    message = '\n'.join(message.split('\\n'))
+                    sticky_data = await sticky_msg.edit(content=message)
+                except discord.errors.NotFound:
+                    sticky_channel = self.bot.get_channel(channel.id)
+                    message = '\n'.join(message.split('\\n'))
+                    sticky_data = await sticky_channel.send(message)
 
                 async with self.db_pool.acquire() as conn:
                     await conn.execute(
@@ -157,29 +155,21 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                         message,
                     )
 
-                current_msg_id = self.sticky_data[channel.id][0]
-                self.sticky_data[channel.id] = [current_msg_id, message]
+                self.sticky_data[channel.id] = [sticky_data.id, message]
 
-                embed = discord.Embed(
+                await send_interaction(
+                    interaction,
                     color=discord.Color.green(),
                     title="✅ Sticky message update successfully",
                     description=f"Berhasil memperbaharui sticky message pada channel {channel.mention}",
-                    timestamp=datetime.now(),
                 )
         else:
-            embed = discord.Embed(
+            await send_interaction(
+                interaction,
                 color=discord.Color.red(),
                 title="❌ You Don't Have Permission To Delete Sticky Message",
                 description=f"Permission Manage Channel Dibutuhkan",
-                timestamp=datetime.now(),
             )
-
-        embed.set_footer(
-            text=f"{str(interaction.user)}",
-            icon_url=interaction.user.display_avatar.url,
-        )
-
-        await interaction.followup.send(embed=embed)
 
     @app_commands.command(name="remove", description="Remove sticky message from channel.")
     @app_commands.describe(channel="Target channel.")
@@ -197,44 +187,90 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                 )
 
             if not res:
-                embed = discord.Embed(
+                await send_interaction(
+                    interaction,
                     color=discord.Color.red(),
                     title="❌ Sticky message not exist",
                     description=f"Tidak ada sticky message pada channel {channel.mention}",
-                    timestamp=datetime.now(),
                 )
             else:
                 data = dict(res[0])
-
-                sticky = await channel.fetch_message(data["message_id"])
-                await sticky.delete()
+                try:
+                    sticky = await channel.fetch_message(data["message_id"])
+                    await sticky.delete()
+                except discord.errors.NotFound:
+                    pass
 
                 async with self.db_pool.acquire() as conn:
                     await conn.execute("DELETE FROM sticky WHERE channel_id = $1;", channel.id)
 
                 self.sticky_data.pop(channel.id)
 
-                embed = discord.Embed(
+                await send_interaction(
+                    interaction,
                     color=discord.Color.green(),
                     title="✅ Sticky message removed successfully",
                     description=f"Berhasil menghapus sticky message pada channel {channel.mention}",
-                    timestamp=datetime.now(),
                 )
-
         else:
-            embed = discord.Embed(
+            await send_interaction(
+                interaction,
                 color=discord.Color.red(),
                 title="❌ You Don't Have Permission To Delete Sticky Message",
                 description=f"Permission Manage Channel Dibutuhkan",
-                timestamp=datetime.now(),
             )
 
-        embed.set_footer(
-            text=f"{str(interaction.user)}",
-            icon_url=interaction.user.display_avatar.url,
-        )
+    @app_commands.command(name="re-send", description="Re-send sticky message to channels.")
+    @app_commands.describe(channel="Target Channel")
+    async def fix_sticky_message(
+        self,
+        interaction: Interaction,
+        channel: Union[discord.TextChannel, discord.ForumChannel, discord.Thread],
+    ) -> None:
+        await interaction.response.defer()
+        if interaction.permissions.manage_channels:
+            async with self.db_pool.acquire() as conn:
+                res = await conn.fetch(
+                    "SELECT * FROM sticky WHERE channel_id = $1;",
+                    channel.id,
+                )
 
-        await interaction.followup.send(embed=embed)
+            if not res:
+                await send_interaction(
+                    interaction,
+                    color=discord.Color.red(),
+                    title="❌ Sticky message not exist",
+                    description=f"Tidak ada sticky message pada channel {channel.mention}",
+                )
+            else:
+                data = dict(res[0])
+                try:
+                    await channel.fetch_message(data["message_id"])
+                    return await send_interaction(
+                        interaction,
+                        color=discord.Color.red(),
+                        title="❌ Sticky message already exist",
+                        description=f"Sticky message telah terpasang pada channel {channel.mention}",
+                    )
+                except discord.errors.NotFound:
+                    target = self.bot.get_channel(channel.id)
+                    msg = await target.send(data["message"])
+
+                    async with self.db_pool.acquire() as conn:
+                        await conn.execute(
+                            "UPDATE sticky SET message_id = $2 WHERE channel_id = $1;",
+                            channel.id,
+                            msg.id,
+                        )
+
+                    self.sticky_data[channel.id] = [msg.id, data["message"]]
+
+                await send_interaction(
+                    interaction,
+                    color=discord.Color.green(),
+                    title="✅ Sticky message re-send successfully",
+                    description=f"Berhasil mengirim ulang sticky message pada channel {channel.mention}",
+                )
 
     @app_commands.command(name="purge", description="Remove all sticky message from channels.")
     async def purge_sticky_message(self, interaction: Interaction) -> None:
@@ -244,33 +280,45 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                 res = await conn.fetch("SELECT * FROM sticky;")
                 data = [dict(row) for row in res]
                 for sticky in data:
-                    channel = await self.bot.fetch_channel(sticky["channel_id"])
-                    message = await channel.fetch_message(sticky["message_id"])
-                    await message.delete()
+                    try:
+                        channel = await self.bot.fetch_channel(sticky["channel_id"])
+                        message = await channel.fetch_message(sticky["message_id"])
+                        await message.delete()
+                    except discord.errors.NotFound:
+                        continue
 
                 await conn.execute("TRUNCATE TABLE sticky;")
 
-            embed = discord.Embed(
+            await send_interaction(
+                interaction,
                 color=discord.Color.green(),
                 title="✅ All sticky message removed successfully",
                 description=f"Berhasil menghapus seluruh sticky message pada channel",
-                timestamp=datetime.now(),
             )
 
         else:
-            embed = discord.Embed(
+            await send_interaction(
+                interaction,
                 color=discord.Color.red(),
                 title="❌ You Don't Have Permission To Delete Sticky Message",
                 description=f"Permission Manage Channel Dibutuhkan",
-                timestamp=datetime.now(),
             )
 
-        embed.set_footer(
-            text=f"{str(interaction.user)}",
-            icon_url=interaction.user.display_avatar.url,
-        )
 
-        await interaction.followup.send(embed=embed)
+async def send_interaction(
+    interaction: Interaction, color: discord.Color, title: str, description: str
+) -> None:
+    embed = discord.Embed(
+        color=color,
+        title=title,
+        description=description,
+        timestamp=datetime.now(),
+    )
+    embed.set_footer(
+        text=f"{str(interaction.user)}",
+        icon_url=interaction.user.display_avatar.url,
+    )
+    await interaction.followup.send(embed=embed)
 
 
 async def setup(bot: WarnetBot) -> None:
