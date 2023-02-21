@@ -1,15 +1,10 @@
 *                               @Iqrar99
 
 # Cogs
-bot/cogs/admin.py               @Iqrar99
-bot/cogs/general.py             @Iqrar99
-bot/cogs/sticky.py              @Irvan789
-bot/cogs/tcg.py                 @Iqrar99
+bot/cogs/*.py                   @Iqrar99
 
 # Views
-bot/cogs/views/general.py       @Iqrar99
-bot/cogs/views/sticky.py        @Irvan789
-bot/cogs/views/tcg.py           @Iqrar99
+bot/cogs/views/**               @Iqrar99
 
 #Extensions
 bot/cogs/ext/**                 @Iqrar99
