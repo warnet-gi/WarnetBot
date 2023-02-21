@@ -1,0 +1,10 @@
+*                               @Iqrar99
+
+# Cogs
+bot/cogs/*.py                   @Iqrar99
+
+# Views
+bot/cogs/views/**               @Iqrar99
+
+#Extensions
+bot/cogs/ext/**                 @Iqrar99
