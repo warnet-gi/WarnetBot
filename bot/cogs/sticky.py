@@ -246,7 +246,12 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                 data = dict(res[0])
                 try:
                     await channel.fetch_message(data["message_id"])
-                    pass
+                    return await send_interaction(
+                        interaction,
+                        color=discord.Color.red(),
+                        title="❌ Sticky message already exist",
+                        description=f"Sticky message telah terpasang pada channel {channel.mention}",
+                    )
                 except discord.errors.NotFound:
                     target = self.bot.get_channel(channel.id)
                     msg = await target.send(data["message"])
