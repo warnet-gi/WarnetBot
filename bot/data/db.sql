@@ -15,7 +15,7 @@ CREATE INDEX IF NOT EXISTS tcg_leaderboard_discord_id_idx ON tcg_leaderboard (di
 
 ----- STICKY FEATURE ----
 -------------------------
-CREATE TABLE sticky (
+CREATE TABLE sticky(
     channel_id bigint NOT NULL,
     message_id bigint NOT NULL,
     message text NOT NULL,
@@ -25,3 +25,16 @@ CREATE TABLE sticky (
 );
 CREATE INDEX IF NOT EXISTS sticky_channel_id_idx ON sticky (channel_id);
 CREATE INDEX IF NOT EXISTS sticky_message_id_idx ON sticky (message_id);
+
+----- MESSAGE SCHEDULING FEATURE ----
+-------------------------------------
+CREATE TABLE scheduled_message(
+	id SERIAL NOT NULL,
+	channel_id bigint NOT NULL,
+	message text NOT NULL,
+	date_trigger TIMESTAMP NOT NULL,
+	PRIMARY KEY(id),
+	UNIQUE(id)
+);
+CREATE INDEX IF NOT EXISTS scheduled_message_id_idx ON scheduled_message (id);
+CREATE INDEX IF NOT EXISTS scheduled_message_channel_id_idx ON scheduled_message (channel_id);
