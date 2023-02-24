@@ -1,20 +1,25 @@
 import discord
-from discord import Interaction, app_commands, ui
-from discord.ext import commands
+from discord import Interaction, app_commands
+from discord.ext import commands, tasks
 
 from bot.config import config
 from bot.bot import WarnetBot
 from bot.cogs.ext.tcg.utils import send_missing_permission_error_embed
 
-import io
-import datetime, time
-from typing import Optional, Literal
+import re
+from datetime import datetime, timedelta
+from typing import Optional, Literal, Union, Tuple
 
 
 @commands.guild_only()
 class Admin(commands.GroupCog, group_name="admin"):
     def __init__(self, bot: WarnetBot) -> None:
         self.bot = bot
+        self.db_pool = self.bot.get_db_pool()
+
+    @commands.Cog.listener()
+    async def on_connect(self) -> None:
+        self._message_schedule_task.start()
 
     @commands.command()
     @commands.is_owner()
@@ -104,7 +109,7 @@ class Admin(commands.GroupCog, group_name="admin"):
                 color=discord.Color.green(),
                 title='✅ Role successfully given',
                 description=f"Role {role.mention} telah diberikan kepada **{cnt}** member di voice channel {vc.mention}.",
-                timestamp=datetime.datetime.now(),
+                timestamp=datetime.now(),
             )
             embed.set_footer(
                 text=f'Given by {str(interaction.user)}',
@@ -169,6 +174,116 @@ class Admin(commands.GroupCog, group_name="admin"):
             await interaction.response.send_message(
                 content="You don't have permission to execute this command!", ephemeral=True
             )
+
+    @commands.hybrid_group()
+    async def schedule_message(self, ctx: commands.Context) -> None:
+        await ctx.send_help(ctx.command)
+
+    @schedule_message.command(name='add', description='Add a message to be scheduled on a channel.')
+    @app_commands.describe(
+        channel='Channel target where the message will be sent later.',
+        time='Relative time e.g. 1d, 2h, 40m, 20s, and can be combined like 5h10m20s.',
+        message='Message to be scheduled.',
+    )
+    async def schedule_message_add(
+        self,
+        ctx: commands.Context,
+        channel: Union[discord.TextChannel, discord.Thread, discord.ForumChannel],
+        time: str,
+        message: str,
+    ) -> None:
+        await ctx.typing()
+        if not ctx.author.guild_permissions.manage_channels:
+            return await ctx.send(
+                content="❌ You don't have permission to execute this command!", ephemeral=True
+            )
+        
+        if len(message) > 2000:
+            return await ctx.send(
+                content="❌ Message failed to sent. Message can't exceed 2000 characters.",
+                ephemeral=True,
+            )
+        message = '\n'.join(message.split('\\n'))  # support newline in slash command
+
+        parsed_time = self._parse_relative_time(time)
+        if parsed_time is not None:
+            day, hour, minute, second = parsed_time
+        else:
+            return await ctx.send(
+                content="❌ Wrong relative time format.",
+                ephemeral=True,
+            )
+
+        date_now = datetime.now()
+        date_trigger = date_now + timedelta(days=day, hours=hour, minutes=minute, seconds=second)
+
+        if date_trigger <= date_now:
+            return await ctx.send('❌ You must specify a time in the future.', ephemeral=True)
+
+        async with self.db_pool.acquire() as conn:
+            await conn.execute(
+                'INSERT INTO scheduled_message (channel_id, message, date_trigger) VALUES ($1, $2, $3);',
+                channel.id,
+                message,
+                date_trigger
+            )
+
+        if self._message_schedule_task.is_running():
+            self._message_schedule_task.restart()
+            print('restart loop')
+        else:
+            self._message_schedule_task.start()
+            print('start loop')
+
+        await ctx.send(f'⏰ Your message will be triggered in {channel.mention} <t:{int(date_trigger.timestamp())}:R>')
+
+    @tasks.loop()
+    async def _message_schedule_task(self) -> None:
+        async with self.db_pool.acquire() as conn:
+            next_task = await conn.fetchrow('SELECT * FROM scheduled_message ORDER BY date_trigger LIMIT 1;')
+
+        if next_task is None:
+            self._message_schedule_task.stop()
+        
+        else:
+            await discord.utils.sleep_until(next_task['date_trigger'])
+
+            guild = self.bot.get_guild(config.GUILD_ID)
+            target_channel = guild.get_channel(next_task['channel_id'])
+
+            await target_channel.send(content=next_task['message'])
+
+            async with self.db_pool.acquire() as conn:
+                next_task = await conn.execute('DELETE FROM scheduled_message WHERE id = $1;', next_task['id'])
+
+    @_message_schedule_task.before_loop
+    async def _before_message_schedule_task(self):
+        print('waiting for the bot ready...')
+        await self.bot.wait_until_ready()
+
+    @staticmethod
+    def _parse_relative_time(time_text: str) -> Optional[Tuple]:
+        pattern = r"\d+[dhms]"
+        matched_list = re.findall(pattern, time_text)
+
+        if matched_list:
+            day = hour = minute = second = 0
+            for matched in matched_list:
+                number = int(matched[:-1])
+
+                if 'd' in matched:
+                    day += number
+                elif 'h' in matched:
+                    hour += number
+                elif 'm' in matched:
+                    minute += number
+                elif 's' in matched:
+                    second += number
+
+            return day, hour, minute, second
+
+        else:
+            return
 
 
 async def setup(bot: WarnetBot) -> None:
