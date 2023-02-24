@@ -197,7 +197,7 @@ class Admin(commands.GroupCog, group_name="admin"):
             return await ctx.send(
                 content="❌ You don't have permission to execute this command!", ephemeral=True
             )
-        
+
         if len(message) > 2000:
             return await ctx.send(
                 content="❌ Message failed to sent. Message can't exceed 2000 characters.",
@@ -225,7 +225,7 @@ class Admin(commands.GroupCog, group_name="admin"):
                 'INSERT INTO scheduled_message (channel_id, message, date_trigger) VALUES ($1, $2, $3);',
                 channel.id,
                 message,
-                date_trigger
+                date_trigger,
             )
 
         if self._message_schedule_task.is_running():
@@ -235,16 +235,20 @@ class Admin(commands.GroupCog, group_name="admin"):
             self._message_schedule_task.start()
             print('start loop')
 
-        await ctx.send(f'⏰ Your message will be triggered in {channel.mention} <t:{int(date_trigger.timestamp())}:R>')
+        await ctx.send(
+            f'⏰ Your message will be triggered in {channel.mention} <t:{int(date_trigger.timestamp())}:R>'
+        )
 
     @tasks.loop()
     async def _message_schedule_task(self) -> None:
         async with self.db_pool.acquire() as conn:
-            next_task = await conn.fetchrow('SELECT * FROM scheduled_message ORDER BY date_trigger LIMIT 1;')
+            next_task = await conn.fetchrow(
+                'SELECT * FROM scheduled_message ORDER BY date_trigger LIMIT 1;'
+            )
 
         if next_task is None:
             self._message_schedule_task.stop()
-        
+
         else:
             await discord.utils.sleep_until(next_task['date_trigger'])
 
@@ -254,7 +258,9 @@ class Admin(commands.GroupCog, group_name="admin"):
             await target_channel.send(content=next_task['message'])
 
             async with self.db_pool.acquire() as conn:
-                next_task = await conn.execute('DELETE FROM scheduled_message WHERE id = $1;', next_task['id'])
+                next_task = await conn.execute(
+                    'DELETE FROM scheduled_message WHERE id = $1;', next_task['id']
+                )
 
     @_message_schedule_task.before_loop
     async def _before_message_schedule_task(self):
