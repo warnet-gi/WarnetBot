@@ -30,6 +30,7 @@ CREATE INDEX IF NOT EXISTS sticky_message_id_idx ON sticky (message_id);
 -------------------------------------
 CREATE TABLE scheduled_message(
 	id SERIAL NOT NULL,
+	guild_id bigint NOT NULL,
 	channel_id bigint NOT NULL,
 	message text NOT NULL,
 	date_trigger TIMESTAMP NOT NULL,
@@ -37,4 +38,5 @@ CREATE TABLE scheduled_message(
 	UNIQUE(id)
 );
 CREATE INDEX IF NOT EXISTS scheduled_message_id_idx ON scheduled_message (id);
+CREATE INDEX IF NOT EXISTS scheduled_message_guild_id_idx ON scheduled_message (guild_id);
 CREATE INDEX IF NOT EXISTS scheduled_message_channel_id_idx ON scheduled_message (channel_id);

@@ -223,7 +223,8 @@ class Admin(commands.GroupCog, group_name="admin"):
 
         async with self.db_pool.acquire() as conn:
             await conn.execute(
-                'INSERT INTO scheduled_message (channel_id, message, date_trigger) VALUES ($1, $2, $3);',
+                'INSERT INTO scheduled_message (guild_id, channel_id, message, date_trigger) VALUES ($1, $2, $3, $4);',
+                ctx.guild.id,
                 channel.id,
                 message,
                 date_trigger,
@@ -253,7 +254,7 @@ class Admin(commands.GroupCog, group_name="admin"):
         else:
             await discord.utils.sleep_until(next_task['date_trigger'])
 
-            guild = self.bot.get_guild(config.GUILD_ID)
+            guild = self.bot.get_guild(next_task['guild_id'])
             target_channel = guild.get_channel(next_task['channel_id'])
 
             await target_channel.send(content=next_task['message'])
