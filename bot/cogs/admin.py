@@ -253,6 +253,11 @@ class Admin(commands.GroupCog, group_name="admin"):
         *,
         new_message: str,
     ) -> None:
+        if not ctx.author.guild_permissions.manage_channels:
+            return await ctx.send(
+                content="❌ You don't have permission to execute this command!", ephemeral=True
+            )
+
         async with self.db_pool.acquire() as conn:
             res = await conn.fetchval(
                 "SELECT id FROM scheduled_message WHERE id=$1;", scheduled_message_id
@@ -280,6 +285,11 @@ class Admin(commands.GroupCog, group_name="admin"):
         name='list', description='Show the list of active scheduled messages in the guild.'
     )
     async def schedule_message_list(self, ctx: commands.Context) -> None:
+        if not ctx.author.guild_permissions.manage_channels:
+            return await ctx.send(
+                content="❌ You don't have permission to execute this command!", ephemeral=True
+            )
+
         async with self.db_pool.acquire() as conn:
             records = await conn.fetch(
                 'SELECT * FROM scheduled_message WHERE guild_id=$1', ctx.guild.id
