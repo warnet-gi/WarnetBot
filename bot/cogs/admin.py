@@ -175,7 +175,7 @@ class Admin(commands.GroupCog, group_name="admin"):
                 content="You don't have permission to execute this command!", ephemeral=True
             )
 
-    @commands.hybrid_group(aliases=['smsg'])
+    @commands.hybrid_group(name='schedule-message', aliases=['smsg'])
     async def schedule_message(self, ctx: commands.Context) -> None:
         await ctx.send_help(ctx.command)
 
@@ -241,11 +241,83 @@ class Admin(commands.GroupCog, group_name="admin"):
             f'⏰ Your message will be triggered in {channel.mention} <t:{int(date_trigger.timestamp())}:R>'
         )
 
+    @schedule_message.command(name='edit', description='Edit a scheduled message.')
+    @app_commands.describe(
+        scheduled_message_id='Message schedule id',
+        new_message='New edited message.',
+    )
+    async def schedule_message_edit(
+        self,
+        ctx: commands.Context,
+        scheduled_message_id: commands.Range[int, 1],
+        *,
+        new_message: str,
+    ) -> None:
+        async with self.db_pool.acquire() as conn:
+            res = await conn.fetchval(
+                "SELECT id FROM scheduled_message WHERE id=$1;", scheduled_message_id
+            )
+
+            if res is not None:
+                await conn.execute(
+                    'UPDATE scheduled_message SET message=$1 WHERE id=$2;',
+                    new_message,
+                    scheduled_message_id,
+                )
+
+            else:
+                not_found_message = (
+                    f'There is no scheduled message with id `{scheduled_message_id}`.\n\n'
+                )
+                not_found_message += 'Use `/admin schedule-message list` or `war! smsg list` to check the list of scheduled messages.'
+                return await ctx.send(not_found_message)
+
+        await ctx.send(
+            f'Message is succesfully edited on scheduled message id `{scheduled_message_id}`'
+        )
+
+    @schedule_message.command(
+        name='list', description='Show the list of active scheduled messages in the guild.'
+    )
+    async def schedule_message_list(self, ctx: commands.Context) -> None:
+        async with self.db_pool.acquire() as conn:
+            records = await conn.fetch(
+                'SELECT * FROM scheduled_message WHERE guild_id=$1', ctx.guild.id
+            )
+
+        scheduled_message_data_list = [dict(record) for record in records]
+
+        content = f'List of Scheduled message in **{ctx.guild.name}**\n'
+        is_replied = False
+        for data in scheduled_message_data_list:
+            channel = ctx.guild.get_channel(data['channel_id'])
+            date_trigger_unix = int(data['date_trigger'].timestamp())
+            message = data['message']
+            content_message = message if len(message) <= 20 else message[:20] + '...'
+            content_extra = f"**{data['id']}**: {channel.mention}: {content_message} - <t:{date_trigger_unix}:F> <t:{date_trigger_unix}:R>\n"
+
+            if len(content + content_extra) > 2000:
+                if not is_replied:
+                    is_replied = True
+                    await ctx.reply(content=content, mention_author=False)
+                else:
+                    await ctx.channel.send(content=content)
+
+                content = ''
+
+            content += content_extra
+
+        content += "\nCancel a message schedule by using `/admin schedule-message cancel <id>` or `war! smsg cancel <id>`"
+        if is_replied:
+            await ctx.channel.send(content=content)
+        else:
+            await ctx.reply(content=content, mention_author=False)
+
     @tasks.loop()
     async def _message_schedule_task(self) -> None:
         async with self.db_pool.acquire() as conn:
             next_task = await conn.fetchrow(
-                'SELECT * FROM scheduled_message ORDER BY date_trigger LIMIT 1;'
+                'SELECT id, date_trigger FROM scheduled_message ORDER BY date_trigger LIMIT 1;'
             )
 
         if next_task is None:
@@ -254,15 +326,19 @@ class Admin(commands.GroupCog, group_name="admin"):
         else:
             await discord.utils.sleep_until(next_task['date_trigger'])
 
-            guild = self.bot.get_guild(next_task['guild_id'])
-            target_channel = guild.get_channel(next_task['channel_id'])
+            async with self.db_pool.acquire() as conn:
+                task = await conn.fetchrow(
+                    'SELECT * FROM scheduled_message WHERE id=$1;', next_task['id']
+                )
 
-            await target_channel.send(content=next_task['message'])
+            guild = self.bot.get_guild(task['guild_id'])
+            target_channel = guild.get_channel(task['channel_id'])
+
+            if target_channel is not None:
+                await target_channel.send(content=task['message'])
 
             async with self.db_pool.acquire() as conn:
-                next_task = await conn.execute(
-                    'DELETE FROM scheduled_message WHERE id = $1;', next_task['id']
-                )
+                await conn.execute('DELETE FROM scheduled_message WHERE id = $1;', task['id'])
 
     @_message_schedule_task.before_loop
     async def _before_message_schedule_task(self):
