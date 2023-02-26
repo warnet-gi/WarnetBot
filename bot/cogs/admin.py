@@ -190,6 +190,7 @@ class Admin(commands.GroupCog, group_name="admin"):
         ctx: commands.Context,
         channel: Union[discord.TextChannel, discord.Thread, discord.ForumChannel],
         time: str,
+        *,
         message: str,
     ) -> None:
         await ctx.typing()
@@ -264,7 +265,6 @@ class Admin(commands.GroupCog, group_name="admin"):
 
     @_message_schedule_task.before_loop
     async def _before_message_schedule_task(self):
-        print('waiting for the bot ready...')
         await self.bot.wait_until_ready()
 
     @staticmethod
