@@ -175,7 +175,7 @@ class Admin(commands.GroupCog, group_name="admin"):
                 content="You don't have permission to execute this command!", ephemeral=True
             )
 
-    @commands.hybrid_group()
+    @commands.hybrid_group(aliases=['smsg'])
     async def schedule_message(self, ctx: commands.Context) -> None:
         await ctx.send_help(ctx.command)
 
