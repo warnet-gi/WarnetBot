@@ -232,10 +232,8 @@ class Admin(commands.GroupCog, group_name="admin"):
 
         if self._message_schedule_task.is_running():
             self._message_schedule_task.restart()
-            print('restart loop')
         else:
             self._message_schedule_task.start()
-            print('start loop')
 
         await ctx.send(
             f'⏰ Your message will be triggered in {channel.mention} <t:{int(date_trigger.timestamp())}:R>'
@@ -280,6 +278,36 @@ class Admin(commands.GroupCog, group_name="admin"):
         await ctx.send(
             f'Message is succesfully edited on scheduled message id `{scheduled_message_id}`'
         )
+
+    @schedule_message.command(name='cancel', description='Cancel a scheduled message.')
+    @app_commands.describe(scheduled_message_id='Message schedule id to be canceled.')
+    async def schedule_message_cancel(
+        self, ctx: commands.Context, scheduled_message_id: commands.Range[int, 1]
+    ) -> None:
+        if not ctx.author.guild_permissions.manage_channels:
+            return await ctx.send(
+                content="❌ You don't have permission to execute this command!", ephemeral=True
+            )
+
+        async with self.db_pool.acquire() as conn:
+            res = await conn.fetchval(
+                "SELECT id FROM scheduled_message WHERE id=$1;", scheduled_message_id
+            )
+
+            if res is not None:
+                await conn.execute(
+                    'DELETE FROM scheduled_message WHERE id=$1', scheduled_message_id
+                )
+                return await ctx.send(
+                    f'Scheduled message id `{scheduled_message_id}` has been canceled.'
+                )
+
+            else:
+                not_found_message = (
+                    f'There is no scheduled message with id `{scheduled_message_id}`.\n\n'
+                )
+                not_found_message += 'Use `/admin schedule-message list` or `war! smsg list` to check the list of scheduled messages.'
+                return await ctx.send(not_found_message)
 
     @schedule_message.command(
         name='list', description='Show the list of active scheduled messages in the guild.'
@@ -341,14 +369,16 @@ class Admin(commands.GroupCog, group_name="admin"):
                     'SELECT * FROM scheduled_message WHERE id=$1;', next_task['id']
                 )
 
-            guild = self.bot.get_guild(task['guild_id'])
-            target_channel = guild.get_channel(task['channel_id'])
+            # task will be None if cancel command is triggered
+            if task is not None:
+                guild = self.bot.get_guild(task['guild_id'])
+                target_channel = guild.get_channel(task['channel_id'])
 
-            if target_channel is not None:
-                await target_channel.send(content=task['message'])
+                if target_channel is not None:
+                    await target_channel.send(content=task['message'])
 
-            async with self.db_pool.acquire() as conn:
-                await conn.execute('DELETE FROM scheduled_message WHERE id = $1;', task['id'])
+                async with self.db_pool.acquire() as conn:
+                    await conn.execute('DELETE FROM scheduled_message WHERE id = $1;', task['id'])
 
     @_message_schedule_task.before_loop
     async def _before_message_schedule_task(self):
