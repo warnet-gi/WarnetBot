@@ -194,7 +194,7 @@ class General(commands.Cog):
         if isinstance(error, commands.errors.RoleNotFound):
             await ctx.send(content='**Role not found!**')
 
-    @tasks.loop(minutes=1)
+    @tasks.loop(minutes=2)
     async def _change_presence(self) -> None:
         humans = 0
         for g in self.bot.guilds:
@@ -202,9 +202,11 @@ class General(commands.Cog):
 
         activity_status = [
             discord.Game(name='PC WARNET'),
-            discord.Game(name='with Monnie'),
+            discord.Game(name='Genshin Impact'),
+            discord.Game(name='Arknights'),
+            discord.Activity(type=discord.ActivityType.listening, name=f'war! help'),
             discord.Activity(type=discord.ActivityType.watching, name=f'{humans} Pengguna WARNET'),
-            discord.Activity(type=discord.ActivityType.competing, name='TCG WARNET OPEN'),
+            discord.Activity(type=discord.ActivityType.competing, name='Spiral Abyss'),
         ]
         discord_status = [
             discord.Status.online,
