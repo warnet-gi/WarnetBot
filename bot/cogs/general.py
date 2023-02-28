@@ -20,13 +20,11 @@ class General(commands.Cog):
     async def ping(self, ctx: commands.Context) -> None:
         await ctx.send(f"🏓 **Pong!** Your ping is `{round(self.bot.latency * 1000)}` ms")
 
-    @app_commands.command(description='Shows basic information about the bot.')
-    async def about(self, interaction) -> None:
-        await interaction.response.defer()
+    @commands.hybrid_command(description='Shows basic information about the bot.')
+    async def about(self, ctx: commands.Context) -> None:
+        saweria_url = 'https://saweria.co/warnetGI'
 
         uptime = str(timedelta(seconds=int(round(time.time() - self.bot.start_time))))
-
-        saweria_url = 'https://saweria.co/warnetGI'
 
         embed = discord.Embed(color=0x4E24D6)
         embed.set_author(
@@ -41,7 +39,7 @@ class General(commands.Cog):
         view = discord.ui.View()
         view.add_item(discord.ui.Button(label='Donate to WarnetGI Saweria', url=saweria_url, row=0))
 
-        await interaction.followup.send(embed=embed, view=view)
+        await ctx.send(embed=embed, view=view)
 
     @commands.hybrid_command(description='Shows all commands that available to use.')
     async def help(self, ctx: commands.Context) -> None:
