@@ -40,3 +40,14 @@ CREATE TABLE scheduled_message(
 CREATE INDEX IF NOT EXISTS scheduled_message_id_idx ON scheduled_message (id);
 CREATE INDEX IF NOT EXISTS scheduled_message_guild_id_idx ON scheduled_message (guild_id);
 CREATE INDEX IF NOT EXISTS scheduled_message_channel_id_idx ON scheduled_message (channel_id);
+
+----- BURONAN KHAENRIAH FEATURE ----
+------------------------------------
+CREATE TABLE buronan_khaenriah(
+	discord_id BIGINT NOT NULL,
+	warn_level INT NOT NULL DEFAULT 0,
+	buronan_expired TIMESTAMP,
+	PRIMARY KEY(discord_id),
+	UNIQUE(discord_id)
+);
+CREATE INDEX IF NOT EXISTS buronan_khaenriah_discord_id_idx ON buronan_khaenriah (discord_id);
