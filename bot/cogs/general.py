@@ -65,6 +65,11 @@ class General(commands.Cog):
             inline=False,
         )
         embed.add_field(
+            name='✨ Khaenriah Command',
+            value="[Link dokumentasi](https://github.com/Iqrar99/WarnetBot/wiki/Bot-Commands#-khaenriah-commands)",
+            inline=False,
+        )
+        embed.add_field(
             name='👮 Admin Commands',
             value="[Link dokumentasi](https://github.com/Iqrar99/WarnetBot/wiki/Bot-Commands#-admin-commands)",
             inline=False,
