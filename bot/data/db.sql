@@ -46,7 +46,6 @@ CREATE INDEX IF NOT EXISTS scheduled_message_channel_id_idx ON scheduled_message
 CREATE TABLE buronan_khaenriah(
 	discord_id BIGINT NOT NULL,
 	warn_level INT NOT NULL DEFAULT 0,
-	buronan_expired TIMESTAMP,
 	PRIMARY KEY(discord_id),
 	UNIQUE(discord_id)
 );
