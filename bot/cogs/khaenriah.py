@@ -124,9 +124,23 @@ class Khaenriah(commands.Cog):
                         content=f"**{str(member)}** has reached MAX warning level (Level {self.BURONAN_MAX_LEVEL}). Can't add more level.",
                     )
 
-            await ctx.send(
-                content=f"**{str(member)}** warn level has been increased manually from `{data['warn_level']}` to `{current_warn_level}`"
+            warn_log_channel = ctx.guild.get_channel(config.WARN_LOG_CHANNEL_ID)
+            desc = f"**{str(member)}** warn level has been increased manually from `{data['warn_level']}` to `{current_warn_level}`"
+            embed = discord.Embed(
+                title='WARN LEVEL IS INCREASED',
+                description=desc,
+                timestamp=datetime.now(),
+                color=discord.Color.dark_theme(),
             )
+            embed.set_thumbnail(
+                url='https://media.discordapp.net/attachments/918150951204945950/1081450017065275454/skull.png'
+            )
+            embed.set_footer(
+                text=f'Executed by {str(ctx.author)}', icon_url=ctx.author.display_avatar.url
+            )
+
+            await ctx.send(embed=embed)
+            await warn_log_channel.send(embed=embed)
 
     @buronan.command(name='decrease', aliases=['dec'])
     async def buronan_decrease(
@@ -166,9 +180,23 @@ class Khaenriah(commands.Cog):
                         content=f"**{str(member)}** has been removed from database.",
                     )
 
-            await ctx.send(
-                content=f"**{str(member)}** warn level has been decreased manually from `{data['warn_level']}` to `{current_warn_level}`"
+            warn_log_channel = ctx.guild.get_channel(config.WARN_LOG_CHANNEL_ID)
+            desc = f"**{str(member)}** warn level has been decreased manually from `{data['warn_level']}` to `{current_warn_level}`"
+            embed = discord.Embed(
+                title='WARN LEVEL IS DECREASED',
+                description=desc,
+                timestamp=datetime.now(),
+                color=discord.Color.dark_theme(),
             )
+            embed.set_thumbnail(
+                url='https://media.discordapp.net/attachments/918150951204945950/1081450017065275454/skull.png'
+            )
+            embed.set_footer(
+                text=f'Executed by {str(ctx.author)}', icon_url=ctx.author.display_avatar.url
+            )
+
+            await ctx.send(embed=embed)
+            await warn_log_channel.send(embed=embed)
 
     @buronan.command(name='list')
     async def buronan_list(self, ctx: commands.Context) -> None:
