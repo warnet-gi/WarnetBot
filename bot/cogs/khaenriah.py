@@ -21,9 +21,9 @@ class Khaenriah(commands.Cog):
     @commands.group(aliases=['buron'])
     async def buronan(self, ctx: commands.Context) -> None:
         list_of_commands = (
-            f'- {ctx.prefix} buron warn <user> = Memberikan warning kepada member dan menaikkan level warn nya\n' 
-            f'- {ctx.prefix} buron increase/inc <user> = Menaikkan warning level secara manual\n'
-            f'- {ctx.prefix} buron decrease/dec <user> = Menurunkan warning level secara manual\n'
+            f'- {ctx.prefix} buron warn <user> = Memberikan warning kepada member dan menaikkan level warn nya\n'
+            f'- {ctx.prefix} buron increase/inc <user> = Menaikkan level warning secara manual\n'
+            f'- {ctx.prefix} buron decrease/dec <user> = Menurunkan level warning secara manual\n'
             f'- {ctx.prefix} buron list = Melihat daftar buronan khaenriah'
         )
 
@@ -59,7 +59,6 @@ class Khaenriah(commands.Cog):
                     else:
                         return await ctx.send(
                             content=f"**{str(member)}** has reached MAX warning level (Level {self.BURONAN_MAX_LEVEL}). Can't add more level.",
-                            ephemeral=True,
                         )
 
             embed = discord.Embed(
@@ -93,13 +92,72 @@ class Khaenriah(commands.Cog):
     async def buronan_increase(
         self, ctx: commands.Context, member: Union[discord.Member, discord.User]
     ) -> None:
-        pass
+        if (
+            ctx.author.guild_permissions.administrator
+            or ctx.author.get_role(self.KURATOR_TEYVAT_ROLE_ID) is not None
+        ):
+            async with self.db_pool.acquire() as conn:
+                data = await conn.fetchrow(
+                    'SELECT * FROM buronan_khaenriah WHERE discord_id=$1', member.id
+                )
+
+                if data is None:
+                    return await ctx.send(
+                        content=f"**{str(member)}** never got a warning before. Can't increase warn level."
+                    )
+
+                current_warn_level = data['warn_level']
+                if current_warn_level < self.BURONAN_MAX_LEVEL:
+                    await conn.execute(
+                        'UPDATE buronan_khaenriah SET warn_level=warn_level+1 WHERE discord_id=$1',
+                        member.id,
+                    )
+                    current_warn_level += 1
+                else:
+                    return await ctx.send(
+                        content=f"**{str(member)}** has reached MAX warning level (Level {self.BURONAN_MAX_LEVEL}). Can't add more level.",
+                    )
+
+            await ctx.send(
+                content=f"**{str(member)}** warn level has been increased manually from `{data['warn_level']}` to `{current_warn_level}`"
+            )
 
     @buronan.command(name='decrease', aliases=['dec'])
     async def buronan_decrease(
         self, ctx: commands.Context, member: Union[discord.Member, discord.User]
     ) -> None:
-        pass
+        if (
+            ctx.author.guild_permissions.administrator
+            or ctx.author.get_role(self.KURATOR_TEYVAT_ROLE_ID) is not None
+        ):
+            async with self.db_pool.acquire() as conn:
+                data = await conn.fetchrow(
+                    'SELECT * FROM buronan_khaenriah WHERE discord_id=$1', member.id
+                )
+
+                if data is None:
+                    return await ctx.send(
+                        content=f"**{str(member)}** never got a warning before. Can't decrease warn level."
+                    )
+
+                current_warn_level = data['warn_level']
+                if current_warn_level > 0:
+                    await conn.execute(
+                        'UPDATE buronan_khaenriah SET warn_level=warn_level-1 WHERE discord_id=$1',
+                        member.id,
+                    )
+                    current_warn_level -= 1
+                else:
+                    await conn.execute(
+                        'DELETE FROM buronan_khaenriah WHERE discord_id=$1', member.id
+                    )
+                    return await ctx.send(
+                        content=f"**{str(member)}** has been removed from database.",
+                    )
+
+            await ctx.send(
+                content=f"**{str(member)}** warn level has been decreased manually from `{data['warn_level']}` to `{current_warn_level}`"
+            )
 
     @buronan.command(name='list')
     async def buronan_list(self, ctx: commands.Context) -> None:
