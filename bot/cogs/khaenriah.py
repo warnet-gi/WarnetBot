@@ -127,7 +127,7 @@ class Khaenriah(commands.Cog):
             warn_log_channel = ctx.guild.get_channel(config.WARN_LOG_CHANNEL_ID)
             desc = f"**{str(member)}** warn level has been increased manually from `{data['warn_level']}` to `{current_warn_level}`"
             embed = discord.Embed(
-                title='WARN LEVEL IS INCREASED',
+                title='KHAENRIAH WARN LEVEL IS INCREASED',
                 description=desc,
                 timestamp=datetime.now(),
                 color=discord.Color.dark_theme(),
@@ -183,7 +183,7 @@ class Khaenriah(commands.Cog):
             warn_log_channel = ctx.guild.get_channel(config.WARN_LOG_CHANNEL_ID)
             desc = f"**{str(member)}** warn level has been decreased manually from `{data['warn_level']}` to `{current_warn_level}`"
             embed = discord.Embed(
-                title='WARN LEVEL IS DECREASED',
+                title='KHAENRIAH WARN LEVEL IS DECREASED',
                 description=desc,
                 timestamp=datetime.now(),
                 color=discord.Color.dark_theme(),
