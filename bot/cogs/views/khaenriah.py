@@ -2,11 +2,10 @@ import discord
 from discord import Interaction
 from discord.ext import commands
 
-from datetime import datetime
 from typing import Optional, List, Any, Dict
 
 
-class StickyPagination(discord.ui.View):
+class BuronanPagination(discord.ui.View):
     def __init__(
         self,
         *,
@@ -20,7 +19,7 @@ class StickyPagination(discord.ui.View):
         PageCounterStyle: discord.ButtonStyle = discord.ButtonStyle.grey,
         initial_page_number: int = 0,
         ephemeral: bool = False,
-        list_data: List[Dict[str, Any]],
+        buronan_list_data: List[Dict[str, Any]],
     ) -> None:
         super().__init__(timeout=timeout)
 
@@ -29,7 +28,7 @@ class StickyPagination(discord.ui.View):
         self.PageCounterStyle = PageCounterStyle
         self.initial_page_number = initial_page_number
         self.ephemeral = ephemeral
-        self.list_data = list_data
+        self.buronan_list_data = buronan_list_data
 
         self.pages: List[discord.Embed] = []
         self.page_counter: discord.ui.Button = None
@@ -38,64 +37,82 @@ class StickyPagination(discord.ui.View):
         self.ctx = None
         self.message = None
 
-    async def construct_pages(self, ctx: commands.Context, list_data: List[Dict[str, Any]]) -> None:
-        N_LIST = 10
+    async def construct_pages(
+        self, ctx: commands.Context, buronan_list_data: List[Dict[str, Any]]
+    ) -> None:
+        # Pick only N members per embed
+        N_MEMBERS = 10
 
-        total_data = len(list_data)
-        if total_data % N_LIST:
-            self.total_page_count = total_data // N_LIST + 1
+        total_data = len(buronan_list_data)
+        if total_data % N_MEMBERS:
+            self.total_page_count = total_data // N_MEMBERS + 1
         else:
-            self.total_page_count = total_data // N_LIST
+            self.total_page_count = total_data // N_MEMBERS
 
         if self.total_page_count:
             for page_num in range(self.total_page_count):
-                page_data_list = [
-                    list_data[(page_num * N_LIST) : (page_num * N_LIST) + N_LIST // 2],
-                    list_data[(page_num * N_LIST) + N_LIST // 2 : (page_num + 1) * N_LIST],
+                page_member_data_list = [
+                    buronan_list_data[
+                        (page_num * N_MEMBERS) : (page_num * N_MEMBERS) + N_MEMBERS // 2
+                    ],
+                    buronan_list_data[
+                        (page_num * N_MEMBERS) + N_MEMBERS // 2 : (page_num + 1) * N_MEMBERS
+                    ],
                 ]
 
                 embed = discord.Embed(
-                    color=discord.Color.gold(),
-                    title="WARNET STICKY MESSAGE",
-                    description="**Sticky message yang terdapat pada server WARNET**",
-                    timestamp=datetime.now(),
+                    color=discord.Color.dark_theme(),
+                    title='DAFTAR BURONAN KHAENRIAH',
+                    description=f'**Berikut daftar buronan dengan level warning nya di server {ctx.guild.name}**',
+                )
+                embed.set_thumbnail(
+                    url='https://media.discordapp.net/attachments/918150951204945950/1081450017065275454/skull.png'
                 )
 
-                for sticky_data_list in page_data_list:
-                    if sticky_data_list == page_data_list[1] and len(page_data_list[1]) == 0:
+                for member_data_list in page_member_data_list:
+                    if (
+                        member_data_list == page_member_data_list[1]
+                        and len(page_member_data_list[1]) == 0
+                    ):
                         continue
 
-                    field_value = ""
-                    field_name = ""
+                    field_value = ''
+                    field_name = (
+                        'Warning Level  |  Member'
+                        if member_data_list == page_member_data_list[0]
+                        else '|'
+                    )
+                    for member_data in member_data_list:
+                        member = ctx.guild.get_member(member_data['discord_id'])
+                        # Prevent none object if user leaves the guild but they still in the list
+                        if member is None:
+                            member = await ctx.bot.fetch_user(member_data['discord_id'])
 
-                    if sticky_data_list == page_data_list[0]:
-                        field_name = "Channel Name"
-                    else:
-                        field_name = "_ _"
-
-                    for sticky_data in sticky_data_list:
-                        row_string = f"<#{sticky_data['channel_id']}>\n"
+                        row_string = f"`{member_data['warn_level']:>2}` {discord.utils.escape_markdown(text=str(member))}\n"
                         field_value += row_string
 
                     embed.add_field(name=field_name, value=field_value)
 
-                embed.set_footer(
-                    text=f"{str(self.ctx.author)}", icon_url=self.ctx.author.avatar.url
-                )
                 self.pages.append(embed)
 
+        # Null list
         else:
             embed = discord.Embed(
-                color=discord.Color.gold(),
-                title="WARNET STICKY MESSAGE",
-                description="**Sticky message yang terdapat pada server WARNET**",
-                timestamp=datetime.now(),
+                color=discord.Color.dark_theme(),
+                title='DAFTAR BURONAN KHAENRIAH',
+                description=f'**Berikut daftar buronan dengan level warning di server {ctx.guild.name}**',
             )
-
-            embed.add_field(name="Channel | Message", value="**NO STICKY MESSAGE IN THIS SERVER**")
-
-            embed.set_footer(text=f"{str(self.ctx.author)}", icon_url=self.ctx.author.avatar.url)
+            embed.set_thumbnail(
+                url='https://media.discordapp.net/attachments/918150951204945950/1081450017065275454/skull.png'
+            )
+            embed.add_field(
+                name='Warning Level  |  Member',
+                value='**NO MEMBER IN THIS LIST YET**',
+            )
             self.pages.append(embed)
+
+        for embed in self.pages:
+            embed.set_footer(text=f'{len(buronan_list_data)} members has been listed in this list.')
 
     async def on_timeout(self) -> None:
         for child in self.children:
@@ -107,7 +124,7 @@ class StickyPagination(discord.ui.View):
             ctx = await commands.Context.from_interaction(ctx)
         self.ctx = ctx
 
-        await self.construct_pages(self.ctx, self.list_data)
+        await self.construct_pages(self.ctx, self.buronan_list_data)
         self.current_page = self.initial_page_number
         self.page_counter = discord.ui.Button(
             label=f"{self.initial_page_number + 1}/{self.total_page_count}",
@@ -124,9 +141,7 @@ class StickyPagination(discord.ui.View):
         self.add_item(self.NextButton)
 
         self.message = await ctx.send(
-            embed=self.pages[self.initial_page_number],
-            view=self,
-            ephemeral=self.ephemeral,
+            embed=self.pages[self.initial_page_number], view=self, ephemeral=self.ephemeral
         )
 
     async def next(self) -> None:

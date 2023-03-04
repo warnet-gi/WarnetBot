@@ -6,6 +6,7 @@ from discord.ext import commands
 
 from bot.bot import WarnetBot
 from bot.config import config
+from bot.cogs.views.khaenriah import BuronanPagination
 
 
 @commands.guild_only()
@@ -161,7 +162,13 @@ class Khaenriah(commands.Cog):
 
     @buronan.command(name='list')
     async def buronan_list(self, ctx: commands.Context) -> None:
-        pass
+        await ctx.typing()
+        async with self.db_pool.acquire() as conn:
+            records = await conn.fetch("SELECT * FROM buronan_khaenriah ORDER BY warn_level DESC;")
+            all_records = [dict(row) for row in records]
+
+        view = BuronanPagination(buronan_list_data=all_records)
+        await view.start(ctx)
 
     def _get_consequence(self, warn_level: int) -> str:
         buronan_role_mention = f'<@&{self.BURONAN_ROLE_ID}>'
