@@ -107,6 +107,11 @@ class Khaenriah(commands.Cog):
                         content=f"**{str(member)}** never got a warning before. Can't increase warn level."
                     )
 
+                if ctx.author == member:
+                    return await ctx.send(
+                        content=f"You are unable to self-increase your warn level."
+                    )
+
                 current_warn_level = data['warn_level']
                 if current_warn_level < self.BURONAN_MAX_LEVEL:
                     await conn.execute(
@@ -139,6 +144,11 @@ class Khaenriah(commands.Cog):
                 if data is None:
                     return await ctx.send(
                         content=f"**{str(member)}** never got a warning before. Can't decrease warn level."
+                    )
+
+                if ctx.author == member:
+                    return await ctx.send(
+                        content=f"You are unable to self-decrease your warn level."
                     )
 
                 current_warn_level = data['warn_level']
