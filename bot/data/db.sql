@@ -50,3 +50,30 @@ CREATE TABLE buronan_khaenriah(
 	UNIQUE(discord_id)
 );
 CREATE INDEX IF NOT EXISTS buronan_khaenriah_discord_id_idx ON buronan_khaenriah (discord_id);
+
+---- WARN AND MUTE FEATURE ----
+-------------------------------
+CREATE TABLE warned_members(
+	discord_id BIGINT NOT NULL,
+	warn_level INT DEFAULT 1 NOT NULL,
+	date_given TIMESTAMP DEFAULT NOW() NOT NULL,
+	date_expire TIMESTAMP NOT NULL,
+	reason VARCHAR(256),
+	leave_server BOOLEAN DEFAULT '0' NOT NULL,
+	PRIMARY KEY(discord_id),
+	UNIQUE(discord_id)
+);
+CREATE INDEX IF NOT EXISTS warned_members_discord_id_idx ON warned_members (discord_id);
+CREATE INDEX IF NOT EXISTS warned_members_warn_level_idx ON warned_members (warn_level);
+
+CREATE TABLE muted_members(
+	discord_id BIGINT NOT NULL,
+	date_given TIMESTAMP DEFAULT NOW() NOT NULL,
+	date_expire TIMESTAMP NOT NULL,
+	reason VARCHAR(256),
+	leave_server BOOLEAN DEFAULT '0' NOT NULL,
+	roles_store BIGINT[],
+	PRIMARY KEY(discord_id),
+	UNIQUE(discord_id)
+);
+CREATE INDEX IF NOT EXISTS muted_members_discord_id_idx ON muted_members (discord_id);
