@@ -59,7 +59,7 @@ CREATE TABLE warned_members(
 	date_given TIMESTAMP DEFAULT NOW() NOT NULL,
 	date_expire TIMESTAMP NOT NULL,
 	reason VARCHAR(256),
-	leave_server BOOLEAN DEFAULT '0' NOT NULL,
+	leave_server BOOLEAN DEFAULT FALSE NOT NULL,
 	PRIMARY KEY(discord_id),
 	UNIQUE(discord_id)
 );
@@ -71,7 +71,7 @@ CREATE TABLE muted_members(
 	date_given TIMESTAMP DEFAULT NOW() NOT NULL,
 	date_expire TIMESTAMP NOT NULL,
 	reason VARCHAR(256),
-	leave_server BOOLEAN DEFAULT '0' NOT NULL,
+	leave_server BOOLEAN DEFAULT FALSE NOT NULL,
 	roles_store BIGINT[],
 	PRIMARY KEY(discord_id),
 	UNIQUE(discord_id)
