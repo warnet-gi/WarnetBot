@@ -86,13 +86,15 @@ class Admin(commands.GroupCog, group_name="admin"):
     @commands.command()
     async def nobar(self, ctx: commands.Context) -> None:
         NOBAR_CHANNEL_ID = 1092630886127783957
+        OPEN_TICKET_CHANNEL_ID = 1066618888462278657
+        nobar_role = ctx.guild.get_role(1093508844551942144)
 
-        if ctx.author.guild_permissions.manage_channels:
-            await ctx.channel.send(
-                f"Tata cara menjadi **HOST NOBAR** server {ctx.guild.name}:\n"
-                "1. Tentukan **Judul Film**, **Tanggal**, dan **Jam** nobar. Minimal __satu hari sebelum nobar__, agar dapat diumumkan kepada role <@&1093508844551942144> terlebih dahulu.\n"
-                f"2. Pada saat waktu nobar, Admin/Mod akan memberikan kamu akses agar dapat stream pada channel <#{NOBAR_CHANNEL_ID}>."
-            )
+        await ctx.channel.send(
+            f"Tata cara menjadi **HOST NOBAR** di server {ctx.guild.name}:\n"
+            f"1.  Silahkan ajukan tiket **Kontak Admin dan Mod** di <#{OPEN_TICKET_CHANNEL_ID}>.\n"
+            f"2. Tentukan **Judul Film**, **Tanggal**, dan **Jam** nobar. Minimal __satu hari sebelum nobar__, agar dapat diumumkan kepada role **{nobar_role.name}** terlebih dahulu.\n"
+            f"3. Pada saat waktu nobar, Admin/Mod akan memberikan kamu akses agar dapat stream pada channel <#{NOBAR_CHANNEL_ID}>."
+        )
 
     @app_commands.command(
         name='give-role-on-vc', description='Give a role to all members in a voice channel.'
