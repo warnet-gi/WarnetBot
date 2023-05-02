@@ -11,6 +11,9 @@ from datetime import datetime, timedelta
 from typing import Optional, Literal, Union, Tuple
 
 
+WARNING_ICON_URL = 'https://cdn.discordapp.com/attachments/774322083319775262/1038314815929724989/unknown.png'
+
+
 @commands.guild_only()
 class Admin(commands.GroupCog, group_name="admin"):
     def __init__(self, bot: WarnetBot) -> None:
@@ -20,6 +23,7 @@ class Admin(commands.GroupCog, group_name="admin"):
     @commands.Cog.listener()
     async def on_connect(self) -> None:
         self._message_schedule_task.start()
+        self._decrease_warn_status_task.start()
 
     @commands.command()
     @commands.is_owner()
@@ -404,6 +408,372 @@ class Admin(commands.GroupCog, group_name="admin"):
 
         else:
             return
+
+
+
+
+
+
+
+
+    warn = app_commands.Group(name='warn', description='Subgroup to manage Warn features.')
+
+    @warn.command(
+        name='give',
+        description='Warn and mute member based on their warn level. Will set expiration time for the warn role.'
+    )
+    @app_commands.describe(
+        member='Member that will be given a warning.',
+        warn_level='Warn level from 1 to 3.',
+        reason='Reason why the warn is given.'
+    )
+    async def warn_give(
+        self,
+        interaction: Interaction,
+        member: Union[discord.Member, discord.User],
+        warn_level: app_commands.Range[int, 1, 3],
+        reason: Optional[str]
+    ) -> None:
+        interaction.response.defer()
+    
+        if isinstance(member, discord.User):
+            return await interaction.followup.send(content=f"Can't find user with id `{member.id}` in this server.")
+
+        scheduler: AsyncIOScheduler = self.scheduler
+
+        async with self.db_pool.acquire() as conn:
+            res = await conn.fetchrow("SELECT * FROM warned_members WHERE discord_id = $1;", member.id)
+            # First time warning for a member
+            if res is None:
+                if warn_level > 1:
+                    mute_days = [3, 7]
+                    await self._mute_member(interaction, member, days=mute_days[warn_level-2], reason=f'Warn {warn_level}')
+
+                warn_role = interaction.guild.get_role(config.WarnConfig.WARN_ROLE_ID[f'warn{warn_level}'])
+                await member.add_roles(warn_role, reason)
+
+                date_given = datetime.now()
+                date_expire = date_given + timedelta(days=30)
+                await conn.execute(
+                    'INSERT INTO warned_members(discord_id, warn_level, date_given, date_expire) VALUES ($1, $2, $3, $4);',
+                    member.id,
+                    warn_level,
+                    date_given,
+                    date_expire,
+                )
+
+                posix_date_expire = int(date_expire.timestamp())
+                await self._send_warn_message_to_member(interaction, member, warn_level, reason, posix_date_expire)
+                await self._send_warn_log(interaction, member, warn_level, reason, posix_date_expire)
+
+            # Member has been warned before
+            else:
+                member_status = res
+                current_warn_level = member_status['warn_level']
+
+                if warn_level <= current_warn_level:
+                    invalid_warn_notice_embed = discord.Embed(
+                        title='⚠️ Warn level must be higher than the current one',
+                        description=f'Tidak dapat memberikan **warn level {warn_level}** kepada user {str(member)} yang memiliki **warn level {current_warn_level}**.',
+                        color=discord.Color.yellow()
+                    )
+                    return await interaction.followup.send(embed=invalid_warn_notice_embed)
+                
+                else:
+                    current_warn_role = interaction.guild.get_role(config.WarnConfig.WARN_ROLE_ID[f'warn{current_warn_level}'])
+                    warn_role = interaction.guild.get_role(config.WarnConfig.WARN_ROLE_ID[f'warn{warn_level}'])
+                    await member.remove_roles(current_warn_role)
+                    await member.add_roles(warn_role, reason)
+
+                    mute_days = [3, 7]
+                    await self._mute_member(interaction, member, days=mute_days[warn_level-2], reason=f'Warn {warn_level}')
+
+                    date_given = datetime.now()
+                    date_expire = date_given + timedelta(days=30)
+                    await conn.execute(
+                        "UPDATE warned_members SET warn_level=$1, date_given=$2, date_expire=$3, leave_server=0 WHERE discord_id=$4;",
+                        warn_level,
+                        date_given,
+                        date_expire,
+                        member.id
+                    )
+
+                    posix_date_expire = int(date_expire.timestamp())
+                    await self._send_warn_message_to_member(interaction, member, warn_level, reason, posix_date_expire)
+                    await self._send_warn_log(interaction, member, warn_level, reason, posix_date_expire)
+        
+        # TODO: Add scheduler to check the warn status
+        scheduler.add_job(decrease_warn_status, trigger='date', args=[self, member], id=f'decrease_warn-{str(member)}', replace_existing=True, run_date=date_expire)
+
+    # alur: cek status warn terkiini -> kurangi level warn
+        # jika warn 1 menjadi 0, maka hapus entry
+        # jika warn 3 menjadi 2 atau warn 2 menjadi 1, maka update entry -> add job lagi
+    # TODO edge case: member keluar server setelah kena warn sampai job pengecekan datang
+    # TODO edge case: member keluar server setelah kena warn lalu kembali lagi sebelum job pengecekan datang
+    @tasks.loop()
+    async def _decrease_warn_status_task(self) -> None:
+        async with self.db_pool.acquire() as conn:
+            next_task = await conn.fetchrow(
+                'SELECT discord_id, date_expire FROM warned_members ORDER BY date_expire LIMIT 1;'
+            )
+
+        if next_task is None:
+            return self._decrease_warn_status_task.stop()
+
+        else:
+            await discord.utils.sleep_until(next_task['date_expire'])
+
+            async with self.db_pool.acquire() as conn:
+                task = await conn.fetchrow(
+                    'SELECT * FROM warned_members WHERE discord_id=$1;', next_task['discord_id']
+                )
+
+            if task is not None:
+                guild = self.bot.get_guild(config.GUILD_ID)
+                member = guild.get_member(task['discord_id'])
+                current_warn_level: int = task['warn_level']
+                current_warn_role = guild.get_role(config.WarnConfig.WARN_ROLE_ID[f'warn{current_warn_level}'])
+                
+
+                is_leave_server = False
+                if not member:  # if the member leaves the server
+                    is_leave_server = True
+                else:
+                    await member.remove_roles(current_warn_role)
+
+                # Decrease warn level
+                async with self.db_pool.acquire() as conn:
+                    if current_warn_level > 1:
+                        next_warn_level = current_warn_level - 1
+                        next_warn_role = guild.get_role(config.WarnConfig.WARN_ROLE_ID[f'warn{next_warn_level}'])
+                        await member.add_roles(next_warn_role)
+
+                        date_given = datetime.now()
+                        date_expire = date_given + timedelta(days=30)
+                        
+                        await conn.execute(
+                            "UPDATE warned_members SET warn_level=$1, date_given=$2, date_expire=$3, leave_server='0' WHERE discord_id=$4;",
+                            next_warn_level,
+                            date_given,
+                            date_expire,
+                            member.id
+                        )
+
+                    # TODO: send log when the warn level decreased
+
+                    # No warn anymore
+                    else:
+                        await conn.execute("DELETE FROM warned_members WHERE discord_id=$1;", member.id)
+
+    @_decrease_warn_status_task.before_loop
+    async def _before_decrease_warn_status_task(self):
+        await self.bot.wait_until_ready()
+
+    @staticmethod
+    async def _send_warn_message_to_member(
+        interaction: Interaction,
+        member: discord.Member,
+        warn_level: int,
+        reason: Optional[str],
+        expiration_date: int  # POSIX time
+    ) -> None:
+        """DM member for the warning."""
+        
+        dm_channel: discord.DMChannel = member.create_dm()
+        author = interaction.user
+
+        warning_embed = discord.Embed(
+            title="⚠️ You got a warning!",
+            description="Admin/Mod telah memberikan peringatan kepadamu.",
+            color=discord.Color.yellow(),
+            timestamp=datetime.now(),
+        )
+        warning_embed.set_thumbnail(url=WARNING_ICON_URL)
+        warning_embed.add_field(name='Warn Level', value=f'`{warn_level}`', inline=False)
+        warning_embed.add_field(
+            name='Reason',
+            value=reason if reason is not None else '-',
+            inline=False
+        )
+        warning_embed.add_field(
+            name='Warning Expiration Time',
+            value=f"<t:{expiration_date}:F>, <t:{expiration_date}:R>",
+            inline=False
+        )
+        warning_embed.set_footer(
+            text=f'Warned by {str(author)}',
+            icon_url=author.display_avatar.url
+        )
+
+        await dm_channel.send(embed=warning_embed)
+
+    @staticmethod
+    async def _send_warn_log(
+        interaction: Interaction,
+        member: discord.Member,
+        warn_level: int,
+        reason: Optional[str],
+        expiration_date: int  # POSIX time
+    ) -> None:
+        """Log every warning action."""
+
+        author = interaction.user
+
+        log_embed = discord.Embed(
+            title='Member has been warned',
+            color=discord.Color.blurple(),
+            timestamp=datetime.now()
+        )
+        log_embed.set_thumbnail(url=member.display_avatar.url)
+        log_embed.add_field(name='Warn Level', value=f'`{warn_level}`', inline=False)
+        log_embed.add_field(
+            name='Reason',
+            value=reason if reason is not None else '-',
+            inline=False
+        )
+        log_embed.add_field(
+            name='Warning Expiration Time',
+            value=f"<t:{expiration_date}:F>, <t:{expiration_date}:R>",
+            inline=False
+        )
+        log_embed.set_footer(
+            text=f'Warned by {str(author)}',
+            icon_url=author.display_avatar.url
+        )
+        warn_log_channel = interaction.guild.get_channel(config.WarnConfig.WARN_LOG_CHANNEL_ID)
+        await warn_log_channel.send(embed=log_embed)
+
+    async def _mute_member(
+        self,
+        interaction: Interaction,
+        member: discord.Member,
+        days: Optional[int],
+        reason: str
+    ) -> None:
+        muted_role = interaction.guild.get_role(config.WarnConfig.MUTED_ROLE_ID)
+        booster_role = interaction.guild.get_role(config.BOOSTER_ROLE_ID)
+        member_role_id_list = [role.id for role in member.roles]
+
+        if member.get_role(config.BOOSTER_ROLE_ID):
+            await member.edit(roles=[booster_role])
+        else:
+            await member.edit(roles=[])    
+        await member.add_roles(muted_role)
+
+        date_given = datetime.now()
+        date_expire = date_given + timedelta(days=days)
+
+        async with self.db_pool.acquire as conn:
+            await conn.execute(
+                "INSERT INTO muted_members(discord_id, date_given, date_expire, reason, roles_store) VALUES ($1, $2, $3, $4, $5);",
+                member.id,
+                date_given,
+                date_expire,
+                reason,
+                member_role_id_list
+            )
+
+        posix_date_expire = int(date_expire.timestamp())
+        await self._send_mute_message_to_member(member, reason, posix_date_expire)
+
+        if self._unmute_member_task.is_running():
+            self._unmute_member_task.restart()
+        else:
+            self._unmute_member_task.start()
+
+    # TODO: handle when member leave
+    @tasks.loop()
+    async def _unmute_member_task(self) -> None:
+        async with self.db_pool.acquire() as conn:
+            next_task = await conn.fetchrow(
+                'SELECT discord_id, date_expire FROM muted_members WHERE leave_server=FALSE ORDER BY date_expire LIMIT 1;'
+            )
+        
+        if next_task is None:
+            return self._decrease_warn_status_task.stop()
+
+        else:
+            await discord.utils.sleep_until(next_task['date_expire'])
+
+            async with self.db_pool.acquire() as conn:
+                task = await conn.fetchrow(
+                    'SELECT * FROM muted_members WHERE discord_id=$1;', next_task['discord_id']
+                )
+
+                if task is not None:
+                    guild = self.bot.get_guild(config.GUILD_ID)
+                    member = guild.get_member(task['discord_id'])
+                    muted_role = guild.get_role(config.WarnConfig.MUTED_ROLE_ID)
+
+                    is_leave_server = False
+                    if not member:  # if the member leaves the server
+                        is_leave_server = True
+                        await conn.execute(
+                            "UPDATE muted_members SET leave_server=$1 WHERE discord_id=$2;",
+                            is_leave_server,
+                            member.id,
+                        )
+                    else:
+                        roles_stored = task['roles_store']
+                        role_list = []
+                        for role_id in roles_stored:
+                            role = guild.get_role(role_id)
+                            if role:
+                                role_list.append(role)
+                        await member.remove_roles(muted_role)
+                        await member.edit(roles=role_list)
+                        await conn.execute("DELETE FROM muted_members WHERE discord_id=$1;", member.id)
+
+    @_unmute_member_task.before_loop
+    async def _before_unmute_member_task(self):
+        await self.bot.wait_until_ready()
+
+    @staticmethod
+    async def _send_mute_message_to_member(
+        member: discord.Member,
+        reason: Optional[str],
+        expiration_date: int  # POSIX time
+    ) -> None:
+        """DM member for the mute action."""
+        
+        dm_channel: discord.DMChannel = member.create_dm()
+
+        mute_embed = discord.Embed(
+            title="⚠️ You have been muted!",
+            description="Admin/Mod telah memberikan mute kepadamu.",
+            color=discord.Color.orange(),
+            timestamp=datetime.now(),
+        )
+        mute_embed.set_thumbnail(url=WARNING_ICON_URL)
+        mute_embed.add_field(
+            name='Reason',
+            value=reason if reason is not None else '-',
+            inline=False
+        )
+        mute_embed.add_field(
+            name='Mute Expiration Time',
+            value=f"<t:{expiration_date}:F>, <t:{expiration_date}:R>",
+            inline=False
+        )
+
+        await dm_channel.send(embed=mute_embed)
+
+        @staticmethod
+        async def send_missing_permission_error_embed(interaction: Interaction, custom_description: str = None) -> None:
+            description = f"Hanya <@&{config.ADMINISTRATOR_ROLE_ID['admin']}> atau <@&{config.ADMINISTRATOR_ROLE_ID['mod']}> yang bisa menggunakan command ini."
+            if custom_description:
+                description = custom_description
+
+            embed = discord.Embed(
+                color=discord.Colour.red(),
+                title="❌ You don't have permission",
+                description=description,
+                timestamp=datetime.now(),
+            )
+
+            await interaction.followup.send(embed=embed)
+
+
 
 
 async def setup(bot: WarnetBot) -> None:
