@@ -60,10 +60,7 @@ class Admin(commands.GroupCog, group_name="admin"):
 
     @commands.command(name='channeltopic', aliases=['ct'])
     async def channel_topic(self, ctx: commands.Context) -> None:
-        if (
-            ctx.author.guild_permissions.administrator
-            or ctx.author.get_role(config.NON_ADMINISTRATOR_ROLE_ID['staff']) is not None
-        ):
+        if ctx.author.guild_permissions.manage_channels:
             await ctx.message.delete()
 
             topic: Optional[str] = None

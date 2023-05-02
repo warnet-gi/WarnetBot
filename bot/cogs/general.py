@@ -65,6 +65,11 @@ class General(commands.Cog):
             inline=False,
         )
         embed.add_field(
+            name='✨ Khaenriah Command',
+            value="[Link dokumentasi](https://github.com/Iqrar99/WarnetBot/wiki/Bot-Commands#-khaenriah-commands)",
+            inline=False,
+        )
+        embed.add_field(
             name='👮 Admin Commands',
             value="[Link dokumentasi](https://github.com/Iqrar99/WarnetBot/wiki/Bot-Commands#-admin-commands)",
             inline=False,
@@ -172,6 +177,19 @@ class General(commands.Cog):
 
         await interaction.response.send_message(content=content)
 
+    @commands.command()
+    async def nobar(self, ctx: commands.Context) -> None:
+        NOBAR_CHANNEL_ID = 1092630886127783957
+        OPEN_TICKET_CHANNEL_ID = 1066618888462278657
+        nobar_role = ctx.guild.get_role(1093508844551942144)
+
+        await ctx.channel.send(
+            f"Tata cara menjadi **HOST NOBAR** di server {ctx.guild.name}:\n"
+            f"1.  Silahkan ajukan tiket **Kontak Admin dan Mod** di <#{OPEN_TICKET_CHANNEL_ID}>.\n"
+            f"2. Tentukan **Judul Film**, **Tanggal**, dan **Jam** nobar. Minimal __satu hari sebelum nobar__, agar dapat diumumkan kepada role **{nobar_role.name}** terlebih dahulu.\n"
+            f"3. Pada saat waktu nobar, Admin/Mod akan memberikan kamu akses agar dapat stream pada channel <#{NOBAR_CHANNEL_ID}>."
+        )
+
     @commands.Cog.listener()
     async def on_connect(self) -> None:
         self._change_presence.start()
@@ -204,6 +222,7 @@ class General(commands.Cog):
             discord.Game(name='PC WARNET'),
             discord.Game(name='Genshin Impact'),
             discord.Game(name='Arknights'),
+            discord.Game(name='Honkai: Star Rail'),
             discord.Activity(type=discord.ActivityType.listening, name=f'war! help'),
             discord.Activity(type=discord.ActivityType.watching, name=f'{humans} Pengguna WARNET'),
             discord.Activity(type=discord.ActivityType.competing, name='Spiral Abyss'),
