@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Optional
 from datetime import datetime
 
 import discord
@@ -22,7 +22,7 @@ class Khaenriah(commands.Cog):
     @commands.group(aliases=['buron'])
     async def buronan(self, ctx: commands.Context) -> None:
         list_of_commands = (
-            f'- {ctx.prefix} buron warn <user> = Memberikan warning kepada member dan menaikkan level warn nya\n'
+            f'- {ctx.prefix} buron warn <user> <reason> = Memberikan warning kepada member dan menaikkan level warn nya\n'
             f'- {ctx.prefix} buron increase/inc <user> = Menaikkan level warning secara manual\n'
             f'- {ctx.prefix} buron decrease/dec <user> = Menurunkan level warning secara manual\n'
             f'- {ctx.prefix} buron list = Melihat daftar buronan khaenriah'
@@ -33,7 +33,11 @@ class Khaenriah(commands.Cog):
 
     @buronan.command(name='warn')
     async def buronan_warn(
-        self, ctx: commands.Context, member: Union[discord.Member, discord.User]
+        self,
+        ctx: commands.Context,
+        member: Union[discord.Member, discord.User],
+        *,
+        reason: Optional[str],
     ) -> None:
         if (
             ctx.author.guild_permissions.administrator
@@ -80,6 +84,7 @@ class Khaenriah(commands.Cog):
             embed.add_field(
                 name='Consequence', value=self._get_consequence(current_warn_level), inline=False
             )
+            embed.add_field(name='Reason', value=reason, inline=False)
             embed.set_footer(
                 text=f'Warned by {str(ctx.author)}', icon_url=ctx.author.display_avatar.url
             )
