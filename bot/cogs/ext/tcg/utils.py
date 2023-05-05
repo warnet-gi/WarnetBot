@@ -14,9 +14,7 @@ async def send_user_not_registered_error_embed(
     if member2_id is not None:
         desc_msg = f"<@{member1_id}> dan <@{member2_id}> belum terdaftar di database. Silakan untuk mendaftar terlebih dahulu menggunakan `/warnet-tcg register`"
     else:
-        desc_msg = (
-            f"<@{member1_id}> belum terdaftar di database. Silakan <@{member1_id}> untuk mendaftar terlebih dahulu menggunakan `/warnet-tcg register`",
-        )
+        desc_msg = f"<@{member1_id}> belum terdaftar di database. Silakan <@{member1_id}> untuk mendaftar terlebih dahulu menggunakan `/warnet-tcg register`"
 
     embed = discord.Embed(
         color=discord.Colour.red(),
