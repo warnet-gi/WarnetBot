@@ -91,7 +91,10 @@ class Admin(commands.GroupCog, group_name="admin"):
         role='Role that will be given to all members in voice channel target.',
     )
     async def give_role_on_vc(
-        self, interaction: Interaction, vc: discord.VoiceChannel, role: discord.Role
+        self,
+        interaction: Interaction,
+        vc: Union[discord.VoiceChannel, discord.StageChannel],
+        role: discord.Role,
     ) -> None:
         await interaction.response.defer()
 
@@ -105,7 +108,7 @@ class Admin(commands.GroupCog, group_name="admin"):
             embed = discord.Embed(
                 color=discord.Color.green(),
                 title='✅ Role successfully given',
-                description=f"Role {role.mention} telah diberikan kepada **{cnt}** member di voice channel {vc.mention}.",
+                description=f"Role {role.mention} telah diberikan kepada **{cnt}** member di channel {vc.mention}.",
                 timestamp=datetime.now(),
             )
             embed.set_footer(
