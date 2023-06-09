@@ -86,11 +86,11 @@ class General(commands.Cog):
     async def role_members(self, ctx: commands.Context, role: discord.Role) -> None:
         await ctx.typing()
         content = f"Members with **{role.name}** role\n"
-        content += "```arm\n"
+        content += "```json\n"
         members_content = ''
         if role.members:
             for member in role.members:
-                members_content += f"{str(member)} ({member.id})\n"
+                members_content += f"{str(member)} - {member.id}\n"
             content += members_content
         else:
             content += "No members associated with this role"
