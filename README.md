@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-    <img src="https://user-images.githubusercontent.com/20255031/214031213-a4be0c93-3e01-4d80-a9bf-5927f632bf82.png" width="50%" style="text-align:center"/>
+    <img src="https://github.com/Iqrar99/WarnetBot/assets/20255031/538a816b-91de-4023-bd13-871dd4eafd66" width="50%" style="text-align:center"/>
 </p>
 
 ---
