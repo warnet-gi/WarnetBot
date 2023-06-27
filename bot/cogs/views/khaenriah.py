@@ -2,7 +2,7 @@ import discord
 from discord import Interaction
 from discord.ext import commands
 
-from typing import Optional, List, Any, Dict
+from typing import Optional, Any
 
 
 class BuronanPagination(discord.ui.View):
@@ -19,7 +19,7 @@ class BuronanPagination(discord.ui.View):
         PageCounterStyle: discord.ButtonStyle = discord.ButtonStyle.grey,
         initial_page_number: int = 0,
         ephemeral: bool = False,
-        buronan_list_data: List[Dict[str, Any]],
+        buronan_list_data: list[dict[str, Any]],
     ) -> None:
         super().__init__(timeout=timeout)
 
@@ -30,7 +30,7 @@ class BuronanPagination(discord.ui.View):
         self.ephemeral = ephemeral
         self.buronan_list_data = buronan_list_data
 
-        self.pages: List[discord.Embed] = []
+        self.pages: list[discord.Embed] = []
         self.page_counter: discord.ui.Button = None
         self.current_page = None
         self.total_page_count = None
@@ -38,7 +38,7 @@ class BuronanPagination(discord.ui.View):
         self.message = None
 
     async def construct_pages(
-        self, ctx: commands.Context, buronan_list_data: List[Dict[str, Any]]
+        self, ctx: commands.Context, buronan_list_data: list[dict[str, Any]]
     ) -> None:
         # Pick only N members per embed
         N_MEMBERS = 10

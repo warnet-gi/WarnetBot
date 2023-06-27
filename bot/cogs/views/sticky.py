@@ -3,7 +3,7 @@ from discord import Interaction
 from discord.ext import commands
 
 from datetime import datetime
-from typing import Optional, List, Any, Dict
+from typing import Optional, Any
 
 
 class StickyPagination(discord.ui.View):
@@ -20,7 +20,7 @@ class StickyPagination(discord.ui.View):
         PageCounterStyle: discord.ButtonStyle = discord.ButtonStyle.grey,
         initial_page_number: int = 0,
         ephemeral: bool = False,
-        list_data: List[Dict[str, Any]],
+        list_data: list[dict[str, Any]],
     ) -> None:
         super().__init__(timeout=timeout)
 
@@ -31,14 +31,14 @@ class StickyPagination(discord.ui.View):
         self.ephemeral = ephemeral
         self.list_data = list_data
 
-        self.pages: List[discord.Embed] = []
+        self.pages: list[discord.Embed] = []
         self.page_counter: discord.ui.Button = None
         self.current_page = None
         self.total_page_count = None
         self.ctx = None
         self.message = None
 
-    async def construct_pages(self, ctx: commands.Context, list_data: List[Dict[str, Any]]) -> None:
+    async def construct_pages(self, ctx: commands.Context, list_data: list[dict[str, Any]]) -> None:
         N_LIST = 10
 
         total_data = len(list_data)

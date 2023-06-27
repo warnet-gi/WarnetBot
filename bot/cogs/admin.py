@@ -2,13 +2,12 @@ import discord
 from discord import Interaction, app_commands
 from discord.ext import commands, tasks
 
-from bot.config import config
 from bot.bot import WarnetBot
 from bot.cogs.ext.tcg.utils import send_missing_permission_error_embed
 
 import re
 from datetime import datetime, timedelta
-from typing import Optional, Literal, Union, Tuple
+from typing import Optional, Literal, Union
 
 
 @commands.guild_only()
@@ -385,7 +384,7 @@ class Admin(commands.GroupCog, group_name="admin"):
         await self.bot.wait_until_ready()
 
     @staticmethod
-    def _parse_relative_time(time_text: str) -> Optional[Tuple]:
+    def _parse_relative_time(time_text: str) -> Optional[tuple]:
         pattern = r"\d+[dhms]"
         matched_list = re.findall(pattern, time_text)
 

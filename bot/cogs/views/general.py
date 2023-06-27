@@ -1,10 +1,5 @@
-import datetime
-
 import discord
 from discord import Interaction
-from discord.ext import commands
-
-from typing import Optional, Dict
 
 
 class Confirm(discord.ui.View):
