@@ -1,5 +1,5 @@
 import datetime
-from typing import Optional, List
+from typing import Optional
 
 import discord
 from discord import Interaction

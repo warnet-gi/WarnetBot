@@ -7,7 +7,7 @@ from bot.cogs.views.sticky import StickyPagination
 
 import asyncio
 from datetime import datetime
-from typing import Union, List, Dict, Any
+from typing import Union
 
 
 @commands.guild_only()
@@ -15,7 +15,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
     def __init__(self, bot: WarnetBot) -> None:
         self.bot = bot
         self.db_pool = bot.get_db_pool()
-        self.sticky_data: Dict[int, List[int, str]] = dict()
+        self.sticky_data: dict[int, list[int, str]] = dict()
 
     @commands.Cog.listener()
     async def on_connect(self) -> None:

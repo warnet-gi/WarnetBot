@@ -4,7 +4,7 @@ from discord.ext import commands
 
 from bot.config import config
 
-from typing import Optional, List, Any, Dict
+from typing import Optional, Any
 
 
 class LeaderboardPagination(discord.ui.View):
@@ -21,7 +21,7 @@ class LeaderboardPagination(discord.ui.View):
         PageCounterStyle: discord.ButtonStyle = discord.ButtonStyle.grey,
         initial_page_number: int = 0,
         ephemeral: bool = False,
-        leaderboard_data: List[Dict[str, Any]],
+        leaderboard_data: list[dict[str, Any]],
     ) -> None:
         super().__init__(timeout=timeout)
 
@@ -32,7 +32,7 @@ class LeaderboardPagination(discord.ui.View):
         self.ephemeral = ephemeral
         self.leaderboard_data = leaderboard_data
 
-        self.pages: List[discord.Embed] = []
+        self.pages: list[discord.Embed] = []
         self.page_counter: discord.ui.Button = None
         self.current_page = None
         self.total_page_count = None
@@ -40,7 +40,7 @@ class LeaderboardPagination(discord.ui.View):
         self.message = None
 
     async def construct_pages(
-        self, ctx: commands.Context, leaderboard_data: List[Dict[str, Any]]
+        self, ctx: commands.Context, leaderboard_data: list[dict[str, Any]]
     ) -> None:
         # Pick only N members per embed
         N_MEMBERS = 20
