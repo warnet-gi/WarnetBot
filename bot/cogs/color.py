@@ -13,9 +13,24 @@ class Color(commands.GroupCog, group_name='warnet-color'):
     def __init__(self, bot: WarnetBot) -> None:
         self.bot = bot
         self.db_pool = bot.get_db_pool()
+        self.custom_role_data = {}
+        self.custom_role_data_idx = []
 
     color_add = app_commands.Group(name='add', description='Sub command to handle role creation.')
     color_edit = app_commands.Group(name='edit', description='Sub command to handle role editing.')
+
+    @commands.Cog.listener()
+    async def on_connect(self) -> None:
+        async with self.db_pool.acquire() as conn:
+            records = await conn.fetch("SELECT * FROM custom_role ORDER BY created_at DESC;")
+            data_list = [dict(row) for row in records]
+
+        idx = 1
+        for data in data_list:
+            self.custom_role_data[data['role_id']] = data['owner_discord_id']
+            self.custom_role_data_idx.append(idx)
+            idx += 1
+        self.custom_role_data_list = list(self.custom_role_data.keys())
 
     @color_add.command(name='hex')
     async def add_hex_color(self, interaction: Interaction, name: str, hex: str) -> None:
