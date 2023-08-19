@@ -14,8 +14,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
     def __init__(self, bot: WarnetBot) -> None:
         self.bot = bot
         self.db_pool = bot.get_db_pool()
-        self.custom_role_data = {}
-        self.custom_role_data_idx = []
+        self.custom_role_data: dict[int, int] = {}
 
     color_add = app_commands.Group(name='add', description='Sub command to handle role creation.')
     color_edit = app_commands.Group(name='edit', description='Sub command to handle role editing.')
@@ -26,11 +25,8 @@ class Color(commands.GroupCog, group_name='warnet-color'):
             records = await conn.fetch("SELECT * FROM custom_role ORDER BY created_at DESC;")
             data_list = [dict(row) for row in records]
 
-        idx = 1
         for data in data_list:
             self.custom_role_data[data['role_id']] = data['owner_discord_id']
-            self.custom_role_data_idx.append(idx)
-            idx += 1
         self.custom_role_data_list = list(self.custom_role_data.keys())
 
     @color_add.command(name='hex')
@@ -58,12 +54,12 @@ class Color(commands.GroupCog, group_name='warnet-color'):
                 role_owner.id,
             )
 
+        self.custom_role_data[created_role.id] = role_owner.id
+        self.custom_role_data_list = list(self.custom_role_data.keys())
+        
         # Put recent created role under boundary role
         boundary_role = interaction.guild.get_role(config.BOUNDARY_ROLE_ID)
         await created_role.edit(position=boundary_role.position - 1)
-
-        # TODO
-        # add created role data on memory so it can be used later
 
         embed = discord.Embed(
             color=valid_color, description=f'✅ Successfully created role: **{created_role.name}**.'
@@ -111,12 +107,12 @@ class Color(commands.GroupCog, group_name='warnet-color'):
                 role_owner.id,
             )
 
+        self.custom_role_data[created_role.id] = role_owner.id
+        self.custom_role_data_list = list(self.custom_role_data.keys())
+
         # Put recent created role under boundary role
         boundary_role = interaction.guild.get_role(config.BOUNDARY_ROLE_ID)
         await created_role.edit(position=boundary_role.position - 1)
-
-        # TODO
-        # add created role data on memory so it can be used later
 
         embed = discord.Embed(
             color=valid_color, description=f'✅ Successfully created role: **{created_role.name}**.'
@@ -143,7 +139,68 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         name: Optional[str],
         number: Optional[int],
     ) -> None:
-        pass
+        # TODO
+        # Only owner can edit the role
+
+        try:
+            hex = '#' + hex if not hex.startswith('#') else hex
+            valid_color = DiscordColor.from_str(hex)
+        except ValueError:
+            return await interaction.response.send_message(
+                "❌ Please pass in a valid HEX code!\n\nExample: `#FFF456` or `FFF456`",
+                ephemeral=True,
+            )
+        
+        if name and number:
+            return await interaction.response.send_message(
+                "❌ Please use just `name` or just `number`. Not both!", ephemeral=True
+            )
+        elif name or number:
+            found = False
+            if name:
+                role_target = discord.utils.find(lambda r: r.name == name, interaction.guild.roles)
+                if role_target:
+                    if self.custom_role_data.get(role_target.id, None):
+                        found = True
+            elif number:
+                try:
+                    # color list index is not zero-based
+                    role_target_id = self.custom_role_data_list[number - 1]
+                    role_target = interaction.guild.get_role(role_target_id)
+                    found = True
+
+                except IndexError:
+                    found = False
+
+            if found:
+                edited_role = await role_target.edit(name=new_name, color=valid_color)
+
+                embed = discord.Embed(
+                    title="Custom role edited!",
+                    timestamp=datetime.now(),
+                    color=edited_role.color,
+                )
+                embed.add_field(
+                    name="New custom role settings:",
+                    value=(
+                        f"- **Name:** {edited_role.name}\n"
+                        f"- **R:** {edited_role.color.r}\n"
+                        f"- **G:** {edited_role.color.g}\n"
+                        f"- **B:** {edited_role.color.b}\n"
+                        f"- **HEX:** {str(edited_role.color)}\n"
+                    )
+                )
+                await interaction.response.send_message(embed=embed)
+
+            else:
+                await interaction.response.send_message(
+                    "❌ Failed to find the color!\nPlease use `/warnet-color list` to see all the available colors.",
+                    ephemeral=True,
+                )
+        else:
+            await interaction.response.send_message(
+                "❌ Please supply a color `name` or a color `number`!", ephemeral=True
+            )
 
     @color_edit.command(name='rgb')
     async def edit_rgb_color(
@@ -156,7 +213,66 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         name: Optional[str],
         number: Optional[int],
     ) -> None:
-        pass
+        # TODO
+        # Only owner can edit the role
+
+        try:
+            valid_color = DiscordColor.from_rgb(r, g, b)
+        except ValueError:
+            return await interaction.response.send_message(
+                "❌ Please pass in a valid RGB code!", ephemeral=True
+            )
+        
+        if name and number:
+            return await interaction.response.send_message(
+                "❌ Please use just `name` or just `number`. Not both!", ephemeral=True
+            )
+        elif name or number:
+            found = False
+            if name:
+                role_target = discord.utils.find(lambda r: r.name == name, interaction.guild.roles)
+                if role_target:
+                    if self.custom_role_data.get(role_target.id, None):
+                        found = True
+            elif number:
+                try:
+                    # color list index is not zero-based
+                    role_target_id = self.custom_role_data_list[number - 1]
+                    role_target = interaction.guild.get_role(role_target_id)
+                    found = True
+
+                except IndexError:
+                    found = False
+
+            if found:
+                edited_role = await role_target.edit(name=new_name, color=valid_color)
+
+                embed = discord.Embed(
+                    title="Custom role edited!",
+                    timestamp=datetime.now(),
+                    color=edited_role.color,
+                )
+                embed.add_field(
+                    name="New custom role settings:",
+                    value=(
+                        f"**Name:** {edited_role.name}\n"
+                        f"**R:** {edited_role.color.r}\n"
+                        f"**G:** {edited_role.color.g}\n"
+                        f"**B:** {edited_role.color.b}\n"
+                        f"**HEX:** {str(edited_role.color)}\n"
+                    )
+                )
+                await interaction.response.send_message(embed=embed)
+
+            else:
+                await interaction.response.send_message(
+                    "❌ Failed to find the color!\nPlease use `/warnet-color list` to see all the available colors.",
+                    ephemeral=True,
+                )
+        else:
+            await interaction.response.send_message(
+                "❌ Please supply a color `name` or a color `number`!", ephemeral=True
+            )
 
     @app_commands.command(name='set')
     async def set_color(
@@ -207,7 +323,6 @@ class Color(commands.GroupCog, group_name='warnet-color'):
                                 )
                             self.custom_role_data.pop(role_target.id)
                             self.custom_role_data_list = list(self.custom_role_data.keys())
-                            self.custom_role_data_idx.pop()
                             await role_target.delete()
 
                 elif number:
@@ -223,7 +338,6 @@ class Color(commands.GroupCog, group_name='warnet-color'):
                             )
                         self.custom_role_data.pop(role_target_id)
                         self.custom_role_data_list = list(self.custom_role_data.keys())
-                        self.custom_role_data_idx.pop()
                         await role_target.delete()
 
                     except IndexError:
