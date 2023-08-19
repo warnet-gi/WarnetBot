@@ -56,7 +56,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
 
         self.custom_role_data[created_role.id] = role_owner.id
         self.custom_role_data_list = list(self.custom_role_data.keys())
-        
+
         # Put recent created role under boundary role
         boundary_role = interaction.guild.get_role(config.BOUNDARY_ROLE_ID)
         await created_role.edit(position=boundary_role.position - 1)
@@ -150,7 +150,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
                 "❌ Please pass in a valid HEX code!\n\nExample: `#FFF456` or `FFF456`",
                 ephemeral=True,
             )
-        
+
         if name and number:
             return await interaction.response.send_message(
                 "❌ Please use just `name` or just `number`. Not both!", ephemeral=True
@@ -188,7 +188,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
                         f"- **G:** {edited_role.color.g}\n"
                         f"- **B:** {edited_role.color.b}\n"
                         f"- **HEX:** {str(edited_role.color)}\n"
-                    )
+                    ),
                 )
                 await interaction.response.send_message(embed=embed)
 
@@ -222,7 +222,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
             return await interaction.response.send_message(
                 "❌ Please pass in a valid RGB code!", ephemeral=True
             )
-        
+
         if name and number:
             return await interaction.response.send_message(
                 "❌ Please use just `name` or just `number`. Not both!", ephemeral=True
@@ -260,7 +260,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
                         f"**G:** {edited_role.color.g}\n"
                         f"**B:** {edited_role.color.b}\n"
                         f"**HEX:** {str(edited_role.color)}\n"
-                    )
+                    ),
                 )
                 await interaction.response.send_message(embed=embed)
 
