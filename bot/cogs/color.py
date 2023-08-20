@@ -6,6 +6,7 @@ from discord import Interaction, app_commands, Color as DiscordColor
 from discord.ext import commands
 
 from bot.bot import WarnetBot
+from bot.cogs.ext.color.utils import check_role_by_name_or_number
 from bot.config import config
 
 
@@ -151,56 +152,26 @@ class Color(commands.GroupCog, group_name='warnet-color'):
                 ephemeral=True,
             )
 
-        if name and number:
-            return await interaction.response.send_message(
-                "❌ Please use just `name` or just `number`. Not both!", ephemeral=True
+        valid, role_target = await check_role_by_name_or_number(self, interaction, name, number)
+        if valid:
+            edited_role = await role_target.edit(name=new_name, color=valid_color)
+
+            embed = discord.Embed(
+                title="Custom role edited!",
+                timestamp=datetime.now(),
+                color=edited_role.color,
             )
-        elif name or number:
-            found = False
-            if name:
-                role_target = discord.utils.find(lambda r: r.name == name, interaction.guild.roles)
-                if role_target:
-                    if self.custom_role_data.get(role_target.id, None):
-                        found = True
-            elif number:
-                try:
-                    # color list index is not zero-based
-                    role_target_id = self.custom_role_data_list[number - 1]
-                    role_target = interaction.guild.get_role(role_target_id)
-                    found = True
-
-                except IndexError:
-                    found = False
-
-            if found:
-                edited_role = await role_target.edit(name=new_name, color=valid_color)
-
-                embed = discord.Embed(
-                    title="Custom role edited!",
-                    timestamp=datetime.now(),
-                    color=edited_role.color,
-                )
-                embed.add_field(
-                    name="New custom role settings:",
-                    value=(
-                        f"- **Name:** {edited_role.name}\n"
-                        f"- **R:** {edited_role.color.r}\n"
-                        f"- **G:** {edited_role.color.g}\n"
-                        f"- **B:** {edited_role.color.b}\n"
-                        f"- **HEX:** {str(edited_role.color)}\n"
-                    ),
-                )
-                await interaction.response.send_message(embed=embed)
-
-            else:
-                await interaction.response.send_message(
-                    "❌ Failed to find the color!\nPlease use `/warnet-color list` to see all the available colors.",
-                    ephemeral=True,
-                )
-        else:
-            await interaction.response.send_message(
-                "❌ Please supply a color `name` or a color `number`!", ephemeral=True
+            embed.add_field(
+                name="New custom role settings:",
+                value=(
+                    f"- **Name:** {edited_role.name}\n"
+                    f"- **R:** {edited_role.color.r}\n"
+                    f"- **G:** {edited_role.color.g}\n"
+                    f"- **B:** {edited_role.color.b}\n"
+                    f"- **HEX:** {str(edited_role.color)}\n"
+                ),
             )
+            return await interaction.response.send_message(embed=embed)
 
     @color_edit.command(name='rgb')
     async def edit_rgb_color(
@@ -223,103 +194,44 @@ class Color(commands.GroupCog, group_name='warnet-color'):
                 "❌ Please pass in a valid RGB code!", ephemeral=True
             )
 
-        if name and number:
-            return await interaction.response.send_message(
-                "❌ Please use just `name` or just `number`. Not both!", ephemeral=True
+        valid, role_target = await check_role_by_name_or_number(self, interaction, name, number)
+        if valid:
+            edited_role = await role_target.edit(name=new_name, color=valid_color)
+
+            embed = discord.Embed(
+                title="Custom role edited!",
+                timestamp=datetime.now(),
+                color=edited_role.color,
             )
-        elif name or number:
-            found = False
-            if name:
-                role_target = discord.utils.find(lambda r: r.name == name, interaction.guild.roles)
-                if role_target:
-                    if self.custom_role_data.get(role_target.id, None):
-                        found = True
-            elif number:
-                try:
-                    # color list index is not zero-based
-                    role_target_id = self.custom_role_data_list[number - 1]
-                    role_target = interaction.guild.get_role(role_target_id)
-                    found = True
-
-                except IndexError:
-                    found = False
-
-            if found:
-                edited_role = await role_target.edit(name=new_name, color=valid_color)
-
-                embed = discord.Embed(
-                    title="Custom role edited!",
-                    timestamp=datetime.now(),
-                    color=edited_role.color,
-                )
-                embed.add_field(
-                    name="New custom role settings:",
-                    value=(
-                        f"**Name:** {edited_role.name}\n"
-                        f"**R:** {edited_role.color.r}\n"
-                        f"**G:** {edited_role.color.g}\n"
-                        f"**B:** {edited_role.color.b}\n"
-                        f"**HEX:** {str(edited_role.color)}\n"
-                    ),
-                )
-                await interaction.response.send_message(embed=embed)
-
-            else:
-                await interaction.response.send_message(
-                    "❌ Failed to find the color!\nPlease use `/warnet-color list` to see all the available colors.",
-                    ephemeral=True,
-                )
-        else:
-            await interaction.response.send_message(
-                "❌ Please supply a color `name` or a color `number`!", ephemeral=True
+            embed.add_field(
+                name="New custom role settings:",
+                value=(
+                    f"- **Name:** {edited_role.name}\n"
+                    f"- **R:** {edited_role.color.r}\n"
+                    f"- **G:** {edited_role.color.g}\n"
+                    f"- **B:** {edited_role.color.b}\n"
+                    f"- **HEX:** {str(edited_role.color)}\n"
+                ),
             )
+            return await interaction.response.send_message(embed=embed)
 
     @app_commands.command(name='set')
     async def set_color(
         self, interaction: Interaction, name: Optional[str], number: Optional[int]
     ) -> None:
-        if name and number:
-            return await interaction.response.send_message(
-                "❌ Please use just `name` or just `number`. Not both!", ephemeral=True
+        # TODO
+        # Check if user is using another custom role
+        
+        valid, role_target = await check_role_by_name_or_number(self, interaction, name, number)
+        if valid:
+            user = interaction.user
+            await user.add_roles(role_target)
+
+            embed = discord.Embed(
+                description=f"{user.mention} your color is now **{role_target.name}**.",
+                color=role_target.color,
             )
-        elif name or number:
-            found = False
-            if name:
-                role_target = discord.utils.find(lambda r: r.name == name, interaction.guild.roles)
-                if role_target:
-                    if self.custom_role_data.get(role_target.id, None):
-                        found = True
-            elif number:
-                try:
-                    # color list index is not zero-based
-                    role_target_id = self.custom_role_data_list[number - 1]
-                    role_target = interaction.guild.get_role(role_target_id)
-                    found = True
-
-                except IndexError:
-                    found = False
-
-            if found:
-                # TODO
-                # Check if user is using another custom role 
-                user = interaction.user
-
-                await user.add_roles(role_target)
-
-                embed = discord.Embed(
-                    description=f"{user.mention} your color is now **{role_target.name}**."
-                )
-                await interaction.response.send_message(embed=embed)
-
-            else:
-                await interaction.response.send_message(
-                    "❌ Failed to find the color!\nPlease use `/warnet-color list` to see all the available colors.",
-                    ephemeral=True,
-                )
-        else:
-            await interaction.response.send_message(
-                "❌ Please supply a color `name` or a color `number`!", ephemeral=True
-            )
+            await interaction.response.send_message(embed=embed)
 
     @app_commands.command(name='remove')
     async def remove_color(self, interaction: Interaction) -> None:
