@@ -2,12 +2,11 @@ from typing import Optional
 
 import discord
 from discord import Interaction, Role
-
-from bot.cogs.color import Color
+from discord.ext import commands
 
 
 async def check_role_by_name_or_number(
-    self: Color,
+    self: commands.Cog,
     interaction: Interaction,
     name: Optional[str],
     number: Optional[int],

@@ -231,7 +231,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
                 description=f"{user.mention} your color is now **{role_target.name}**.",
                 color=role_target.color,
             )
-            await interaction.response.send_message(embed=embed)
+            return await interaction.response.send_message(embed=embed)
 
     @app_commands.command(name='remove')
     async def remove_color(self, interaction: Interaction) -> None:
@@ -245,7 +245,29 @@ class Color(commands.GroupCog, group_name='warnet-color'):
     async def info_color(
         self, interaction: Interaction, name: Optional[str], number: Optional[int]
     ) -> None:
-        pass
+        valid, role_target = await check_role_by_name_or_number(self, interaction, name, number)
+        if valid:
+            async with self.db_pool.acquire() as conn:
+                res = await conn.fetchrow(
+                    "SELECT owner_discord_id, created_at FROM custom_role WHERE role_id=$1;",
+                    role_target.id,
+                )
+
+            create_time: datetime = res['created_at']
+            owner = interaction.guild.get_member(res['owner_discord_id'])
+
+            embed = discord.Embed(
+                title="Color info",
+                description=(
+                    f"**Owner**: {owner.name} ({owner.mention})\n"
+                    f"**RGB**: {role_target.color.to_rgb()}\n"
+                    f"**HEX**: {str(role_target.color)}\n"
+                    f"**Created date**: {create_time.strftime('%A, %d-%m-%Y %H:%M:%S')}"
+                ),
+                color=role_target.color,
+                timestamp=datetime.now(),
+            )
+            return await interaction.response.send_message(embed=embed)
 
     @app_commands.command(name='delete')
     async def delete_color(
