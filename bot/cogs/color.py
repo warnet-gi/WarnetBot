@@ -278,12 +278,51 @@ class Color(commands.GroupCog, group_name='warnet-color'):
     async def set_color(
         self, interaction: Interaction, name: Optional[str], number: Optional[int]
     ) -> None:
-        pass
+        if name and number:
+            return await interaction.response.send_message(
+                "❌ Please use just `name` or just `number`. Not both!", ephemeral=True
+            )
+        elif name or number:
+            found = False
+            if name:
+                role_target = discord.utils.find(lambda r: r.name == name, interaction.guild.roles)
+                if role_target:
+                    if self.custom_role_data.get(role_target.id, None):
+                        found = True
+            elif number:
+                try:
+                    # color list index is not zero-based
+                    role_target_id = self.custom_role_data_list[number - 1]
+                    role_target = interaction.guild.get_role(role_target_id)
+                    found = True
+
+                except IndexError:
+                    found = False
+
+            if found:
+                # TODO
+                # Check if user is using another custom role 
+                user = interaction.user
+
+                await user.add_roles(role_target)
+
+                embed = discord.Embed(
+                    description=f"{user.mention} your color is now **{role_target.name}**."
+                )
+                await interaction.response.send_message(embed=embed)
+
+            else:
+                await interaction.response.send_message(
+                    "❌ Failed to find the color!\nPlease use `/warnet-color list` to see all the available colors.",
+                    ephemeral=True,
+                )
+        else:
+            await interaction.response.send_message(
+                "❌ Please supply a color `name` or a color `number`!", ephemeral=True
+            )
 
     @app_commands.command(name='remove')
-    async def remove_color(
-        self, interaction: Interaction, name: Optional[str], number: Optional[int]
-    ) -> None:
+    async def remove_color(self, interaction: Interaction) -> None:
         pass
 
     @app_commands.command(name='list')
