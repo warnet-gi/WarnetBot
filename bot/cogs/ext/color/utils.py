@@ -19,7 +19,7 @@ async def check_role_by_name_or_number(
 
     elif name or number:
         valid = False
-        
+
         if name:
             role_target = discord.utils.find(lambda r: r.name == name, interaction.guild.roles)
             if role_target:
@@ -44,7 +44,7 @@ async def check_role_by_name_or_number(
                 ephemeral=True,
             )
             return False, None
-        
+
     else:
         await interaction.response.send_message(
             "❌ Please supply a color `name` or a color `number`!", ephemeral=True

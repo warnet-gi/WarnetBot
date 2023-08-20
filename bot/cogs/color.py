@@ -221,7 +221,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
     ) -> None:
         # TODO
         # Check if user is using another custom role
-        
+
         valid, role_target = await check_role_by_name_or_number(self, interaction, name, number)
         if valid:
             user = interaction.user
