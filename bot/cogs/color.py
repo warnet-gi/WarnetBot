@@ -276,65 +276,24 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         # TODO allow role owner to delete their own custom role
 
         if interaction.user.guild_permissions.manage_roles:
-            if name and number:
-                await interaction.response.send_message(
-                    "❌ Please use just `name` or just `number`. Not both!", ephemeral=True
-                )
+            valid, role_target = await check_role_by_name_or_number(self, interaction, name, number)
+            if valid:
+                if self.custom_role_data.get(role_target.id, None):
+                    async with self.db_pool.acquire() as conn:
+                        await conn.execute(
+                            "DELETE FROM custom_role WHERE role_id = $1;", role_target.id
+                        )
+                    self.custom_role_data.pop(role_target.id)
+                    self.custom_role_data_list = list(self.custom_role_data.keys())
+                    await role_target.delete()
 
-            elif name or number:
-                found = False
-                if name:
-                    role_target = discord.utils.find(
-                        lambda r: r.name == name, interaction.guild.roles
-                    )
-                    if role_target:
-                        if self.custom_role_data.get(role_target.id, None):
-                            found = True
-                            async with self.db_pool.acquire() as conn:
-                                await conn.execute(
-                                    "DELETE FROM custom_role WHERE role_id = $1;", role_target.id
-                                )
-                            self.custom_role_data.pop(role_target.id)
-                            self.custom_role_data_list = list(self.custom_role_data.keys())
-                            await role_target.delete()
-
-                elif number:
-                    try:
-                        # color list index is not zero-based
-                        role_target_id = self.custom_role_data_list[number - 1]
-                        role_target = interaction.guild.get_role(role_target_id)
-
-                        found = True
-                        async with self.db_pool.acquire() as conn:
-                            await conn.execute(
-                                "DELETE FROM custom_role WHERE role_id = $1;", role_target_id
-                            )
-                        self.custom_role_data.pop(role_target_id)
-                        self.custom_role_data_list = list(self.custom_role_data.keys())
-                        await role_target.delete()
-
-                    except IndexError:
-                        found = False
-
-                if found:
                     embed = discord.Embed(
                         title="Deleted color!",
                         description=f"Successfully deleted **{role_target.name}** from the list.",
                         timestamp=datetime.now(),
                         color=role_target.color,
                     )
-                    await interaction.response.send_message(embed=embed)
-
-                else:
-                    await interaction.response.send_message(
-                        "❌ Failed to find the color!\nPlease use `/warnet-color list` to see all the available colors.",
-                        ephemeral=True,
-                    )
-
-            else:
-                await interaction.response.send_message(
-                    "❌ Please supply a color `name` or a color `number`!", ephemeral=True
-                )
+                    return await interaction.response.send_message(embed=embed)
 
         else:
             await interaction.response.send_message(
