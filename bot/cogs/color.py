@@ -140,9 +140,6 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         name: Optional[str],
         number: Optional[int],
     ) -> None:
-        # TODO
-        # Only owner can edit the role
-
         try:
             hex = '#' + hex if not hex.startswith('#') else hex
             valid_color = DiscordColor.from_str(hex)
@@ -154,24 +151,33 @@ class Color(commands.GroupCog, group_name='warnet-color'):
 
         role_target = await check_role_by_name_or_number(self, interaction, name, number)
         if role_target:
-            edited_role = await role_target.edit(name=new_name, color=valid_color)
+            if (
+                interaction.user.guild_permissions.manage_roles
+                or interaction.user.id == self.custom_role_data[role_target.id]
+            ):
+                edited_role = await role_target.edit(name=new_name, color=valid_color)
 
-            embed = discord.Embed(
-                title="Custom role edited!",
-                timestamp=datetime.now(),
-                color=edited_role.color,
-            )
-            embed.add_field(
-                name="New custom role settings:",
-                value=(
-                    f"- **Name:** {edited_role.name}\n"
-                    f"- **R:** {edited_role.color.r}\n"
-                    f"- **G:** {edited_role.color.g}\n"
-                    f"- **B:** {edited_role.color.b}\n"
-                    f"- **HEX:** {str(edited_role.color)}\n"
-                ),
-            )
-            return await interaction.response.send_message(embed=embed)
+                embed = discord.Embed(
+                    title="Custom role edited!",
+                    timestamp=datetime.now(),
+                    color=edited_role.color,
+                )
+                embed.add_field(
+                    name="New custom role settings:",
+                    value=(
+                        f"- **Name:** {edited_role.name}\n"
+                        f"- **R:** {edited_role.color.r}\n"
+                        f"- **G:** {edited_role.color.g}\n"
+                        f"- **B:** {edited_role.color.b}\n"
+                        f"- **HEX:** {str(edited_role.color)}\n"
+                    ),
+                )
+                return await interaction.response.send_message(embed=embed)
+
+            else:
+                return await interaction.response.send_message(
+                    "❌ You don't have permission to use this command", ephemeral=True
+                )
 
     @color_edit.command(name='rgb')
     async def edit_rgb_color(
@@ -184,9 +190,6 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         name: Optional[str],
         number: Optional[int],
     ) -> None:
-        # TODO
-        # Only owner can edit the role
-
         try:
             valid_color = DiscordColor.from_rgb(r, g, b)
         except ValueError:
@@ -196,24 +199,33 @@ class Color(commands.GroupCog, group_name='warnet-color'):
 
         role_target = await check_role_by_name_or_number(self, interaction, name, number)
         if role_target:
-            edited_role = await role_target.edit(name=new_name, color=valid_color)
+            if (
+                interaction.user.guild_permissions.manage_roles
+                or interaction.user.id == self.custom_role_data[role_target.id]
+            ):
+                edited_role = await role_target.edit(name=new_name, color=valid_color)
 
-            embed = discord.Embed(
-                title="Custom role edited!",
-                timestamp=datetime.now(),
-                color=edited_role.color,
-            )
-            embed.add_field(
-                name="New custom role settings:",
-                value=(
-                    f"- **Name:** {edited_role.name}\n"
-                    f"- **R:** {edited_role.color.r}\n"
-                    f"- **G:** {edited_role.color.g}\n"
-                    f"- **B:** {edited_role.color.b}\n"
-                    f"- **HEX:** {str(edited_role.color)}\n"
-                ),
-            )
-            return await interaction.response.send_message(embed=embed)
+                embed = discord.Embed(
+                    title="Custom role edited!",
+                    timestamp=datetime.now(),
+                    color=edited_role.color,
+                )
+                embed.add_field(
+                    name="New custom role settings:",
+                    value=(
+                        f"- **Name:** {edited_role.name}\n"
+                        f"- **R:** {edited_role.color.r}\n"
+                        f"- **G:** {edited_role.color.g}\n"
+                        f"- **B:** {edited_role.color.b}\n"
+                        f"- **HEX:** {str(edited_role.color)}\n"
+                    ),
+                )
+                return await interaction.response.send_message(embed=embed)
+
+            else:
+                return await interaction.response.send_message(
+                    "❌ You don't have permission to use this command", ephemeral=True
+                )
 
     @app_commands.command(name='set')
     async def set_color(
@@ -273,11 +285,12 @@ class Color(commands.GroupCog, group_name='warnet-color'):
     async def delete_color(
         self, interaction: Interaction, name: Optional[str], number: Optional[int]
     ) -> None:
-        # TODO allow role owner to delete their own custom role
-
-        if interaction.user.guild_permissions.manage_roles:
-            role_target = await check_role_by_name_or_number(self, interaction, name, number)
-            if role_target:
+        role_target = await check_role_by_name_or_number(self, interaction, name, number)
+        if role_target:
+            if (
+                interaction.user.guild_permissions.manage_roles
+                or interaction.user.id == self.custom_role_data[role_target.id]
+            ):
                 if self.custom_role_data.get(role_target.id, None):
                     async with self.db_pool.acquire() as conn:
                         await conn.execute(
@@ -295,10 +308,10 @@ class Color(commands.GroupCog, group_name='warnet-color'):
                     )
                     return await interaction.response.send_message(embed=embed)
 
-        else:
-            await interaction.response.send_message(
-                "❌ You don't have permission to use this command", ephemeral=True
-            )
+            else:
+                await interaction.response.send_message(
+                    "❌ You don't have permission to use this command", ephemeral=True
+                )
 
     @app_commands.command(name='help')
     async def help_color(self, interaction: Interaction) -> None:
