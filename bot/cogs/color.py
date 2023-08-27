@@ -248,7 +248,21 @@ class Color(commands.GroupCog, group_name='warnet-color'):
 
     @app_commands.command(name='remove')
     async def remove_color(self, interaction: Interaction) -> None:
-        pass
+        member = interaction.user
+        role_being_used = get_current_custom_role_on_user(self, interaction, member)
+        if role_being_used:
+            await member.remove_roles(role_being_used)
+            embed = discord.Embed(
+                description=f"{member.mention} successfully removed **{role_being_used.name}** from your profile.",
+                color=DiscordColor.dark_embed(),
+            )
+            return await interaction.response.send_message(embed=embed)
+
+        embed = discord.Embed(
+            description=f"❌ Failed to remove your color role.\nYou don't have a color role.",
+            color=DiscordColor.brand_red(),
+        )
+        return await interaction.response.send_message(embed=embed)
 
     @app_commands.command(name='list')
     async def list_color(self, interaction: Interaction) -> None:
