@@ -1,7 +1,7 @@
 from typing import Optional
 
 import discord
-from discord import Interaction, Role
+from discord import Interaction, Role, Member
 from discord.ext import commands
 
 
@@ -38,3 +38,12 @@ async def check_role_by_name_or_number(
         return await interaction.response.send_message(
             "❌ Please supply a color `name` or a color `number`!", ephemeral=True
         )
+
+
+def get_current_custom_role_on_user(
+    self: commands.Cog, interaction: Interaction, member: Member
+) -> Optional[Role]:
+    member_role_id_list = [role.id for role in member.roles]
+    res = set(member_role_id_list) & set(self.custom_role_data_list)
+
+    return interaction.guild.get_role(list(res)[0]) if res else None

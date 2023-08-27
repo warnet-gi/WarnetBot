@@ -6,7 +6,7 @@ from discord import Interaction, app_commands, Color as DiscordColor
 from discord.ext import commands
 
 from bot.bot import WarnetBot
-from bot.cogs.ext.color.utils import check_role_by_name_or_number
+from bot.cogs.ext.color.utils import check_role_by_name_or_number, get_current_custom_role_on_user
 from bot.config import config
 
 
@@ -231,16 +231,17 @@ class Color(commands.GroupCog, group_name='warnet-color'):
     async def set_color(
         self, interaction: Interaction, name: Optional[str], number: Optional[int]
     ) -> None:
-        # TODO
-        # Check if user is using another custom role
-
         role_target = await check_role_by_name_or_number(self, interaction, name, number)
         if role_target:
-            user = interaction.user
-            await user.add_roles(role_target)
+            member = interaction.user
+            role_being_used = get_current_custom_role_on_user(self, interaction, member)
+            if role_being_used:
+                await member.remove_roles(role_being_used)
+
+            await member.add_roles(role_target)
 
             embed = discord.Embed(
-                description=f"{user.mention} your color is now **{role_target.name}**.",
+                description=f"{member.mention} your color is now **{role_target.name}**.",
                 color=role_target.color,
             )
             return await interaction.response.send_message(embed=embed)
@@ -317,7 +318,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
     async def help_color(self, interaction: Interaction) -> None:
         embed = discord.Embed(
             title="Color Features",
-            color=discord.Color.light_embed(),
+            color=DiscordColor.light_embed(),
         )
         embed.add_field(
             name='/warnet-color add hex',
