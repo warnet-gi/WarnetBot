@@ -343,7 +343,47 @@ class Color(commands.GroupCog, group_name='warnet-color'):
 
     @app_commands.command(name='help')
     async def help_color(self, interaction: Interaction) -> None:
-        pass
+        embed = discord.Embed(
+            title="Color Features",
+            color=discord.Color.light_embed(),
+        )
+        embed.add_field(
+            name='/warnet-color add hex',
+            value='Membuat custom role dengan warna tertentu menggunakan kode HEX.',
+        )
+        embed.add_field(
+            name='/warnet-color add rgb',
+            value='Membuat custom role dengan warna tertentu menggunakan kode RGB.',
+        )
+        embed.add_field(
+            name='/warnet-color edit hex',
+            value='Mengedit nama custom role dan mengganti warna menggunakan kode HEX.',
+        )
+        embed.add_field(
+            name='/warnet-color edit rgb',
+            value='Mengedit nama custom role dan mengganti warna menggunakan kode RGB.',
+        )
+        embed.add_field(
+            name='/warnet-color list',
+            value='Melihat daftar custom role yang tersedia.',
+        )
+        embed.add_field(
+            name='/warnet-color set',
+            value='Memasang custom role yang ada pada profile.',
+        )
+        embed.add_field(
+            name='/warnet-color remove',
+            value='Mencopot custom role yang ada pada profile.',
+        )
+        embed.add_field(
+            name='/warnet-color info',
+            value='Menampilkan informasi warna, tanggal pembuatan, dan pemilik dari custom role.',
+        )
+        embed.add_field(
+            name='/warnet-color delete',
+            value='Menghapus custom role dari database secara permanen. Membutuhkan permission `manage_roles`.',
+        )
+        return await interaction.response.send_message(embed=embed)
 
 
 async def setup(bot: WarnetBot) -> None:
