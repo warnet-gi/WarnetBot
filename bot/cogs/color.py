@@ -23,7 +23,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
     @commands.Cog.listener()
     async def on_connect(self) -> None:
         async with self.db_pool.acquire() as conn:
-            records = await conn.fetch("SELECT * FROM custom_role ORDER BY created_at DESC;")
+            records = await conn.fetch("SELECT * FROM custom_role ORDER BY created_at ASC;")
             data_list = [dict(row) for row in records]
 
         for data in data_list:
