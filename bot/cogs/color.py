@@ -152,8 +152,8 @@ class Color(commands.GroupCog, group_name='warnet-color'):
                 ephemeral=True,
             )
 
-        valid, role_target = await check_role_by_name_or_number(self, interaction, name, number)
-        if valid:
+        role_target = await check_role_by_name_or_number(self, interaction, name, number)
+        if role_target:
             edited_role = await role_target.edit(name=new_name, color=valid_color)
 
             embed = discord.Embed(
@@ -194,8 +194,8 @@ class Color(commands.GroupCog, group_name='warnet-color'):
                 "❌ Please pass in a valid RGB code!", ephemeral=True
             )
 
-        valid, role_target = await check_role_by_name_or_number(self, interaction, name, number)
-        if valid:
+        role_target = await check_role_by_name_or_number(self, interaction, name, number)
+        if role_target:
             edited_role = await role_target.edit(name=new_name, color=valid_color)
 
             embed = discord.Embed(
@@ -222,8 +222,8 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         # TODO
         # Check if user is using another custom role
 
-        valid, role_target = await check_role_by_name_or_number(self, interaction, name, number)
-        if valid:
+        role_target = await check_role_by_name_or_number(self, interaction, name, number)
+        if role_target:
             user = interaction.user
             await user.add_roles(role_target)
 
@@ -245,8 +245,8 @@ class Color(commands.GroupCog, group_name='warnet-color'):
     async def info_color(
         self, interaction: Interaction, name: Optional[str], number: Optional[int]
     ) -> None:
-        valid, role_target = await check_role_by_name_or_number(self, interaction, name, number)
-        if valid:
+        role_target = await check_role_by_name_or_number(self, interaction, name, number)
+        if role_target:
             async with self.db_pool.acquire() as conn:
                 res = await conn.fetchrow(
                     "SELECT owner_discord_id, created_at FROM custom_role WHERE role_id=$1;",
@@ -276,8 +276,8 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         # TODO allow role owner to delete their own custom role
 
         if interaction.user.guild_permissions.manage_roles:
-            valid, role_target = await check_role_by_name_or_number(self, interaction, name, number)
-            if valid:
+            role_target = await check_role_by_name_or_number(self, interaction, name, number)
+            if role_target:
                 if self.custom_role_data.get(role_target.id, None):
                     async with self.db_pool.acquire() as conn:
                         await conn.execute(
