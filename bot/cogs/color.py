@@ -32,6 +32,11 @@ class Color(commands.GroupCog, group_name='warnet-color'):
 
     @color_add.command(name='hex')
     async def add_hex_color(self, interaction: Interaction, name: str, hex: str) -> None:
+        if len(self.custom_role_data_list) == config.CUSTOM_ROLE_LIMIT:
+            return await interaction.response.send_message(
+                "❌ Maximum custom role limit has been reached. You can't create any new custom role."
+            )
+
         try:
             hex = '#' + hex if not hex.startswith('#') else hex
             valid_color = DiscordColor.from_str(hex)
@@ -87,6 +92,11 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         g: app_commands.Range[int, 0, 255],
         b: app_commands.Range[int, 0, 255],
     ) -> None:
+        if len(self.custom_role_data_list) == config.CUSTOM_ROLE_LIMIT:
+            return await interaction.response.send_message(
+                "❌ Maximum custom role limit has been reached. You can't create any new custom role."
+            )
+
         try:
             valid_color = DiscordColor.from_rgb(r, g, b)
         except ValueError:
