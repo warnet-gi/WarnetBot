@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Optional
 
 import discord
-from discord import Interaction, app_commands, Color as DiscordColor
+from discord import Interaction, app_commands
 from discord.ext import commands
 
 from bot.bot import WarnetBot
@@ -39,7 +39,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
 
         try:
             hex = '#' + hex if not hex.startswith('#') else hex
-            valid_color = DiscordColor.from_str(hex)
+            valid_color = discord.Color.from_str(hex)
         except ValueError:
             return await interaction.response.send_message(
                 "❌ Please pass in a valid HEX code!\n\nExample: `#FFF456` or `FFF456`",
@@ -98,7 +98,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
             )
 
         try:
-            valid_color = DiscordColor.from_rgb(r, g, b)
+            valid_color = discord.Color.from_rgb(r, g, b)
         except ValueError:
             return await interaction.response.send_message(
                 "❌ Please pass in a valid RGB code!", ephemeral=True
@@ -152,7 +152,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
     ) -> None:
         try:
             hex = '#' + hex if not hex.startswith('#') else hex
-            valid_color = DiscordColor.from_str(hex)
+            valid_color = discord.Color.from_str(hex)
         except ValueError:
             return await interaction.response.send_message(
                 "❌ Please pass in a valid HEX code!\n\nExample: `#FFF456` or `FFF456`",
@@ -201,7 +201,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         number: Optional[int],
     ) -> None:
         try:
-            valid_color = DiscordColor.from_rgb(r, g, b)
+            valid_color = discord.Color.from_rgb(r, g, b)
         except ValueError:
             return await interaction.response.send_message(
                 "❌ Please pass in a valid RGB code!", ephemeral=True
@@ -264,13 +264,13 @@ class Color(commands.GroupCog, group_name='warnet-color'):
             await member.remove_roles(role_being_used)
             embed = discord.Embed(
                 description=f"{member.mention} successfully removed **{role_being_used.name}** from your profile.",
-                color=DiscordColor.dark_embed(),
+                color=discord.Color.dark_embed(),
             )
             return await interaction.response.send_message(embed=embed)
 
         embed = discord.Embed(
             description=f"❌ Failed to remove your color role.\nYou don't have a color role.",
-            color=DiscordColor.brand_red(),
+            color=discord.Color.brand_red(),
         )
         return await interaction.response.send_message(embed=embed)
 
@@ -342,7 +342,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
     async def help_color(self, interaction: Interaction) -> None:
         embed = discord.Embed(
             title="Color Features",
-            color=DiscordColor.light_embed(),
+            color=discord.Color.light_embed(),
         )
         embed.add_field(
             name='/warnet-color add hex',
