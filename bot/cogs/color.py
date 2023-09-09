@@ -6,8 +6,12 @@ from discord import Interaction, app_commands
 from discord.ext import commands
 
 from bot.bot import WarnetBot
-from bot.cogs.ext.color.utils import check_role_by_name_or_number, get_current_custom_role_on_user
-from bot.config import config
+from bot.cogs.ext.color.utils import (
+    check_role_by_name_or_number,
+    get_current_custom_role_on_user,
+    generate_image_color_list,
+)
+from bot.config.config import CustomRoleConfig
 
 
 @commands.guild_only()
@@ -15,7 +19,8 @@ class Color(commands.GroupCog, group_name='warnet-color'):
     def __init__(self, bot: WarnetBot) -> None:
         self.bot = bot
         self.db_pool = bot.get_db_pool()
-        self.custom_role_data: dict[int, int] = {}
+        self.custom_role_data: dict[int, int] = {}  # {role_id: owner_discord_id}
+        self.cache = {}
 
     color_add = app_commands.Group(name='add', description='Sub command to handle role creation.')
     color_edit = app_commands.Group(name='edit', description='Sub command to handle role editing.')
@@ -32,7 +37,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
 
     @color_add.command(name='hex')
     async def add_hex_color(self, interaction: Interaction, name: str, hex: str) -> None:
-        if len(self.custom_role_data_list) == config.CUSTOM_ROLE_LIMIT:
+        if len(self.custom_role_data_list) == CustomRoleConfig.CUSTOM_ROLE_LIMIT:
             return await interaction.response.send_message(
                 "❌ Maximum custom role limit has been reached. You can't create any new custom role."
             )
@@ -64,7 +69,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         self.custom_role_data_list = list(self.custom_role_data.keys())
 
         # Put recent created role under boundary role
-        boundary_role = interaction.guild.get_role(config.BOUNDARY_ROLE_ID)
+        boundary_role = interaction.guild.get_role(CustomRoleConfig.BOUNDARY_ROLE_ID)
         await created_role.edit(position=boundary_role.position - 1)
 
         embed = discord.Embed(
@@ -92,7 +97,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         g: app_commands.Range[int, 0, 255],
         b: app_commands.Range[int, 0, 255],
     ) -> None:
-        if len(self.custom_role_data_list) == config.CUSTOM_ROLE_LIMIT:
+        if len(self.custom_role_data_list) == CustomRoleConfig.CUSTOM_ROLE_LIMIT:
             return await interaction.response.send_message(
                 "❌ Maximum custom role limit has been reached. You can't create any new custom role."
             )
@@ -122,7 +127,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         self.custom_role_data_list = list(self.custom_role_data.keys())
 
         # Put recent created role under boundary role
-        boundary_role = interaction.guild.get_role(config.BOUNDARY_ROLE_ID)
+        boundary_role = interaction.guild.get_role(CustomRoleConfig.BOUNDARY_ROLE_ID)
         await created_role.edit(position=boundary_role.position - 1)
 
         embed = discord.Embed(
@@ -276,7 +281,19 @@ class Color(commands.GroupCog, group_name='warnet-color'):
 
     @app_commands.command(name='list')
     async def list_color(self, interaction: Interaction) -> None:
-        pass
+        role_list = []
+        for i in range(len(self.custom_role_data_list)):
+            role_list.append(interaction.guild.get_role(self.custom_role_data_list[i]))
+
+        image_bytes = generate_image_color_list(role_list)
+        image_bytes.seek(0)  # Reset the position to the beginning of the BytesIO object
+
+        filename = 'custom_roles_list.png'
+        file = discord.File(image_bytes, filename)
+        embed = discord.Embed(color=discord.Color.dark_embed())
+        embed.set_image(url=f'attachment://{filename}')
+
+        await interaction.response.send_message(embed=embed, file=file)
 
     @app_commands.command(name='info')
     async def info_color(

@@ -31,7 +31,16 @@ NON_ADMINISTRATOR_ROLE_ID = {'staff': '951170972671701063'}
 
 WARN_LOG_CHANNEL_ID = 1058433863333978172
 
-CUSTOM_ROLE_LIMIT = 75
+
+class CustomRoleConfig:
+    # BOUNDARY_ROLE_ID = 975844681634185246
+    BOUNDARY_ROLE_ID = 1139871724503044117  # test
+    CUSTOM_ROLE_LIMIT = 75
+
+    FONT_NOTO = 'bot/assets/font/NotoSans-Black.ttf'
+    FONT_NOTO_JP = 'bot/assets/font/NotoSansJP-Bold.ttf'
+    FONT_NOTO_CN = 'bot/assets/font/NotoSansTC-Bold.ttf'
+    FONT_SIZE = 30
 
 
 class TCGConfig:
