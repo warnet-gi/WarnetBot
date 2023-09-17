@@ -35,6 +35,33 @@ class Color(commands.GroupCog, group_name='warnet-color'):
             self.custom_role_data[data['role_id']] = data['owner_discord_id']
         self.custom_role_data_list = list(self.custom_role_data.keys())
 
+    @commands.Cog.listener()
+    async def on_member_update(self, before: discord.Member, after: discord.Member) -> None:
+        guild = before.guild
+        BOOSTER_ROLE = guild.get_role(CustomRoleConfig.BOOSTER_ROLE_ID)
+        roles_before = set(before.roles)
+        roles_after = set(after.roles)
+
+        # skip if no role updates on member
+        if not (roles_before ^ roles_after):
+            return None
+
+        # Check if a member removed or lost their booster status
+        if BOOSTER_ROLE in roles_before and BOOSTER_ROLE not in roles_after:
+            role_being_used = get_current_custom_role_on_user(self, after.guild, after)
+            if role_being_used:
+                await after.remove_roles(role_being_used, reason="Lose Booster Status")
+
+            embed = discord.Embed(
+                color=discord.Color.orange(),
+                title="Booster member update",
+                description=(
+                    f"Removed role **{role_being_used.name}** from **{before.mention}**"
+                    f"`({before.id})` due to lost their booster status."
+                ),
+            )
+            await guild.get_channel(CustomRoleConfig.BOOSTER_LOG_CHANNEL_ID).send(embed=embed)
+
     @color_add.command(name='hex')
     async def add_hex_color(self, interaction: Interaction, name: str, hex: str) -> None:
         if len(self.custom_role_data_list) == CustomRoleConfig.CUSTOM_ROLE_LIMIT:
@@ -249,7 +276,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         role_target = await check_role_by_name_or_number(self, interaction, name, number)
         if role_target:
             member = interaction.user
-            role_being_used = get_current_custom_role_on_user(self, interaction, member)
+            role_being_used = get_current_custom_role_on_user(self, interaction.guild, member)
             if role_being_used:
                 await member.remove_roles(role_being_used)
 
@@ -264,7 +291,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
     @app_commands.command(name='remove')
     async def remove_color(self, interaction: Interaction) -> None:
         member = interaction.user
-        role_being_used = get_current_custom_role_on_user(self, interaction, member)
+        role_being_used = get_current_custom_role_on_user(self, interaction.guild, member)
         if role_being_used:
             await member.remove_roles(role_being_used)
             embed = discord.Embed(

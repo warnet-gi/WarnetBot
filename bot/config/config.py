@@ -42,6 +42,9 @@ class CustomRoleConfig:
     FONT_NOTO_CN = 'bot/assets/font/NotoSansTC-Bold.ttf'
     FONT_SIZE = 30
 
+    BOOSTER_ROLE_ID = 768874803712753727
+    BOOSTER_LOG_CHANNEL_ID = 1008600026337005569
+
 
 class TCGConfig:
     TCG_TITLE_ROLE_ID = (

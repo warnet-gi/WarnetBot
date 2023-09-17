@@ -45,12 +45,12 @@ async def check_role_by_name_or_number(
 
 
 def get_current_custom_role_on_user(
-    self: commands.Cog, interaction: Interaction, member: Member
+    self: commands.Cog, guild: discord.Guild, member: Member
 ) -> Optional[Role]:
     member_role_id_list = [role.id for role in member.roles]
     res = set(member_role_id_list) & set(self.custom_role_data_list)
 
-    return interaction.guild.get_role(list(res)[0]) if res else None
+    return guild.get_role(list(res)[0]) if res else None
 
 
 def generate_image_color_list(role_list: list[discord.Role]) -> io.BytesIO:
