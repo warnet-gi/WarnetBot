@@ -27,10 +27,22 @@ BOT_PREFIX = ['war!', 'War!', 'WAR!']
 
 # These are administrator role on Warnet guild
 ADMINISTRATOR_ROLE_ID = {'admin': '761650159833841674', 'mod': '761662280541798421'}
-
 NON_ADMINISTRATOR_ROLE_ID = {'staff': '951170972671701063'}
 
 WARN_LOG_CHANNEL_ID = 1058433863333978172
+
+
+class CustomRoleConfig:
+    BOUNDARY_ROLE_ID = 975844681634185246
+    CUSTOM_ROLE_LIMIT = 75
+
+    FONT_NOTO = 'bot/assets/font/NotoSans-Black.ttf'
+    FONT_NOTO_JP = 'bot/assets/font/NotoSansJP-Bold.ttf'
+    FONT_NOTO_CN = 'bot/assets/font/NotoSansTC-Bold.ttf'
+    FONT_SIZE = 30
+
+    BOOSTER_ROLE_ID = 768874803712753727
+    BOOSTER_LOG_CHANNEL_ID = 1008600026337005569
 
 
 class TCGConfig:

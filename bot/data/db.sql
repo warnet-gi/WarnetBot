@@ -13,8 +13,8 @@ CREATE TABLE tcg_leaderboard(
 );
 CREATE INDEX IF NOT EXISTS tcg_leaderboard_discord_id_idx ON tcg_leaderboard (discord_id);
 
------ STICKY FEATURE ----
--------------------------
+----- STICKY FEATURE -----
+--------------------------
 CREATE TABLE sticky(
     channel_id bigint NOT NULL,
     message_id bigint NOT NULL,
@@ -26,8 +26,8 @@ CREATE TABLE sticky(
 CREATE INDEX IF NOT EXISTS sticky_channel_id_idx ON sticky (channel_id);
 CREATE INDEX IF NOT EXISTS sticky_message_id_idx ON sticky (message_id);
 
------ MESSAGE SCHEDULING FEATURE ----
--------------------------------------
+----- MESSAGE SCHEDULING FEATURE -----
+--------------------------------------
 CREATE TABLE scheduled_message(
 	id SERIAL NOT NULL,
 	guild_id bigint NOT NULL,
@@ -41,8 +41,8 @@ CREATE INDEX IF NOT EXISTS scheduled_message_id_idx ON scheduled_message (id);
 CREATE INDEX IF NOT EXISTS scheduled_message_guild_id_idx ON scheduled_message (guild_id);
 CREATE INDEX IF NOT EXISTS scheduled_message_channel_id_idx ON scheduled_message (channel_id);
 
------ BURONAN KHAENRIAH FEATURE ----
-------------------------------------
+----- BURONAN KHAENRIAH FEATURE -----
+-------------------------------------
 CREATE TABLE buronan_khaenriah(
 	discord_id BIGINT NOT NULL,
 	warn_level INT NOT NULL DEFAULT 0,
@@ -50,3 +50,14 @@ CREATE TABLE buronan_khaenriah(
 	UNIQUE(discord_id)
 );
 CREATE INDEX IF NOT EXISTS buronan_khaenriah_discord_id_idx ON buronan_khaenriah (discord_id);
+
+------- CUSTOM ROLE FEATURE -------
+-----------------------------------
+CREATE TABLE custom_role(
+	role_id BIGINT NOT NULL,
+	owner_discord_id BIGINT,
+	created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+	PRIMARY KEY(role_id),
+	UNIQUE(role_id)
+);
+CREATE INDEX IF NOT EXISTS custom_role_role_id_idx ON custom_role (role_id);
