@@ -39,9 +39,8 @@ class Khaenriah(commands.Cog):
         *,
         reason: Optional[str],
     ) -> None:
-        if (
-            ctx.author.guild_permissions.administrator
-            or ctx.author.get_role(self.KURATOR_TEYVAT_ROLE_ID) is not None
+        if ctx.author.guild_permissions.administrator or ctx.author.get_role(
+            self.KURATOR_TEYVAT_ROLE_ID
         ):
             async with self.db_pool.acquire() as conn:
                 data = await conn.fetchrow(
@@ -98,9 +97,8 @@ class Khaenriah(commands.Cog):
     async def buronan_increase(
         self, ctx: commands.Context, member: Union[discord.Member, discord.User]
     ) -> None:
-        if (
-            ctx.author.guild_permissions.administrator
-            or ctx.author.get_role(self.KURATOR_TEYVAT_ROLE_ID) is not None
+        if ctx.author.guild_permissions.administrator or ctx.author.get_role(
+            self.KURATOR_TEYVAT_ROLE_ID
         ):
             async with self.db_pool.acquire() as conn:
                 data = await conn.fetchrow(
@@ -151,9 +149,8 @@ class Khaenriah(commands.Cog):
     async def buronan_decrease(
         self, ctx: commands.Context, member: Union[discord.Member, discord.User]
     ) -> None:
-        if (
-            ctx.author.guild_permissions.administrator
-            or ctx.author.get_role(self.KURATOR_TEYVAT_ROLE_ID) is not None
+        if ctx.author.guild_permissions.administrator or ctx.author.get_role(
+            self.KURATOR_TEYVAT_ROLE_ID
         ):
             async with self.db_pool.acquire() as conn:
                 data = await conn.fetchrow(

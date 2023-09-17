@@ -68,9 +68,7 @@ async def member_stats(
             win_count = data['win_count']
             loss_count = data['loss_count']
             elo = data['elo']
-            user_tcg_title_role = (
-                user.get_role(data['title']) if data['title'] is not None else None
-            )
+            user_tcg_title_role = user.get_role(data['title']) if data['title'] else None
             match_played = win_count + loss_count
             win_rate = 0 if match_played == 0 else (win_count / match_played) * 100
 

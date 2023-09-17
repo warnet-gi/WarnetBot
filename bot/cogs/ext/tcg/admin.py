@@ -25,9 +25,8 @@ async def register_member(
         await send_user_is_not_in_guild_error_embed(interaction, member)
         return
 
-    if (
-        interaction.user.guild_permissions.administrator
-        or interaction.user.get_role(config.TCGConfig.TCG_EVENT_STAFF_ROLE_ID) is not None
+    if interaction.user.guild_permissions.administrator or interaction.user.get_role(
+        config.TCGConfig.TCG_EVENT_STAFF_ROLE_ID
     ):
         member_id = member.id
         embed: discord.Embed
@@ -267,9 +266,8 @@ async def set_match_result(
     if isinstance(loser, discord.User):
         loser = await self.bot.fetch_user(loser.id)
 
-    if (
-        interaction.user.guild_permissions.administrator
-        or interaction.user.get_role(config.TCGConfig.TCG_EVENT_STAFF_ROLE_ID) is not None
+    if interaction.user.guild_permissions.administrator or interaction.user.get_role(
+        config.TCGConfig.TCG_EVENT_STAFF_ROLE_ID
     ):
         async with self.db_pool.acquire() as conn:
             res1 = await conn.fetchval(
@@ -344,7 +342,7 @@ async def set_match_result(
                 await conn.execute(
                     "UPDATE tcg_leaderboard SET win_count=win_count+1, elo=$1, title=$2 WHERE discord_id = $3;",
                     elo_after_win,
-                    new_tcg_role.id if new_tcg_role is not None else None,
+                    new_tcg_role.id if new_tcg_role else None,
                     winner_data['discord_id'],
                 )
 
@@ -354,7 +352,7 @@ async def set_match_result(
                 await conn.execute(
                     "UPDATE tcg_leaderboard SET loss_count=loss_count+1, elo=$1, title=$2 WHERE discord_id = $3;",
                     elo_after_loss,
-                    new_tcg_role.id if new_tcg_role is not None else None,
+                    new_tcg_role.id if new_tcg_role else None,
                     loser_data['discord_id'],
                 )
 
@@ -379,9 +377,8 @@ async def undo_match_result(
             content=f'Match history for {str(member)} is not found.'
         )
 
-    if (
-        interaction.user.guild_permissions.administrator
-        or interaction.user.get_role(config.TCGConfig.TCG_EVENT_STAFF_ROLE_ID) is not None
+    if interaction.user.guild_permissions.administrator or interaction.user.get_role(
+        config.TCGConfig.TCG_EVENT_STAFF_ROLE_ID
     ):
         if isinstance(member, discord.User):
             member = await self.bot.fetch_user(member.id)
@@ -489,9 +486,8 @@ async def set_member_stats(
         await send_user_is_not_in_guild_error_embed(interaction, member)
         return
 
-    if (
-        interaction.user.guild_permissions.administrator
-        or interaction.user.get_role(config.TCGConfig.TCG_EVENT_STAFF_ROLE_ID) is not None
+    if interaction.user.guild_permissions.administrator or interaction.user.get_role(
+        config.TCGConfig.TCG_EVENT_STAFF_ROLE_ID
     ):
         async with self.db_pool.acquire() as conn:
             res = await conn.fetchval(
@@ -502,9 +498,9 @@ async def set_member_stats(
 
             else:
                 await conn.execute(
-                    f"UPDATE tcg_leaderboard SET win_count={win_count if win_count is not None else 'win_count'}, "
-                    + f"loss_count={loss_count if loss_count is not None else 'loss_count'}, "
-                    + f"elo={elo if elo is not None else 'elo'}  WHERE discord_id = {member.id};"
+                    f"UPDATE tcg_leaderboard SET win_count={win_count if win_count else 'win_count'}, "
+                    + f"loss_count={loss_count if loss_count else 'loss_count'}, "
+                    + f"elo={elo if elo else 'elo'}  WHERE discord_id = {member.id};"
                 )
 
                 embed = discord.Embed(

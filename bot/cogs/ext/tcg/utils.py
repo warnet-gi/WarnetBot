@@ -11,7 +11,7 @@ async def send_user_not_registered_error_embed(
     interaction: Interaction, member1_id: int, member2_id: Optional[int] = None
 ) -> None:
     desc_msg: str
-    if member2_id is not None:
+    if member2_id:
         desc_msg = f"<@{member1_id}> dan <@{member2_id}> belum terdaftar di database. Silakan untuk mendaftar terlebih dahulu menggunakan `/warnet-tcg register`"
     else:
         desc_msg = f"<@{member1_id}> belum terdaftar di database. Silakan <@{member1_id}> untuk mendaftar terlebih dahulu menggunakan `/warnet-tcg register`"

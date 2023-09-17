@@ -100,9 +100,7 @@ class LeaderboardPagination(discord.ui.View):
                             member_name = member.name
 
                         member_title_emoji = (
-                            title_emoji[member_data['title']]
-                            if member_data['title'] is not None
-                            else ''
+                            title_emoji[member_data['title']] if member_data['title'] else ''
                         )
                         row_string = f"`{rank_count:>2}` {member_title_emoji:<1} {discord.utils.escape_markdown(text=member_name):<10} ({member_data['win_count']:>2}/{member_data['loss_count']:<2}) **{member_data['elo']:.1f}**\n"
                         field_value += row_string

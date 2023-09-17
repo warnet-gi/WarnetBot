@@ -67,7 +67,7 @@ class Admin(commands.GroupCog, group_name="admin"):
                 topic = ctx.channel.topic
 
             embed: discord.Embed
-            if topic is not None:
+            if topic:
                 embed = discord.Embed(
                     title=f'Channel #{ctx.channel.name}',
                     description=topic,
@@ -206,7 +206,7 @@ class Admin(commands.GroupCog, group_name="admin"):
         message = '\n'.join(message.split('\\n'))  # support newline in slash command
 
         parsed_time = self._parse_relative_time(time)
-        if parsed_time is not None:
+        if parsed_time:
             day, hour, minute, second = parsed_time
         else:
             return await ctx.send(
@@ -260,7 +260,7 @@ class Admin(commands.GroupCog, group_name="admin"):
                 "SELECT id FROM scheduled_message WHERE id=$1;", scheduled_message_id
             )
 
-            if res is not None:
+            if res:
                 await conn.execute(
                     'UPDATE scheduled_message SET message=$1 WHERE id=$2;',
                     new_message,
@@ -293,7 +293,7 @@ class Admin(commands.GroupCog, group_name="admin"):
                 "SELECT id FROM scheduled_message WHERE id=$1;", scheduled_message_id
             )
 
-            if res is not None:
+            if res:
                 await conn.execute(
                     'DELETE FROM scheduled_message WHERE id=$1', scheduled_message_id
                 )
@@ -369,11 +369,11 @@ class Admin(commands.GroupCog, group_name="admin"):
                 )
 
             # task will be None if cancel command is triggered
-            if task is not None:
+            if task:
                 guild = self.bot.get_guild(task['guild_id'])
                 target_channel = guild.get_channel(task['channel_id'])
 
-                if target_channel is not None:
+                if target_channel:
                     await target_channel.send(content=task['message'])
 
                 async with self.db_pool.acquire() as conn:
