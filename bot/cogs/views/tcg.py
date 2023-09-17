@@ -1,10 +1,10 @@
+from typing import Any, Optional
+
 import discord
 from discord import Interaction
 from discord.ext import commands
 
 from bot.config import config
-
-from typing import Optional, Any
 
 
 class LeaderboardPagination(discord.ui.View):

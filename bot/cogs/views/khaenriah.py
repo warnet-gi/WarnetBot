@@ -1,8 +1,8 @@
+from typing import Any, Optional
+
 import discord
 from discord import Interaction
 from discord.ext import commands
-
-from typing import Optional, Any
 
 
 class BuronanPagination(discord.ui.View):

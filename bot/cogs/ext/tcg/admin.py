@@ -2,18 +2,18 @@ import datetime
 from typing import Optional, Union
 
 import discord
-from discord import Interaction, app_commands
+from discord import app_commands, Interaction
 from discord.ext import commands
 
-from bot.cogs.views.general import Confirm
-from bot.config import config
 from bot.cogs.ext.tcg.utils import (
-    send_user_not_registered_error_embed,
-    send_missing_permission_error_embed,
-    send_user_is_not_in_guild_error_embed,
     calculate_elo,
     change_tcg_title_role,
+    send_missing_permission_error_embed,
+    send_user_is_not_in_guild_error_embed,
+    send_user_not_registered_error_embed,
 )
+from bot.cogs.views.general import Confirm
+from bot.config import config
 
 
 async def register_member(

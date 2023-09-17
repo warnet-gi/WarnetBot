@@ -1,10 +1,10 @@
 import io
-from imagetext_py import Canvas, FontDB, Paint, Color, draw_text
 from typing import Optional
 
 import discord
-from discord import Interaction, Role, Member
+from discord import Interaction, Member, Role
 from discord.ext import commands
+from imagetext_py import Canvas, Color, draw_text, FontDB, Paint
 
 from bot.config.config import CustomRoleConfig
 
