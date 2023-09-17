@@ -25,4 +25,4 @@ jobs:
       - name: Check
         uses: isort/isort-action@v1
         with:
-          configuration: "--check-only --verbose"
+          configuration: "--check-only"
