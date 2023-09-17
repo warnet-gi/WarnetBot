@@ -1,9 +1,9 @@
+from datetime import datetime
+from typing import Any, Optional
+
 import discord
 from discord import Interaction
 from discord.ext import commands
-
-from datetime import datetime
-from typing import Optional, Any
 
 
 class StickyPagination(discord.ui.View):

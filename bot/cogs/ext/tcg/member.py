@@ -6,8 +6,8 @@ from discord import Interaction
 from discord.ext import commands
 
 from bot.cogs.ext.tcg.utils import (
-    send_user_not_registered_error_embed,
     send_user_is_not_in_guild_error_embed,
+    send_user_not_registered_error_embed,
 )
 from bot.cogs.views.tcg import LeaderboardPagination
 

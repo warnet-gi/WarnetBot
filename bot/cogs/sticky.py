@@ -1,13 +1,13 @@
+import asyncio
+from datetime import datetime
+from typing import Union
+
 import discord
-from discord import Interaction, app_commands
+from discord import app_commands, Interaction
 from discord.ext import commands
 
 from bot.bot import WarnetBot
 from bot.cogs.views.sticky import StickyPagination
-
-import asyncio
-from datetime import datetime
-from typing import Union
 
 
 @commands.guild_only()

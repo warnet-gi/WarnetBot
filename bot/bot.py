@@ -1,9 +1,9 @@
-import os
-import aiohttp
 import logging
-import asyncpg
+import os
 import time
 
+import aiohttp
+import asyncpg
 import discord
 from discord.ext.commands import Bot
 

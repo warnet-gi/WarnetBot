@@ -1,12 +1,12 @@
-from typing import Union, Optional
 from datetime import datetime
+from typing import Optional, Union
 
 import discord
 from discord.ext import commands
 
 from bot.bot import WarnetBot
-from bot.config import config
 from bot.cogs.views.khaenriah import BuronanPagination
+from bot.config import config
 
 
 @commands.guild_only()

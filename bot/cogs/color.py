@@ -2,14 +2,14 @@ from datetime import datetime
 from typing import Optional
 
 import discord
-from discord import Interaction, app_commands
+from discord import app_commands, Interaction
 from discord.ext import commands
 
 from bot.bot import WarnetBot
 from bot.cogs.ext.color.utils import (
     check_role_by_name_or_number,
-    get_current_custom_role_on_user,
     generate_image_color_list,
+    get_current_custom_role_on_user,
 )
 from bot.config.config import CustomRoleConfig
 
