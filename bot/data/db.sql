@@ -55,7 +55,7 @@ CREATE INDEX IF NOT EXISTS buronan_khaenriah_discord_id_idx ON buronan_khaenriah
 -----------------------------------
 CREATE TABLE custom_role(
 	role_id BIGINT NOT NULL,
-	owner_discord_id BIGINT NOT NULL,
+	owner_discord_id BIGINT,
 	created_at TIMESTAMP DEFAULT NOW() NOT NULL,
 	PRIMARY KEY(role_id),
 	UNIQUE(role_id)
