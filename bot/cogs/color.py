@@ -62,7 +62,13 @@ class Color(commands.GroupCog, group_name='warnet-color'):
             )
             await guild.get_channel(CustomRoleConfig.BOOSTER_LOG_CHANNEL_ID).send(embed=embed)
 
-    @color_add.command(name='hex')
+    @color_add.command(
+        name='hex', description='Add a color to the color list using HEX color value.'
+    )
+    @app_commands.describe(
+        name='The name of the color role you want to create.',
+        hex='The HEX color value of the new color role.',
+    )
     async def add_hex_color(self, interaction: Interaction, name: str, hex: str) -> None:
         if len(self.custom_role_data_list) == CustomRoleConfig.CUSTOM_ROLE_LIMIT:
             return await interaction.response.send_message(
@@ -115,7 +121,15 @@ class Color(commands.GroupCog, group_name='warnet-color'):
 
         await interaction.response.send_message(embed=embed)
 
-    @color_add.command(name='rgb')
+    @color_add.command(
+        name='rgb', description='Add a color to the color list using RBG color value.'
+    )
+    @app_commands.describe(
+        name='The name of the color role you want to create.',
+        r='The red value of the color. (0-255)',
+        g='The green value of the color. (0-255)',
+        b='The blue value of the color. (0-255)',
+    )
     async def add_rgb_color(
         self,
         interaction: Interaction,
@@ -173,7 +187,15 @@ class Color(commands.GroupCog, group_name='warnet-color'):
 
         await interaction.response.send_message(embed=embed)
 
-    @color_edit.command(name='hex')
+    @color_edit.command(
+        name='hex', description='Edit a color role with a new name and new HEX color.'
+    )
+    @app_commands.describe(
+        new_name='The new name of the color role.',
+        hex='The HEX color value of the new color.',
+        name='The name of the color role you want to edit. Required if "number" is empty.',
+        number='The number of the color role you want to edit. Required if "name" is empty.',
+    )
     async def edit_hex_color(
         self,
         interaction: Interaction,
@@ -221,7 +243,17 @@ class Color(commands.GroupCog, group_name='warnet-color'):
                     "❌ You don't have permission to use this command", ephemeral=True
                 )
 
-    @color_edit.command(name='rgb')
+    @color_edit.command(
+        name='rgb', description='Edit a color role with a new name and new RGB color.'
+    )
+    @app_commands.describe(
+        new_name='The new name of the color role.',
+        r='The red value of the color. (0-255)',
+        g='The green value of the color. (0-255)',
+        b='The blue value of the color. (0-255)',
+        name='The name of the color role you want to edit. Required if "number" is empty.',
+        number='The number of the color role you want to edit. Required if "name" is empty.',
+    )
     async def edit_rgb_color(
         self,
         interaction: Interaction,
@@ -269,7 +301,11 @@ class Color(commands.GroupCog, group_name='warnet-color'):
                     "❌ You don't have permission to use this command", ephemeral=True
                 )
 
-    @app_commands.command(name='set')
+    @app_commands.command(name='set', description='Attach a custom role on your profile.')
+    @app_commands.describe(
+        name='The name of the color role you want to use. Required if "number" is empty.',
+        number='The number of the color role you want to use. Required if "name" is empty.',
+    )
     async def set_color(
         self, interaction: Interaction, name: Optional[str], number: Optional[int]
     ) -> None:
@@ -288,7 +324,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
             )
             return await interaction.response.send_message(embed=embed)
 
-    @app_commands.command(name='remove')
+    @app_commands.command(name='remove', description='Remove your current custom role.')
     async def remove_color(self, interaction: Interaction) -> None:
         member = interaction.user
         role_being_used = get_current_custom_role_on_user(self, interaction.guild, member)
@@ -306,7 +342,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         )
         return await interaction.response.send_message(embed=embed)
 
-    @app_commands.command(name='list')
+    @app_commands.command(name='list', description='Show the color list of this server.')
     async def list_color(self, interaction: Interaction) -> None:
         role_list = []
         for i in range(len(self.custom_role_data_list)):
@@ -322,7 +358,11 @@ class Color(commands.GroupCog, group_name='warnet-color'):
 
         await interaction.response.send_message(embed=embed, file=file)
 
-    @app_commands.command(name='info')
+    @app_commands.command(name='info', description='Show the basic info of a custom role.')
+    @app_commands.describe(
+        name='The name of the color role you want to see the info. Required if "number" is empty.',
+        number='The number of the color role you want to see the info. Required if "name" is empty.',
+    )
     async def info_color(
         self, interaction: Interaction, name: Optional[str], number: Optional[int]
     ) -> None:
@@ -350,7 +390,11 @@ class Color(commands.GroupCog, group_name='warnet-color'):
             )
             return await interaction.response.send_message(embed=embed)
 
-    @app_commands.command(name='delete')
+    @app_commands.command(name='delete', description='Delete custom role from list and database.')
+    @app_commands.describe(
+        name='The name of the color role you want delete. Required if "number" is empty.',
+        number='The number of the color role you want to delete. Required if "name" is empty.',
+    )
     async def delete_color(
         self, interaction: Interaction, name: Optional[str], number: Optional[int]
     ) -> None:
@@ -382,7 +426,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
                     "❌ You don't have permission to use this command", ephemeral=True
                 )
 
-    @app_commands.command(name='help')
+    @app_commands.command(name='help', description='Show the list of available commands.')
     async def help_color(self, interaction: Interaction) -> None:
         embed = discord.Embed(
             title="Color Features",
@@ -424,6 +468,10 @@ class Color(commands.GroupCog, group_name='warnet-color'):
             name='/warnet-color delete',
             value='Menghapus custom role dari database secara permanen. Membutuhkan permission `manage_roles`.',
         )
+        embed.add_field(
+            name='/warnet-color help',
+            value='Menampilkan daftar perintah yang tersedia untuk fitur custom role.',
+        )
         return await interaction.response.send_message(embed=embed)
 
     @commands.command(name='colorsync')
@@ -439,7 +487,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
                     self.custom_role_data[data['role_id']] = data['owner_discord_id']
             self.custom_role_data_list = list(self.custom_role_data.keys())
 
-            await ctx.reply("_Custom roles have been synced_")
+            await ctx.reply("_Custom roles have been synced_", mention_author=False)
 
 
 async def setup(bot: WarnetBot) -> None:
