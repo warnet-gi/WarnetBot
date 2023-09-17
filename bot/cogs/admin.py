@@ -42,7 +42,7 @@ class Admin(commands.GroupCog, group_name="admin"):
                 synced = await ctx.bot.tree.sync()
 
             await ctx.send(
-                f"Synced {len(synced)} command(s) {'globally' if spec is None else 'to the current guild.'}"
+                f"Synced {len(synced)} command(s) {'globally' if not spec else 'to the current guild.'}"
             )
             return
 
@@ -100,7 +100,7 @@ class Admin(commands.GroupCog, group_name="admin"):
         if interaction.user.guild_permissions.manage_roles:
             cnt = 0
             for member in vc.members:
-                if member.get_role(role.id) is None:
+                if not member.get_role(role.id):
                     await member.add_roles(role)
                     cnt += 1
 
@@ -133,7 +133,7 @@ class Admin(commands.GroupCog, group_name="admin"):
         spoiler: Optional[bool] = False,
     ) -> None:
         if interaction.user.guild_permissions.administrator:
-            if message is None and attachment is None:
+            if not message and not attachment:
                 return await interaction.response.send_message(
                     content="You need to fill `message` and/or `attachment`.", ephemeral=True
                 )
@@ -357,7 +357,7 @@ class Admin(commands.GroupCog, group_name="admin"):
                 'SELECT id, date_trigger FROM scheduled_message ORDER BY date_trigger LIMIT 1;'
             )
 
-        if next_task is None:
+        if not next_task:
             self._message_schedule_task.stop()
 
         else:

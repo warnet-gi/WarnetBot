@@ -35,7 +35,7 @@ async def register_member(
             res = await conn.fetchval(
                 "SELECT discord_id FROM tcg_leaderboard WHERE discord_id = $1;", member_id
             )
-            if res is None:
+            if not res:
                 await conn.execute(
                     "INSERT INTO tcg_leaderboard(discord_id) VALUES ($1);", member_id
                 )
@@ -81,7 +81,7 @@ async def unregister_member(
             res = await conn.fetchval(
                 "SELECT discord_id FROM tcg_leaderboard WHERE discord_id = $1;", member_id
             )
-            if res is None:
+            if not res:
                 embed = discord.Embed(
                     color=discord.Colour.red(),
                     title='❌ member is already not registered',
@@ -100,7 +100,7 @@ async def unregister_member(
                 msg: discord.Message = await interaction.followup.send(embed=embed, view=view)
                 await view.wait()
 
-                if view.value is None:
+                if not view.value:
                     await msg.edit(content='**Time Out**', embed=None, view=None)
 
                 elif view.value:
@@ -136,7 +136,7 @@ async def reset_member_stats(
             res = await conn.fetchval(
                 "SELECT discord_id FROM tcg_leaderboard WHERE discord_id = $1;", user_id
             )
-            if res is None:
+            if not res:
                 await send_user_not_registered_error_embed(interaction, user_id)
 
             else:
@@ -150,7 +150,7 @@ async def reset_member_stats(
                 )
                 await view.wait()
 
-                if view.value is None:
+                if not view.value:
                     await msg.edit(content='**Time Out**', embed=None, view=None)
 
                 elif view.value:
@@ -209,7 +209,7 @@ async def reset_all_member_stats(self, interaction: Interaction) -> None:
             )
             await view.wait()
 
-            if view.value is None:
+            if not view.value:
                 await msg.edit(content='**Time Out**', embed=None, view=None)
 
             elif view.value:
@@ -278,13 +278,13 @@ async def set_match_result(
             res2 = await conn.fetchval(
                 "SELECT discord_id FROM tcg_leaderboard WHERE discord_id = $1;", loser.id
             )
-            if res1 is None and res2 is None:
+            if not res1 and not res2:
                 await send_user_not_registered_error_embed(
                     interaction, winner.id, member2_id=loser.id
                 )
-            elif res1 is None:
+            elif not res1:
                 await send_user_not_registered_error_embed(interaction, winner.id)
-            elif res2 is None:
+            elif not res2:
                 await send_user_not_registered_error_embed(interaction, loser.id)
             elif winner == loser:
                 await interaction.followup.send(content="Winner and Loser must be different user!")
@@ -390,7 +390,7 @@ async def undo_match_result(
             res = await conn.fetchval(
                 "SELECT discord_id FROM tcg_leaderboard WHERE discord_id = $1;", member.id
             )
-            if res is None:
+            if not res:
                 await send_user_not_registered_error_embed(interaction, member.id)
 
             else:
@@ -414,13 +414,13 @@ async def undo_match_result(
                         if winner_data['discord_id'] == member.id:
                             winner = member
                             loser = interaction.guild.get_member(loser_data['discord_id'])
-                            if loser is None:
+                            if not loser:
                                 await self.bot.fetch_user(loser_data['discord_id'])
 
                         elif loser_data['discord_id'] == member.id:
                             loser = member
                             winner = interaction.guild.get_member(winner_data['discord_id'])
-                            if winner is None:
+                            if not winner:
                                 await self.bot.fetch_user(winner_data['discord_id'])
 
                         await conn.execute(
@@ -497,7 +497,7 @@ async def set_member_stats(
             res = await conn.fetchval(
                 "SELECT discord_id FROM tcg_leaderboard WHERE discord_id = $1;", member.id
             )
-            if res is None:
+            if not res:
                 await send_user_not_registered_error_embed(interaction, member.id)
 
             else:
