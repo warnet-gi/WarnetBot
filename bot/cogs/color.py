@@ -426,6 +426,21 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         )
         return await interaction.response.send_message(embed=embed)
 
+    @commands.command(name='colorsync')
+    async def sync_color(self, ctx: commands.Context) -> None:
+        if ctx.author.guild_permissions.manage_roles:
+            async with self.db_pool.acquire() as conn:
+                records = await conn.fetch("SELECT * FROM custom_role ORDER BY created_at ASC;")
+                data_list = [dict(row) for row in records]
+
+            self.custom_role_data = {}
+            for data in data_list:
+                if ctx.guild.get_role(data['role_id']):
+                    self.custom_role_data[data['role_id']] = data['owner_discord_id']
+            self.custom_role_data_list = list(self.custom_role_data.keys())
+
+            await ctx.reply("_Custom roles have been synced_")
+
 
 async def setup(bot: WarnetBot) -> None:
     await bot.add_cog(Color(bot))
