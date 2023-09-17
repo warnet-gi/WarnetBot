@@ -7,7 +7,7 @@ import asyncpg
 import discord
 from discord.ext.commands import Bot
 
-from bot.config import config
+from bot import config
 
 discord.utils.setup_logging(level=logging.INFO, root=False)
 

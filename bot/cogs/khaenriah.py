@@ -4,9 +4,9 @@ from typing import Optional, Union
 import discord
 from discord.ext import commands
 
+from bot import config
 from bot.bot import WarnetBot
 from bot.cogs.views.khaenriah import BuronanPagination
-from bot.config import config
 
 
 @commands.guild_only()

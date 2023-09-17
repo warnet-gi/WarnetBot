@@ -11,7 +11,7 @@ from bot.cogs.ext.color.utils import (
     generate_image_color_list,
     get_current_custom_role_on_user,
 )
-from bot.config.config import CustomRoleConfig
+from bot.config import CustomRoleConfig
 
 
 @commands.guild_only()

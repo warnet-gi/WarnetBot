@@ -4,7 +4,7 @@ import discord
 from discord import Interaction
 from discord.ext import commands
 
-from bot.config import config
+from bot import config
 
 
 class LeaderboardPagination(discord.ui.View):

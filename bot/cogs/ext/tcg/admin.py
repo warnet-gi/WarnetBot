@@ -5,6 +5,7 @@ import discord
 from discord import app_commands, Interaction
 from discord.ext import commands
 
+from bot import config
 from bot.cogs.ext.tcg.utils import (
     calculate_elo,
     change_tcg_title_role,
@@ -13,7 +14,6 @@ from bot.cogs.ext.tcg.utils import (
     send_user_not_registered_error_embed,
 )
 from bot.cogs.views.general import Confirm
-from bot.config import config
 
 
 async def register_member(

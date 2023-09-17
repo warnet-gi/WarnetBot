@@ -4,7 +4,7 @@ from typing import Optional
 import discord
 from discord import Interaction
 
-from bot.config import config
+from bot import config
 
 
 async def send_user_not_registered_error_embed(

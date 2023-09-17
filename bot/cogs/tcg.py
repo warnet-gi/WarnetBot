@@ -4,6 +4,7 @@ import discord
 from discord import app_commands, Embed, Interaction
 from discord.ext import commands
 
+from bot import config
 from bot.bot import WarnetBot
 from bot.cogs.ext.tcg.admin import (
     register_member,
@@ -19,7 +20,6 @@ from bot.cogs.ext.tcg.member import (
     member_stats,
     register,
 )
-from bot.config import config
 
 GUILD_ID = config.GUILD_ID
 DEV_GUILD_ID = config.DEV_GUILD_ID

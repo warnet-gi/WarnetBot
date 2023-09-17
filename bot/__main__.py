@@ -1,7 +1,7 @@
 import asyncio
 
+from bot import config
 from bot.bot import WarnetBot
-from bot.config import config
 
 
 def main():

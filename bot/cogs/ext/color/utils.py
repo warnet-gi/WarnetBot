@@ -6,7 +6,7 @@ from discord import Interaction, Member, Role
 from discord.ext import commands
 from imagetext_py import Canvas, Color, draw_text, FontDB, Paint
 
-from bot.config.config import CustomRoleConfig
+from bot.config import CustomRoleConfig
 
 
 async def check_role_by_name_or_number(
