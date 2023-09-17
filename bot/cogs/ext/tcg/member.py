@@ -21,7 +21,7 @@ async def register(self: commands.Cog, interaction: Interaction) -> None:
         res = await conn.fetchval(
             "SELECT discord_id FROM tcg_leaderboard WHERE discord_id = $1;", author_id
         )
-        if res is None:
+        if not res:
             await conn.execute("INSERT INTO tcg_leaderboard(discord_id) VALUES ($1);", author_id)
             embed = discord.Embed(
                 color=discord.Colour.green(),
@@ -51,12 +51,12 @@ async def member_stats(
         await send_user_is_not_in_guild_error_embed(interaction, member)
         return
 
-    user = interaction.user if member is None else member
+    user = interaction.user if not member else member
     async with self.db_pool.acquire() as conn:
         res = await conn.fetchval(
             "SELECT discord_id FROM tcg_leaderboard WHERE discord_id = $1;", user.id
         )
-        if res is None:
+        if not res:
             await send_user_not_registered_error_embed(interaction, user.id)
 
         else:
@@ -68,9 +68,7 @@ async def member_stats(
             win_count = data['win_count']
             loss_count = data['loss_count']
             elo = data['elo']
-            user_tcg_title_role = (
-                user.get_role(data['title']) if data['title'] is not None else None
-            )
+            user_tcg_title_role = user.get_role(data['title']) if data['title'] else None
             match_played = win_count + loss_count
             win_rate = 0 if match_played == 0 else (win_count / match_played) * 100
 
@@ -86,7 +84,7 @@ async def member_stats(
             embed.add_field(name=f"Elo Rating", value=f"⭐ {elo:.1f}", inline=False)
             embed.add_field(
                 name=f"TCG Title",
-                value=f"🎖️ {'No TCG title' if user_tcg_title_role is None else user_tcg_title_role.mention}",
+                value=f"🎖️ {'No TCG title' if not user_tcg_title_role else user_tcg_title_role.mention}",
                 inline=False,
             )
 

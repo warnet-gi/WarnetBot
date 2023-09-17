@@ -28,7 +28,7 @@ class Khaenriah(commands.Cog):
             f'- {ctx.prefix} buron list = Melihat daftar buronan khaenriah'
         )
 
-        if ctx.invoked_subcommand is None:
+        if not ctx.invoked_subcommand:
             await ctx.send(f'Try:\n{list_of_commands}')
 
     @buronan.command(name='warn')
@@ -39,9 +39,8 @@ class Khaenriah(commands.Cog):
         *,
         reason: Optional[str],
     ) -> None:
-        if (
-            ctx.author.guild_permissions.administrator
-            or ctx.author.get_role(self.KURATOR_TEYVAT_ROLE_ID) is not None
+        if ctx.author.guild_permissions.administrator or ctx.author.get_role(
+            self.KURATOR_TEYVAT_ROLE_ID
         ):
             async with self.db_pool.acquire() as conn:
                 data = await conn.fetchrow(
@@ -49,7 +48,7 @@ class Khaenriah(commands.Cog):
                 )
 
                 current_warn_level = 0
-                if data is None:
+                if not data:
                     await conn.execute(
                         'INSERT INTO buronan_khaenriah (discord_id) VALUES ($1)', member.id
                     )
@@ -98,16 +97,15 @@ class Khaenriah(commands.Cog):
     async def buronan_increase(
         self, ctx: commands.Context, member: Union[discord.Member, discord.User]
     ) -> None:
-        if (
-            ctx.author.guild_permissions.administrator
-            or ctx.author.get_role(self.KURATOR_TEYVAT_ROLE_ID) is not None
+        if ctx.author.guild_permissions.administrator or ctx.author.get_role(
+            self.KURATOR_TEYVAT_ROLE_ID
         ):
             async with self.db_pool.acquire() as conn:
                 data = await conn.fetchrow(
                     'SELECT * FROM buronan_khaenriah WHERE discord_id=$1', member.id
                 )
 
-                if data is None:
+                if not data:
                     return await ctx.send(
                         content=f"**{str(member)}** never got a warning before. Can't increase warn level."
                     )
@@ -151,16 +149,15 @@ class Khaenriah(commands.Cog):
     async def buronan_decrease(
         self, ctx: commands.Context, member: Union[discord.Member, discord.User]
     ) -> None:
-        if (
-            ctx.author.guild_permissions.administrator
-            or ctx.author.get_role(self.KURATOR_TEYVAT_ROLE_ID) is not None
+        if ctx.author.guild_permissions.administrator or ctx.author.get_role(
+            self.KURATOR_TEYVAT_ROLE_ID
         ):
             async with self.db_pool.acquire() as conn:
                 data = await conn.fetchrow(
                     'SELECT * FROM buronan_khaenriah WHERE discord_id=$1', member.id
                 )
 
-                if data is None:
+                if not data:
                     return await ctx.send(
                         content=f"**{str(member)}** never got a warning before. Can't decrease warn level."
                     )

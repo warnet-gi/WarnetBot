@@ -42,7 +42,7 @@ class Admin(commands.GroupCog, group_name="admin"):
                 synced = await ctx.bot.tree.sync()
 
             await ctx.send(
-                f"Synced {len(synced)} command(s) {'globally' if spec is None else 'to the current guild.'}"
+                f"Synced {len(synced)} command(s) {'globally' if not spec else 'to the current guild.'}"
             )
             return
 
@@ -67,7 +67,7 @@ class Admin(commands.GroupCog, group_name="admin"):
                 topic = ctx.channel.topic
 
             embed: discord.Embed
-            if topic is not None:
+            if topic:
                 embed = discord.Embed(
                     title=f'Channel #{ctx.channel.name}',
                     description=topic,
@@ -100,7 +100,7 @@ class Admin(commands.GroupCog, group_name="admin"):
         if interaction.user.guild_permissions.manage_roles:
             cnt = 0
             for member in vc.members:
-                if member.get_role(role.id) is None:
+                if not member.get_role(role.id):
                     await member.add_roles(role)
                     cnt += 1
 
@@ -133,7 +133,7 @@ class Admin(commands.GroupCog, group_name="admin"):
         spoiler: Optional[bool] = False,
     ) -> None:
         if interaction.user.guild_permissions.administrator:
-            if message is None and attachment is None:
+            if not message and not attachment:
                 return await interaction.response.send_message(
                     content="You need to fill `message` and/or `attachment`.", ephemeral=True
                 )
@@ -206,7 +206,7 @@ class Admin(commands.GroupCog, group_name="admin"):
         message = '\n'.join(message.split('\\n'))  # support newline in slash command
 
         parsed_time = self._parse_relative_time(time)
-        if parsed_time is not None:
+        if parsed_time:
             day, hour, minute, second = parsed_time
         else:
             return await ctx.send(
@@ -260,7 +260,7 @@ class Admin(commands.GroupCog, group_name="admin"):
                 "SELECT id FROM scheduled_message WHERE id=$1;", scheduled_message_id
             )
 
-            if res is not None:
+            if res:
                 await conn.execute(
                     'UPDATE scheduled_message SET message=$1 WHERE id=$2;',
                     new_message,
@@ -293,7 +293,7 @@ class Admin(commands.GroupCog, group_name="admin"):
                 "SELECT id FROM scheduled_message WHERE id=$1;", scheduled_message_id
             )
 
-            if res is not None:
+            if res:
                 await conn.execute(
                     'DELETE FROM scheduled_message WHERE id=$1', scheduled_message_id
                 )
@@ -357,7 +357,7 @@ class Admin(commands.GroupCog, group_name="admin"):
                 'SELECT id, date_trigger FROM scheduled_message ORDER BY date_trigger LIMIT 1;'
             )
 
-        if next_task is None:
+        if not next_task:
             self._message_schedule_task.stop()
 
         else:
@@ -369,11 +369,11 @@ class Admin(commands.GroupCog, group_name="admin"):
                 )
 
             # task will be None if cancel command is triggered
-            if task is not None:
+            if task:
                 guild = self.bot.get_guild(task['guild_id'])
                 target_channel = guild.get_channel(task['channel_id'])
 
-                if target_channel is not None:
+                if target_channel:
                     await target_channel.send(content=task['message'])
 
                 async with self.db_pool.acquire() as conn:

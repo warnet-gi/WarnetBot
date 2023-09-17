@@ -91,7 +91,7 @@ class LeaderboardPagination(discord.ui.View):
                     for member_data in member_data_list:
                         member = ctx.guild.get_member(member_data['discord_id'])
                         # Prevent none object if user leaves the guild but they still in the leaderboard
-                        if member is None:
+                        if not member:
                             member = await ctx.bot.fetch_user(member_data['discord_id'])
 
                         if len(member.name) > 10:
@@ -100,9 +100,7 @@ class LeaderboardPagination(discord.ui.View):
                             member_name = member.name
 
                         member_title_emoji = (
-                            title_emoji[member_data['title']]
-                            if member_data['title'] is not None
-                            else ''
+                            title_emoji[member_data['title']] if member_data['title'] else ''
                         )
                         row_string = f"`{rank_count:>2}` {member_title_emoji:<1} {discord.utils.escape_markdown(text=member_name):<10} ({member_data['win_count']:>2}/{member_data['loss_count']:<2}) **{member_data['elo']:.1f}**\n"
                         field_value += row_string

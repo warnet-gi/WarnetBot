@@ -149,11 +149,11 @@ class General(commands.Cog):
         )
 
         current_time = datetime.now(tz=pytz.utc).astimezone(idn_tz)
-        day = current_time.day if day is None else day
-        month = current_time.month if month is None else month
-        year = current_time.year if year is None else year
-        hour = current_time.hour if hour is None else hour
-        minute = current_time.minute if minute is None else minute
+        day = current_time.day if not day else day
+        month = current_time.month if not month else month
+        year = current_time.year if not year else year
+        hour = current_time.hour if not hour else hour
+        minute = current_time.minute if not minute else minute
 
         try:
             idn_dt = idn_tz.localize(datetime(year, month, day, hour=hour, minute=minute))

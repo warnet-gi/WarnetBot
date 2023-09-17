@@ -85,7 +85,7 @@ class BuronanPagination(discord.ui.View):
                     for member_data in member_data_list:
                         member = ctx.guild.get_member(member_data['discord_id'])
                         # Prevent none object if user leaves the guild but they still in the list
-                        if member is None:
+                        if not member:
                             member = await ctx.bot.fetch_user(member_data['discord_id'])
 
                         row_string = f"`{member_data['warn_level']:>2}` {discord.utils.escape_markdown(text=str(member))}\n"

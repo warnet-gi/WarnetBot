@@ -34,7 +34,7 @@ class WarnetBot(Bot):
         print("------------------")
 
     async def setup_hook(self) -> None:
-        if self.session is None:
+        if not self.session:
             self.session = aiohttp.ClientSession()
 
         self.bot_app_info = await self.application_info()
