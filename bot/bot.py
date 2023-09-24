@@ -7,7 +7,7 @@ import asyncpg
 import discord
 from discord.ext.commands import Bot
 
-from bot import config
+from bot import __version__, config
 
 discord.utils.setup_logging(level=logging.INFO, root=False)
 
@@ -27,6 +27,7 @@ class WarnetBot(Bot):
             help_command=None,
         )
         self.session: aiohttp.ClientSession = None
+        self.version = __version__
 
     async def on_ready(self) -> None:
         print("The bot is online!")

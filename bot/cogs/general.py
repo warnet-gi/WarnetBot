@@ -35,6 +35,7 @@ class General(commands.Cog):
         embed.add_field(name='Developer', value=f"@momonnie", inline=False)
         embed.add_field(name='Contributor', value=f"@irvan789", inline=False)
         embed.add_field(name='Uptime', value=uptime, inline=False)
+        embed.add_field(name='Bot Version', value=self.bot.version, inline=False)
 
         view = discord.ui.View()
         view.add_item(discord.ui.Button(label='Donate to WarnetGI Saweria', url=saweria_url, row=0))
