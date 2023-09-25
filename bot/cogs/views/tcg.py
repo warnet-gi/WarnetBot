@@ -112,7 +112,7 @@ class LeaderboardPagination(discord.ui.View):
 
                     embed.add_field(name=field_name, value=field_value)
                     embed.set_footer(
-                        text=f"{str(self.ctx.author)}", icon_url=self.ctx.author.avatar.url
+                        text=f"{self.ctx.author.name}", icon_url=self.ctx.author.avatar.url
                     )
                 self.pages.append(embed)
 
@@ -130,7 +130,7 @@ class LeaderboardPagination(discord.ui.View):
                 name='Rank  |  Player  |  W/L  |  ELO',
                 value='**NO PLAYER IN THIS LEADERBOARD YET**',
             )
-            embed.set_footer(text=f"{str(self.ctx.author)}", icon_url=self.ctx.author.avatar.url)
+            embed.set_footer(text=f"{self.ctx.author.name}", icon_url=self.ctx.author.avatar.url)
             self.pages.append(embed)
 
         for embed in self.pages:

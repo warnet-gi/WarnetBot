@@ -80,7 +80,7 @@ class StickyPagination(discord.ui.View):
                     embed.add_field(name=field_name, value=field_value)
 
                 embed.set_footer(
-                    text=f"{str(self.ctx.author)}", icon_url=self.ctx.author.avatar.url
+                    text=f"{self.ctx.author.name}", icon_url=self.ctx.author.avatar.url
                 )
                 self.pages.append(embed)
 
@@ -94,7 +94,7 @@ class StickyPagination(discord.ui.View):
 
             embed.add_field(name="Channel | Message", value="**NO STICKY MESSAGE IN THIS SERVER**")
 
-            embed.set_footer(text=f"{str(self.ctx.author)}", icon_url=self.ctx.author.avatar.url)
+            embed.set_footer(text=f"{self.ctx.author.name}", icon_url=self.ctx.author.avatar.url)
             self.pages.append(embed)
 
     async def on_timeout(self) -> None:
