@@ -312,7 +312,7 @@ async def set_match_result(
                     timestamp=datetime.datetime.now(),
                 )
                 embed.add_field(
-                    name=f"{str(winner)} VS {str(loser)}",
+                    name=f"{winner.name} VS {loser.name}",
                     value=f"🏆 {winner.name} ({elo_after_win:.1f}) (+{elo_diff})\n❌ {loser.name} ({elo_after_loss:.1f}) (-{elo_diff})",
                 )
                 embed.set_footer(
@@ -446,7 +446,7 @@ async def undo_match_result(
                         timestamp=datetime.datetime.now(),
                     )
                     embed.add_field(
-                        name=f'{str(winner)} VS {str(loser)}',
+                        name=f'{winner.name} VS {loser.name}',
                         value='Match has been reverted to previous stats',
                     )
                     embed.set_footer(
