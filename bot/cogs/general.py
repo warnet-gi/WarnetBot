@@ -91,7 +91,7 @@ class General(commands.Cog):
         members_content = ''
         if role.members:
             for member in role.members:
-                members_content += f"{str(member)} - {member.id}\n"
+                members_content += f"{member.name} - {member.id}\n"
             content += members_content
         else:
             content += "No members associated with this role"

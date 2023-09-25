@@ -374,7 +374,7 @@ async def undo_match_result(
     match_history: list = self.match_history
     if len(match_history) == 0:
         return await interaction.followup.send(
-            content=f'Match history for {str(member)} is not found.'
+            content=f'Match history for {member.name} is not found.'
         )
 
     if interaction.user.guild_permissions.administrator or interaction.user.get_role(
@@ -465,7 +465,7 @@ async def undo_match_result(
 
                 else:
                     return await interaction.followup.send(
-                        content=f'Match history for {str(member)} is not found.'
+                        content=f'Match history for {member.name} is not found.'
                     )
 
     else:
