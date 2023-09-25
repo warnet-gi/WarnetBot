@@ -76,7 +76,7 @@ class Admin(commands.GroupCog, group_name="admin"):
             else:
                 embed = discord.Embed(
                     title='Channel Topic Not Found',
-                    description=f'**{str(ctx.author)}** No topic set.',
+                    description=f'**{ctx.author.name}** No topic set.',
                     color=discord.Color.red(),
                 )
 

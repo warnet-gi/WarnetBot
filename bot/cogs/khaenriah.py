@@ -85,7 +85,7 @@ class Khaenriah(commands.Cog):
             )
             embed.add_field(name='Reason', value=reason, inline=False)
             embed.set_footer(
-                text=f'Warned by {str(ctx.author)}', icon_url=ctx.author.display_avatar.url
+                text=f'Warned by {ctx.author.name}', icon_url=ctx.author.display_avatar.url
             )
 
             warn_log_channel = ctx.guild.get_channel(config.WARN_LOG_CHANNEL_ID)
@@ -139,7 +139,7 @@ class Khaenriah(commands.Cog):
                 url='https://media.discordapp.net/attachments/918150951204945950/1081450017065275454/skull.png'
             )
             embed.set_footer(
-                text=f'Executed by {str(ctx.author)}', icon_url=ctx.author.display_avatar.url
+                text=f'Executed by {ctx.author.name}', icon_url=ctx.author.display_avatar.url
             )
 
             await ctx.send(embed=embed)
@@ -194,7 +194,7 @@ class Khaenriah(commands.Cog):
                 url='https://media.discordapp.net/attachments/918150951204945950/1081450017065275454/skull.png'
             )
             embed.set_footer(
-                text=f'Executed by {str(ctx.author)}', icon_url=ctx.author.display_avatar.url
+                text=f'Executed by {ctx.author.name}', icon_url=ctx.author.display_avatar.url
             )
 
             await ctx.send(embed=embed)
