@@ -111,7 +111,7 @@ class Admin(commands.GroupCog, group_name="admin"):
                 timestamp=datetime.now(),
             )
             embed.set_footer(
-                text=f'Given by {str(interaction.user)}',
+                text=f'Given by {interaction.user.name}',
                 icon_url=interaction.user.display_avatar.url,
             )
             await interaction.followup.send(embed=embed)

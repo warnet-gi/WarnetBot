@@ -181,7 +181,7 @@ async def reset_member_stats(
                         timestamp=datetime.datetime.now(),
                     )
                     notify_embed.set_footer(
-                        text=f'Reset by {str(interaction.user)}',
+                        text=f'Reset by {interaction.user.name}',
                         icon_url=interaction.user.display_avatar.url,
                     )
 
@@ -240,7 +240,7 @@ async def reset_all_member_stats(self, interaction: Interaction) -> None:
                     timestamp=datetime.datetime.now(),
                 )
                 notify_embed.set_footer(
-                    text=f'Reset by {str(interaction.user)}',
+                    text=f'Reset by {interaction.user.name}',
                     icon_url=interaction.user.display_avatar.url,
                 )
 
@@ -450,7 +450,7 @@ async def undo_match_result(
                         value='Match has been reverted to previous stats',
                     )
                     embed.set_footer(
-                        text=f'Reverted by {str(interaction.user)}',
+                        text=f'Reverted by {interaction.user.name}',
                         icon_url=interaction.user.display_avatar.url,
                     )
 
@@ -509,7 +509,7 @@ async def set_member_stats(
                     timestamp=datetime.datetime.now(),
                 )
                 embed.set_footer(
-                    text=f'Set by {str(interaction.user)}',
+                    text=f'Set by {interaction.user.name}',
                     icon_url=interaction.user.display_avatar.url,
                 )
 
