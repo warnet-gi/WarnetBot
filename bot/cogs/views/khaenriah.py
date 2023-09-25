@@ -88,7 +88,7 @@ class BuronanPagination(discord.ui.View):
                         if not member:
                             member = await ctx.bot.fetch_user(member_data['discord_id'])
 
-                        row_string = f"`{member_data['warn_level']:>2}` {discord.utils.escape_markdown(text=str(member))}\n"
+                        row_string = f"`{member_data['warn_level']:>2}` {discord.utils.escape_markdown(text=member.name)}\n"
                         field_value += row_string
 
                     embed.add_field(name=field_name, value=field_value)

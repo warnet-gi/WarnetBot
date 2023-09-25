@@ -62,7 +62,7 @@ class Khaenriah(commands.Cog):
                         current_warn_level += 1
                     else:
                         return await ctx.send(
-                            content=f"**{str(member)}** has reached MAX warning level (Level {self.BURONAN_MAX_LEVEL}). Can't add more level.",
+                            content=f"**{member.name}** has reached MAX warning level (Level {self.BURONAN_MAX_LEVEL}). Can't add more level.",
                         )
 
             embed = discord.Embed(
@@ -85,7 +85,7 @@ class Khaenriah(commands.Cog):
             )
             embed.add_field(name='Reason', value=reason, inline=False)
             embed.set_footer(
-                text=f'Warned by {str(ctx.author)}', icon_url=ctx.author.display_avatar.url
+                text=f'Warned by {ctx.author.name}', icon_url=ctx.author.display_avatar.url
             )
 
             warn_log_channel = ctx.guild.get_channel(config.WARN_LOG_CHANNEL_ID)
@@ -107,7 +107,7 @@ class Khaenriah(commands.Cog):
 
                 if not data:
                     return await ctx.send(
-                        content=f"**{str(member)}** never got a warning before. Can't increase warn level."
+                        content=f"**{member.name}** never got a warning before. Can't increase warn level."
                     )
 
                 if ctx.author == member:
@@ -124,11 +124,11 @@ class Khaenriah(commands.Cog):
                     current_warn_level += 1
                 else:
                     return await ctx.send(
-                        content=f"**{str(member)}** has reached MAX warning level (Level {self.BURONAN_MAX_LEVEL}). Can't add more level.",
+                        content=f"**{member.name}** has reached MAX warning level (Level {self.BURONAN_MAX_LEVEL}). Can't add more level.",
                     )
 
             warn_log_channel = ctx.guild.get_channel(config.WARN_LOG_CHANNEL_ID)
-            desc = f"**{str(member)}** warn level has been increased manually from `{data['warn_level']}` to `{current_warn_level}`"
+            desc = f"**{member.name}** warn level has been increased manually from `{data['warn_level']}` to `{current_warn_level}`"
             embed = discord.Embed(
                 title='KHAENRIAH WARN LEVEL IS INCREASED',
                 description=desc,
@@ -139,7 +139,7 @@ class Khaenriah(commands.Cog):
                 url='https://media.discordapp.net/attachments/918150951204945950/1081450017065275454/skull.png'
             )
             embed.set_footer(
-                text=f'Executed by {str(ctx.author)}', icon_url=ctx.author.display_avatar.url
+                text=f'Executed by {ctx.author.name}', icon_url=ctx.author.display_avatar.url
             )
 
             await ctx.send(embed=embed)
@@ -159,7 +159,7 @@ class Khaenriah(commands.Cog):
 
                 if not data:
                     return await ctx.send(
-                        content=f"**{str(member)}** never got a warning before. Can't decrease warn level."
+                        content=f"**{member.name}** never got a warning before. Can't decrease warn level."
                     )
 
                 if ctx.author == member:
@@ -179,11 +179,11 @@ class Khaenriah(commands.Cog):
                         'DELETE FROM buronan_khaenriah WHERE discord_id=$1', member.id
                     )
                     return await ctx.send(
-                        content=f"**{str(member)}** has been removed from database.",
+                        content=f"**{member.name}** has been removed from database.",
                     )
 
             warn_log_channel = ctx.guild.get_channel(config.WARN_LOG_CHANNEL_ID)
-            desc = f"**{str(member)}** warn level has been decreased manually from `{data['warn_level']}` to `{current_warn_level}`"
+            desc = f"**{member.name}** warn level has been decreased manually from `{data['warn_level']}` to `{current_warn_level}`"
             embed = discord.Embed(
                 title='KHAENRIAH WARN LEVEL IS DECREASED',
                 description=desc,
@@ -194,7 +194,7 @@ class Khaenriah(commands.Cog):
                 url='https://media.discordapp.net/attachments/918150951204945950/1081450017065275454/skull.png'
             )
             embed.set_footer(
-                text=f'Executed by {str(ctx.author)}', icon_url=ctx.author.display_avatar.url
+                text=f'Executed by {ctx.author.name}', icon_url=ctx.author.display_avatar.url
             )
 
             await ctx.send(embed=embed)

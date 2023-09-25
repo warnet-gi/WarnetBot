@@ -181,7 +181,7 @@ async def reset_member_stats(
                         timestamp=datetime.datetime.now(),
                     )
                     notify_embed.set_footer(
-                        text=f'Reset by {str(interaction.user)}',
+                        text=f'Reset by {interaction.user.name}',
                         icon_url=interaction.user.display_avatar.url,
                     )
 
@@ -240,7 +240,7 @@ async def reset_all_member_stats(self, interaction: Interaction) -> None:
                     timestamp=datetime.datetime.now(),
                 )
                 notify_embed.set_footer(
-                    text=f'Reset by {str(interaction.user)}',
+                    text=f'Reset by {interaction.user.name}',
                     icon_url=interaction.user.display_avatar.url,
                 )
 
@@ -312,7 +312,7 @@ async def set_match_result(
                     timestamp=datetime.datetime.now(),
                 )
                 embed.add_field(
-                    name=f"{str(winner)} VS {str(loser)}",
+                    name=f"{winner.name} VS {loser.name}",
                     value=f"🏆 {winner.name} ({elo_after_win:.1f}) (+{elo_diff})\n❌ {loser.name} ({elo_after_loss:.1f}) (-{elo_diff})",
                 )
                 embed.set_footer(
@@ -374,7 +374,7 @@ async def undo_match_result(
     match_history: list = self.match_history
     if len(match_history) == 0:
         return await interaction.followup.send(
-            content=f'Match history for {str(member)} is not found.'
+            content=f'Match history for {member.name} is not found.'
         )
 
     if interaction.user.guild_permissions.administrator or interaction.user.get_role(
@@ -446,11 +446,11 @@ async def undo_match_result(
                         timestamp=datetime.datetime.now(),
                     )
                     embed.add_field(
-                        name=f'{str(winner)} VS {str(loser)}',
+                        name=f'{winner.name} VS {loser.name}',
                         value='Match has been reverted to previous stats',
                     )
                     embed.set_footer(
-                        text=f'Reverted by {str(interaction.user)}',
+                        text=f'Reverted by {interaction.user.name}',
                         icon_url=interaction.user.display_avatar.url,
                     )
 
@@ -465,7 +465,7 @@ async def undo_match_result(
 
                 else:
                     return await interaction.followup.send(
-                        content=f'Match history for {str(member)} is not found.'
+                        content=f'Match history for {member.name} is not found.'
                     )
 
     else:
@@ -509,7 +509,7 @@ async def set_member_stats(
                     timestamp=datetime.datetime.now(),
                 )
                 embed.set_footer(
-                    text=f'Set by {str(interaction.user)}',
+                    text=f'Set by {interaction.user.name}',
                     icon_url=interaction.user.display_avatar.url,
                 )
 

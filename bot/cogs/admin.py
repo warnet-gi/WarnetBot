@@ -76,7 +76,7 @@ class Admin(commands.GroupCog, group_name="admin"):
             else:
                 embed = discord.Embed(
                     title='Channel Topic Not Found',
-                    description=f'**{str(ctx.author)}** No topic set.',
+                    description=f'**{ctx.author.name}** No topic set.',
                     color=discord.Color.red(),
                 )
 
@@ -111,7 +111,7 @@ class Admin(commands.GroupCog, group_name="admin"):
                 timestamp=datetime.now(),
             )
             embed.set_footer(
-                text=f'Given by {str(interaction.user)}',
+                text=f'Given by {interaction.user.name}',
                 icon_url=interaction.user.display_avatar.url,
             )
             await interaction.followup.send(embed=embed)

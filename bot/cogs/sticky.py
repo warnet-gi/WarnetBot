@@ -315,7 +315,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
             timestamp=datetime.now(),
         )
         embed.set_footer(
-            text=f"{str(interaction.user)}",
+            text=f"{interaction.user.name}",
             icon_url=interaction.user.display_avatar.url,
         )
         await interaction.followup.send(embed=embed)
