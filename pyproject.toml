@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "warnet-bot"
-version = "1.8.0"
+version = "1.9.0"
 description = "A bot for Warga Nusantara Teyvat (WARNET) discord server"
 authors = ["Iqrar Agalosi Nureyza <misteriqrar@gmail.com>"]
 readme = "README.md"
