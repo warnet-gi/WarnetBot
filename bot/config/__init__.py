@@ -10,7 +10,7 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 DEV_BOT_TOKEN = os.getenv("DEV_BOT_TOKEN")
 
 GUILD_ID = int(os.getenv("GUILD_ID"))
-DEV_GUILD_ID = int(os.getenv("GUILD_ID"))
+DEV_GUILD_ID = int(os.getenv("DEV_GUILD_ID"))
 
 LOCAL_DB_HOST = os.getenv("LOCAL_DB_HOST")
 LOCAL_DB_NAME = os.getenv("LOCAL_DB_NAME")
