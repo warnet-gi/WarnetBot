@@ -132,4 +132,5 @@ class TCG(commands.GroupCog, group_name="warnet-tcg"):
 
 
 async def setup(bot: WarnetBot) -> None:
-    await bot.add_cog(TCG(bot), guilds=[discord.Object(DEV_GUILD_ID), discord.Object(GUILD_ID)])
+    # await bot.add_cog(TCG(bot), guilds=[discord.Object(DEV_GUILD_ID), discord.Object(GUILD_ID)])
+    pass
