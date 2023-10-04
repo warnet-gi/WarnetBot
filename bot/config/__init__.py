@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-BOT_DEBUG = os.getenv("BOT_DEBUG")
+BOT_DEBUG = int(os.getenv("BOT_DEBUG"))
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 DEV_BOT_TOKEN = os.getenv("DEV_BOT_TOKEN")
