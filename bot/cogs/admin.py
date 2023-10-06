@@ -8,6 +8,7 @@ from discord.ext import commands, tasks
 
 from bot.bot import WarnetBot
 from bot.cogs.ext.tcg.utils import send_missing_permission_error_embed
+from bot.config import MESSAGE_LOG_CHANNEL_ID
 
 
 @commands.guild_only()
@@ -166,8 +167,23 @@ class Admin(commands.GroupCog, group_name="admin"):
                     content="File failed to sent. File can't exceed 8 MB size.", ephemeral=True
                 )
 
-            await interaction.channel.send(content=message, file=file)
+            message_sent = await interaction.channel.send(content=message, file=file)
             await interaction.followup.send(content="Message sent!", ephemeral=True)
+
+            log_embed = discord.Embed(
+                description=(
+                    f'`/admin send-message` command is triggered on {message_sent.jump_url}'
+                ),
+                color=discord.Color.blue(),
+                timestamp=datetime.now(),
+            )
+            log_embed.set_footer(
+                text=f'Triggered by {interaction.user.name}',
+                icon_url=interaction.user.display_avatar.url,
+            )
+
+            message_log_channel = interaction.guild.get_channel(MESSAGE_LOG_CHANNEL_ID)
+            await message_log_channel.send(embed=log_embed)
 
         else:
             await interaction.response.send_message(
