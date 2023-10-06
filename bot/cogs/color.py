@@ -75,7 +75,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
             not interaction.user.premium_since
             and not interaction.user.guild_permissions.manage_roles
         ):
-            return no_permission_alert(interaction)
+            return await no_permission_alert(interaction)
 
         if len(self.custom_role_data_list) == CustomRoleConfig.CUSTOM_ROLE_LIMIT:
             return await interaction.response.send_message(
@@ -149,7 +149,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
             not interaction.user.premium_since
             and not interaction.user.guild_permissions.manage_roles
         ):
-            return no_permission_alert(interaction)
+            return await no_permission_alert(interaction)
 
         if len(self.custom_role_data_list) == CustomRoleConfig.CUSTOM_ROLE_LIMIT:
             return await interaction.response.send_message(
@@ -221,7 +221,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
             not interaction.user.premium_since
             and not interaction.user.guild_permissions.manage_roles
         ):
-            return no_permission_alert(interaction)
+            return await no_permission_alert(interaction)
 
         try:
             hex = '#' + hex if not hex.startswith('#') else hex
@@ -287,7 +287,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
             not interaction.user.premium_since
             and not interaction.user.guild_permissions.manage_roles
         ):
-            return no_permission_alert(interaction)
+            return await no_permission_alert(interaction)
 
         try:
             valid_color = discord.Color.from_rgb(r, g, b)
@@ -338,7 +338,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
             not interaction.user.premium_since
             and not interaction.user.guild_permissions.manage_roles
         ):
-            return no_permission_alert(interaction)
+            return await no_permission_alert(interaction)
 
         role_target = await check_role_by_name_or_number(self, interaction, name, number)
         if role_target:
@@ -361,7 +361,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
             not interaction.user.premium_since
             and not interaction.user.guild_permissions.manage_roles
         ):
-            return no_permission_alert(interaction)
+            return await no_permission_alert(interaction)
 
         member = interaction.user
         role_being_used = get_current_custom_role_on_user(self, interaction.guild, member)
@@ -385,7 +385,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
             not interaction.user.premium_since
             and not interaction.user.guild_permissions.manage_roles
         ):
-            return no_permission_alert(interaction)
+            return await no_permission_alert(interaction)
 
         role_list = []
         for i in range(len(self.custom_role_data_list)):
@@ -413,7 +413,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
             not interaction.user.premium_since
             and not interaction.user.guild_permissions.manage_roles
         ):
-            return no_permission_alert(interaction)
+            return await no_permission_alert(interaction)
 
         role_target = await check_role_by_name_or_number(self, interaction, name, number)
         if role_target:
@@ -471,7 +471,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
                     return await interaction.response.send_message(embed=embed)
 
             else:
-                return no_permission_alert(interaction)
+                return await no_permission_alert(interaction)
 
     @app_commands.command(name='help', description='Show the list of available commands.')
     async def help_color(self, interaction: Interaction) -> None:
@@ -479,7 +479,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
             not interaction.user.premium_since
             and not interaction.user.guild_permissions.manage_roles
         ):
-            return no_permission_alert(interaction)
+            return await no_permission_alert(interaction)
 
         embed = discord.Embed(
             title="Color Features",
