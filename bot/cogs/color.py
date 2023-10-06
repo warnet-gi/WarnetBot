@@ -10,6 +10,7 @@ from bot.cogs.ext.color.utils import (
     check_role_by_name_or_number,
     generate_image_color_list,
     get_current_custom_role_on_user,
+    no_permission_alert,
 )
 from bot.config import CustomRoleConfig
 
@@ -70,6 +71,12 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         hex='The HEX color value of the new color role.',
     )
     async def add_hex_color(self, interaction: Interaction, name: str, hex: str) -> None:
+        if (
+            not interaction.user.premium_since
+            and not interaction.user.guild_permissions.manage_roles
+        ):
+            return no_permission_alert(interaction)
+
         if len(self.custom_role_data_list) == CustomRoleConfig.CUSTOM_ROLE_LIMIT:
             return await interaction.response.send_message(
                 "❌ Maximum custom role limit has been reached. You can't create any new custom role."
@@ -138,6 +145,12 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         g: app_commands.Range[int, 0, 255],
         b: app_commands.Range[int, 0, 255],
     ) -> None:
+        if (
+            not interaction.user.premium_since
+            and not interaction.user.guild_permissions.manage_roles
+        ):
+            return no_permission_alert(interaction)
+
         if len(self.custom_role_data_list) == CustomRoleConfig.CUSTOM_ROLE_LIMIT:
             return await interaction.response.send_message(
                 "❌ Maximum custom role limit has been reached. You can't create any new custom role."
@@ -204,6 +217,12 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         name: Optional[str],
         number: Optional[int],
     ) -> None:
+        if (
+            not interaction.user.premium_since
+            and not interaction.user.guild_permissions.manage_roles
+        ):
+            return no_permission_alert(interaction)
+
         try:
             hex = '#' + hex if not hex.startswith('#') else hex
             valid_color = discord.Color.from_str(hex)
@@ -264,6 +283,12 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         name: Optional[str],
         number: Optional[int],
     ) -> None:
+        if (
+            not interaction.user.premium_since
+            and not interaction.user.guild_permissions.manage_roles
+        ):
+            return no_permission_alert(interaction)
+
         try:
             valid_color = discord.Color.from_rgb(r, g, b)
         except ValueError:
@@ -309,6 +334,12 @@ class Color(commands.GroupCog, group_name='warnet-color'):
     async def set_color(
         self, interaction: Interaction, name: Optional[str], number: Optional[int]
     ) -> None:
+        if (
+            not interaction.user.premium_since
+            and not interaction.user.guild_permissions.manage_roles
+        ):
+            return no_permission_alert(interaction)
+
         role_target = await check_role_by_name_or_number(self, interaction, name, number)
         if role_target:
             member = interaction.user
@@ -326,6 +357,12 @@ class Color(commands.GroupCog, group_name='warnet-color'):
 
     @app_commands.command(name='remove', description='Remove your current custom role.')
     async def remove_color(self, interaction: Interaction) -> None:
+        if (
+            not interaction.user.premium_since
+            and not interaction.user.guild_permissions.manage_roles
+        ):
+            return no_permission_alert(interaction)
+
         member = interaction.user
         role_being_used = get_current_custom_role_on_user(self, interaction.guild, member)
         if role_being_used:
@@ -344,6 +381,12 @@ class Color(commands.GroupCog, group_name='warnet-color'):
 
     @app_commands.command(name='list', description='Show the color list of this server.')
     async def list_color(self, interaction: Interaction) -> None:
+        if (
+            not interaction.user.premium_since
+            and not interaction.user.guild_permissions.manage_roles
+        ):
+            return no_permission_alert(interaction)
+
         role_list = []
         for i in range(len(self.custom_role_data_list)):
             role_list.append(interaction.guild.get_role(self.custom_role_data_list[i]))
@@ -366,6 +409,12 @@ class Color(commands.GroupCog, group_name='warnet-color'):
     async def info_color(
         self, interaction: Interaction, name: Optional[str], number: Optional[int]
     ) -> None:
+        if (
+            not interaction.user.premium_since
+            and not interaction.user.guild_permissions.manage_roles
+        ):
+            return no_permission_alert(interaction)
+
         role_target = await check_role_by_name_or_number(self, interaction, name, number)
         if role_target:
             async with self.db_pool.acquire() as conn:
@@ -422,12 +471,16 @@ class Color(commands.GroupCog, group_name='warnet-color'):
                     return await interaction.response.send_message(embed=embed)
 
             else:
-                await interaction.response.send_message(
-                    "❌ You don't have permission to use this command", ephemeral=True
-                )
+                return no_permission_alert(interaction)
 
     @app_commands.command(name='help', description='Show the list of available commands.')
     async def help_color(self, interaction: Interaction) -> None:
+        if (
+            not interaction.user.premium_since
+            and not interaction.user.guild_permissions.manage_roles
+        ):
+            return no_permission_alert(interaction)
+
         embed = discord.Embed(
             title="Color Features",
             color=discord.Color.light_embed(),
