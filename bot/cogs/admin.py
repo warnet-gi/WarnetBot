@@ -172,7 +172,7 @@ class Admin(commands.GroupCog, group_name="admin"):
 
             log_embed = discord.Embed(
                 description=(
-                    '`/admin send-message` command is triggered on ' f'{message_sent.jump_url}'
+                    f'`/admin send-message` command is triggered on {message_sent.jump_url}'
                 ),
                 color=discord.Color.blue(),
                 timestamp=datetime.now(),
