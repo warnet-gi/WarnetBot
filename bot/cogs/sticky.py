@@ -108,7 +108,11 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                     interaction,
                     color=discord.Color.green(),
                     title="✅ Sticky message successfully given",
-                    description=f"Berhasil menambahkan sticky message pada channel {channel.mention}",
+                    description=(
+                        f"Berhasil menambahkan sticky message pada channel {channel.mention}\n"
+                        f"**Message**: {message}\n"
+                        f"**Delay time**: `{delay_time} secs`"
+                    ),
                 )
 
             else:
@@ -181,7 +185,11 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                     interaction,
                     color=discord.Color.green(),
                     title="✅ Sticky message update successfully",
-                    description=f"Berhasil memperbaharui sticky message pada channel {channel.mention}",
+                    description=(
+                        f"Berhasil memperbarui sticky message pada channel {channel.mention}\n"
+                        f"**New message**: {message}\n"
+                        f"**Delay time**: `{delay_time} secs`"
+                    ),
                 )
         else:
             await self._send_interaction(
