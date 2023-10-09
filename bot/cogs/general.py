@@ -32,8 +32,15 @@ class General(commands.Cog):
             icon_url='https://cdn.discordapp.com/attachments/761684443915485184/1038313075260002365/warnet_logo_putih.png',
         )
         embed.set_thumbnail(url=self.bot.user.display_avatar.url)
-        embed.add_field(name='Developer', value=f"@momonnie", inline=False)
-        embed.add_field(name='Contributor', value=f"@irvan789", inline=False)
+        embed.add_field(name='Developer', value="momonnie", inline=False)
+        embed.add_field(
+            name='Contributor',
+            value=(
+                "- [Irvan789](https://github.com/Irvan789)\n"
+                "- [rafiramadhana](https://github.com/rafiramadhana)"
+            ),
+            inline=False,
+        )
         embed.add_field(name='Uptime', value=uptime, inline=False)
         embed.add_field(name='Bot Version', value=self.bot.version, inline=False)
 
