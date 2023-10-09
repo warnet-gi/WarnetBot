@@ -53,15 +53,15 @@ class Color(commands.GroupCog, group_name='warnet-color'):
             if role_being_used:
                 await after.remove_roles(role_being_used, reason="Lose Booster Status")
 
-            embed = discord.Embed(
-                color=discord.Color.orange(),
-                title="Booster member update",
-                description=(
-                    f"Removed role **{role_being_used.name}** from **{before.mention}**"
-                    f"`({before.id})` due to lost their booster status."
-                ),
-            )
-            await guild.get_channel(CustomRoleConfig.BOOSTER_LOG_CHANNEL_ID).send(embed=embed)
+                embed = discord.Embed(
+                    color=discord.Color.orange(),
+                    title="Booster member update",
+                    description=(
+                        f"Removed role **{role_being_used.name}** from **{before.mention}**"
+                        f"`({before.id})` due to lost their booster status."
+                    ),
+                )
+                await guild.get_channel(CustomRoleConfig.BOOSTER_LOG_CHANNEL_ID).send(embed=embed)
 
     @color_add.command(
         name='hex', description='Add a color to the color list using HEX color value.'
