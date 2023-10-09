@@ -71,6 +71,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         hex='The HEX color value of the new color role.',
     )
     async def add_hex_color(self, interaction: Interaction, name: str, hex: str) -> None:
+        await interaction.response.defer()
         if (
             not interaction.user.premium_since
             and not interaction.user.guild_permissions.manage_roles
@@ -78,7 +79,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
             return await no_permission_alert(interaction)
 
         if len(self.custom_role_data_list) == CustomRoleConfig.CUSTOM_ROLE_LIMIT:
-            return await interaction.response.send_message(
+            return await interaction.followup.send(
                 "❌ Maximum custom role limit has been reached. You can't create any new custom role."
             )
 
@@ -86,7 +87,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
             hex = '#' + hex if not hex.startswith('#') else hex
             valid_color = discord.Color.from_str(hex)
         except ValueError:
-            return await interaction.response.send_message(
+            return await interaction.followup.send(
                 "❌ Please pass in a valid HEX code!\n\nExample: `#FFF456` or `FFF456`",
                 ephemeral=True,
             )
@@ -126,7 +127,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
             ),
         )
 
-        await interaction.response.send_message(embed=embed)
+        await interaction.followup.send(embed=embed)
 
     @color_add.command(
         name='rgb', description='Add a color to the color list using RBG color value.'
@@ -145,6 +146,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         g: app_commands.Range[int, 0, 255],
         b: app_commands.Range[int, 0, 255],
     ) -> None:
+        await interaction.response.defer()
         if (
             not interaction.user.premium_since
             and not interaction.user.guild_permissions.manage_roles
@@ -152,14 +154,14 @@ class Color(commands.GroupCog, group_name='warnet-color'):
             return await no_permission_alert(interaction)
 
         if len(self.custom_role_data_list) == CustomRoleConfig.CUSTOM_ROLE_LIMIT:
-            return await interaction.response.send_message(
+            return await interaction.followup.send(
                 "❌ Maximum custom role limit has been reached. You can't create any new custom role."
             )
 
         try:
             valid_color = discord.Color.from_rgb(r, g, b)
         except ValueError:
-            return await interaction.response.send_message(
+            return await interaction.followup.send(
                 "❌ Please pass in a valid RGB code!", ephemeral=True
             )
 
@@ -198,7 +200,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
             ),
         )
 
-        await interaction.response.send_message(embed=embed)
+        await interaction.followup.send(embed=embed)
 
     @color_edit.command(
         name='hex', description='Edit a color role with a new name and new HEX color.'
@@ -217,6 +219,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         name: Optional[str],
         number: Optional[int],
     ) -> None:
+        await interaction.response.defer()
         if (
             not interaction.user.premium_since
             and not interaction.user.guild_permissions.manage_roles
@@ -227,7 +230,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
             hex = '#' + hex if not hex.startswith('#') else hex
             valid_color = discord.Color.from_str(hex)
         except ValueError:
-            return await interaction.response.send_message(
+            return await interaction.followup.send(
                 "❌ Please pass in a valid HEX code!\n\nExample: `#FFF456` or `FFF456`",
                 ephemeral=True,
             )
@@ -255,10 +258,10 @@ class Color(commands.GroupCog, group_name='warnet-color'):
                         f"- **HEX:** {str(edited_role.color)}\n"
                     ),
                 )
-                return await interaction.response.send_message(embed=embed)
+                return await interaction.followup.send(embed=embed)
 
             else:
-                return await interaction.response.send_message(
+                return await interaction.followup.send(
                     "❌ You don't have permission to use this command", ephemeral=True
                 )
 
@@ -283,6 +286,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         name: Optional[str],
         number: Optional[int],
     ) -> None:
+        await interaction.response.defer()
         if (
             not interaction.user.premium_since
             and not interaction.user.guild_permissions.manage_roles
@@ -292,7 +296,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         try:
             valid_color = discord.Color.from_rgb(r, g, b)
         except ValueError:
-            return await interaction.response.send_message(
+            return await interaction.followup.send(
                 "❌ Please pass in a valid RGB code!", ephemeral=True
             )
 
@@ -319,10 +323,10 @@ class Color(commands.GroupCog, group_name='warnet-color'):
                         f"- **HEX:** {str(edited_role.color)}\n"
                     ),
                 )
-                return await interaction.response.send_message(embed=embed)
+                return await interaction.followup.send(embed=embed)
 
             else:
-                return await interaction.response.send_message(
+                return await interaction.followup.send(
                     "❌ You don't have permission to use this command", ephemeral=True
                 )
 
@@ -334,6 +338,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
     async def set_color(
         self, interaction: Interaction, name: Optional[str], number: Optional[int]
     ) -> None:
+        await interaction.response.defer()
         if (
             not interaction.user.premium_since
             and not interaction.user.guild_permissions.manage_roles
@@ -353,10 +358,11 @@ class Color(commands.GroupCog, group_name='warnet-color'):
                 description=f"{member.mention} your color is now **{role_target.name}**.",
                 color=role_target.color,
             )
-            return await interaction.response.send_message(embed=embed)
+            return await interaction.followup.send(embed=embed)
 
     @app_commands.command(name='remove', description='Remove your current custom role.')
     async def remove_color(self, interaction: Interaction) -> None:
+        await interaction.response.defer()
         if (
             not interaction.user.premium_since
             and not interaction.user.guild_permissions.manage_roles
@@ -371,16 +377,17 @@ class Color(commands.GroupCog, group_name='warnet-color'):
                 description=f"{member.mention} successfully removed **{role_being_used.name}** from your profile.",
                 color=discord.Color.dark_embed(),
             )
-            return await interaction.response.send_message(embed=embed)
+            return await interaction.followup.send(embed=embed)
 
         embed = discord.Embed(
             description=f"❌ Failed to remove your color role.\nYou don't have a color role.",
             color=discord.Color.brand_red(),
         )
-        return await interaction.response.send_message(embed=embed)
+        return await interaction.followup.send(embed=embed)
 
     @app_commands.command(name='list', description='Show the color list of this server.')
     async def list_color(self, interaction: Interaction) -> None:
+        await interaction.response.defer()
         if (
             not interaction.user.premium_since
             and not interaction.user.guild_permissions.manage_roles
@@ -399,7 +406,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         embed = discord.Embed(color=discord.Color.dark_embed())
         embed.set_image(url=f'attachment://{filename}')
 
-        await interaction.response.send_message(embed=embed, file=file)
+        await interaction.followup.send(embed=embed, file=file)
 
     @app_commands.command(name='info', description='Show the basic info of a custom role.')
     @app_commands.describe(
@@ -409,6 +416,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
     async def info_color(
         self, interaction: Interaction, name: Optional[str], number: Optional[int]
     ) -> None:
+        await interaction.response.defer()
         if (
             not interaction.user.premium_since
             and not interaction.user.guild_permissions.manage_roles
@@ -437,7 +445,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
                 color=role_target.color,
                 timestamp=datetime.now(),
             )
-            return await interaction.response.send_message(embed=embed)
+            return await interaction.followup.send(embed=embed)
 
     @app_commands.command(name='delete', description='Delete custom role from list and database.')
     @app_commands.describe(
@@ -447,6 +455,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
     async def delete_color(
         self, interaction: Interaction, name: Optional[str], number: Optional[int]
     ) -> None:
+        await interaction.response.defer()
         role_target = await check_role_by_name_or_number(self, interaction, name, number)
         if role_target:
             if (
@@ -468,13 +477,14 @@ class Color(commands.GroupCog, group_name='warnet-color'):
                         timestamp=datetime.now(),
                         color=role_target.color,
                     )
-                    return await interaction.response.send_message(embed=embed)
+                    return await interaction.followup.send(embed=embed)
 
             else:
                 return await no_permission_alert(interaction)
 
     @app_commands.command(name='help', description='Show the list of available commands.')
     async def help_color(self, interaction: Interaction) -> None:
+        await interaction.response.defer()
         if (
             not interaction.user.premium_since
             and not interaction.user.guild_permissions.manage_roles
@@ -525,10 +535,11 @@ class Color(commands.GroupCog, group_name='warnet-color'):
             name='/warnet-color help',
             value='Menampilkan daftar perintah yang tersedia untuk fitur custom role.',
         )
-        return await interaction.response.send_message(embed=embed)
+        return await interaction.followup.send(embed=embed)
 
     @commands.command(name='colorsync')
     async def sync_color(self, ctx: commands.Context) -> None:
+        await ctx.typing()
         if ctx.author.guild_permissions.manage_roles:
             async with self.db_pool.acquire() as conn:
                 records = await conn.fetch("SELECT * FROM custom_role ORDER BY created_at ASC;")

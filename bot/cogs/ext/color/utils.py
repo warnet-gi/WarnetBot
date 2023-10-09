@@ -118,6 +118,6 @@ def generate_image_color_list(role_list: list[discord.Role]) -> io.BytesIO:
 
 
 async def no_permission_alert(interaction: Interaction) -> None:
-    return await interaction.response.send_message(
+    return await interaction.followup.send(
         "❌ You don't have permission to use this command", ephemeral=True
     )
