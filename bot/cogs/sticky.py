@@ -1,6 +1,6 @@
 import asyncio
 from datetime import datetime
-from typing import Union
+from typing import Optional, Union
 
 import discord
 from discord import app_commands, Interaction
@@ -15,7 +15,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
     def __init__(self, bot: WarnetBot) -> None:
         self.bot = bot
         self.db_pool = bot.get_db_pool()
-        self.sticky_data: dict[int, list[int, str]] = dict()
+        self.sticky_data: dict[int, list] = {}
 
     @commands.Cog.listener()
     async def on_connect(self) -> None:
@@ -23,7 +23,11 @@ class Sticky(commands.GroupCog, group_name="sticky"):
             records = await conn.fetch("SELECT * FROM sticky ORDER BY channel_id ASC;")
             data_list = [dict(row) for row in records]
             for data in data_list:
-                self.sticky_data[data['channel_id']] = [data['message_id'], data['message']]
+                self.sticky_data[data['channel_id']] = [
+                    data['message_id'],
+                    data['message'],
+                    data['delay_time'],
+                ]
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message) -> None:
@@ -32,6 +36,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
             res = self.sticky_data[message.channel.id]
             sticky_message_id = res[0]
             sticky_message = res[1]
+            delay_time = res[2]
 
         if res and message.author != self.bot.user:
             try:
@@ -40,17 +45,17 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                 return
 
             await sticky.delete()
-            await asyncio.sleep(2)
+            await asyncio.sleep(delay_time)
             msg = await message.channel.send(sticky_message)
 
             async with self.db_pool.acquire() as conn:
                 await conn.execute(
-                    "UPDATE sticky SET message_id = $2 WHERE channel_id = $1;",
+                    "UPDATE sticky SET message_id=$2 WHERE channel_id=$1;",
                     message.channel.id,
                     msg.id,
                 )
 
-            self.sticky_data[message.channel.id] = [msg.id, sticky_message]
+            self.sticky_data[message.channel.id] = [msg.id, sticky_message, delay_time]
 
     @app_commands.command(name="list", description="List channel with sticky message.")
     async def list_sticky_messages(self, interaction: Interaction) -> None:
@@ -63,39 +68,51 @@ class Sticky(commands.GroupCog, group_name="sticky"):
             await view.start(interaction)
 
     @app_commands.command(name="add", description="Add sticky message to a channel.")
-    @app_commands.describe(message="Sticky message.", channel="Target channel.")
+    @app_commands.describe(
+        message="Sticky message.",
+        channel="Target channel.",
+        delay_time="Delay after new message is sent on a channel (in seconds). Default is 2 seconds.",
+    )
     async def add_sticky_message(
         self,
         interaction: Interaction,
         message: app_commands.Range[str, 0, 2000],
         channel: Union[discord.TextChannel, discord.ForumChannel, discord.Thread],
+        delay_time: Optional[app_commands.Range[int, 2, 1800]],
     ) -> None:
         await interaction.response.defer()
         if interaction.permissions.manage_channels:
             async with self.db_pool.acquire() as conn:
-                res = await conn.fetch(
-                    "SELECT channel_id FROM sticky WHERE channel_id = $1;", channel.id
+                res = await conn.fetchrow(
+                    "SELECT channel_id FROM sticky WHERE channel_id=$1;", channel.id
                 )
             if not res:
-                target = self.bot.get_channel(channel.id)
+                target = interaction.guild.get_channel(channel.id)
                 message = '\n'.join(message.split('\\n'))
                 msg = await target.send(message)
+                if not delay_time:
+                    delay_time = 2  # default value
 
                 async with self.db_pool.acquire() as conn:
                     await conn.execute(
-                        "INSERT INTO sticky (channel_id,message_id,message) VALUES ($1,$2,$3);",
+                        "INSERT INTO sticky (channel_id,message_id,message,delay_time) VALUES ($1,$2,$3,$4);",
                         channel.id,
                         msg.id,
                         message,
+                        delay_time,
                     )
 
-                self.sticky_data[channel.id] = [msg.id, message]
+                self.sticky_data[channel.id] = [msg.id, message, delay_time]
 
                 await self._send_interaction(
                     interaction,
                     color=discord.Color.green(),
                     title="✅ Sticky message successfully given",
-                    description=f"Berhasil menambahkan sticky message pada channel {channel.mention}",
+                    description=(
+                        f"Berhasil menambahkan sticky message pada channel {channel.mention}\n"
+                        f"**Message**: {message}\n"
+                        f"**Delay time**: `{delay_time} secs`"
+                    ),
                 )
 
             else:
@@ -115,21 +132,26 @@ class Sticky(commands.GroupCog, group_name="sticky"):
             )
 
     @app_commands.command(name="edit", description="Edit sticky message.")
-    @app_commands.describe(message="New sticky message.", channel="Channel name.")
+    @app_commands.describe(
+        message="New sticky message.",
+        channel="Channel name.",
+        delay_time="New delay time after new message is sent on a channel (in seconds).",
+    )
     async def edit_sticky_message(
         self,
         interaction: Interaction,
         message: app_commands.Range[str, 0, 2000],
         channel: Union[discord.TextChannel, discord.ForumChannel, discord.Thread],
+        delay_time: Optional[app_commands.Range[int, 2, 1800]],
     ) -> None:
         await interaction.response.defer()
         if interaction.permissions.manage_channels:
             async with self.db_pool.acquire() as conn:
-                res = await conn.fetch(
-                    "SELECT channel_id,message_id FROM sticky WHERE channel_id = $1;",
+                data = await conn.fetchrow(
+                    "SELECT channel_id,message_id,delay_time FROM sticky WHERE channel_id=$1;",
                     channel.id,
                 )
-            if not res:
+            if not data:
                 await self._send_interaction(
                     interaction,
                     color=discord.Color.red(),
@@ -137,31 +159,37 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                     description=f"Tidak ada sticky message pada channel {channel.mention}",
                 )
             else:
-                data = dict(res[0])
+                if not delay_time:
+                    delay_time = data["delay_time"]
 
                 try:
                     sticky_msg = await channel.fetch_message(data["message_id"])
                     message = '\n'.join(message.split('\\n'))
                     sticky_data = await sticky_msg.edit(content=message)
                 except discord.errors.NotFound:
-                    sticky_channel = self.bot.get_channel(channel.id)
+                    sticky_channel = interaction.guild.get_channel(channel.id)
                     message = '\n'.join(message.split('\\n'))
                     sticky_data = await sticky_channel.send(message)
 
                 async with self.db_pool.acquire() as conn:
                     await conn.execute(
-                        "UPDATE sticky SET message = $2 WHERE channel_id = $1;",
+                        "UPDATE sticky SET message=$2, delay_time=$3 WHERE channel_id=$1;",
                         channel.id,
                         message,
+                        delay_time,
                     )
 
-                self.sticky_data[channel.id] = [sticky_data.id, message]
+                self.sticky_data[channel.id] = [sticky_data.id, message, delay_time]
 
                 await self._send_interaction(
                     interaction,
                     color=discord.Color.green(),
                     title="✅ Sticky message update successfully",
-                    description=f"Berhasil memperbaharui sticky message pada channel {channel.mention}",
+                    description=(
+                        f"Berhasil memperbarui sticky message pada channel {channel.mention}\n"
+                        f"**New message**: {message}\n"
+                        f"**Delay time**: `{delay_time} secs`"
+                    ),
                 )
         else:
             await self._send_interaction(
@@ -181,12 +209,12 @@ class Sticky(commands.GroupCog, group_name="sticky"):
         await interaction.response.defer()
         if interaction.permissions.manage_channels:
             async with self.db_pool.acquire() as conn:
-                res = await conn.fetch(
-                    "SELECT channel_id,message_id FROM sticky WHERE channel_id = $1;",
+                data = await conn.fetchrow(
+                    "SELECT channel_id,message_id FROM sticky WHERE channel_id=$1;",
                     channel.id,
                 )
 
-            if not res:
+            if not data:
                 await self._send_interaction(
                     interaction,
                     color=discord.Color.red(),
@@ -194,7 +222,6 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                     description=f"Tidak ada sticky message pada channel {channel.mention}",
                 )
             else:
-                data = dict(res[0])
                 try:
                     sticky = await channel.fetch_message(data["message_id"])
                     await sticky.delete()
@@ -202,7 +229,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                     pass
 
                 async with self.db_pool.acquire() as conn:
-                    await conn.execute("DELETE FROM sticky WHERE channel_id = $1;", channel.id)
+                    await conn.execute("DELETE FROM sticky WHERE channel_id=$1;", channel.id)
 
                 self.sticky_data.pop(channel.id)
 
@@ -230,12 +257,12 @@ class Sticky(commands.GroupCog, group_name="sticky"):
         await interaction.response.defer()
         if interaction.permissions.manage_channels:
             async with self.db_pool.acquire() as conn:
-                res = await conn.fetch(
-                    "SELECT * FROM sticky WHERE channel_id = $1;",
+                data = await conn.fetchrow(
+                    "SELECT * FROM sticky WHERE channel_id=$1;",
                     channel.id,
                 )
 
-            if not res:
+            if not data:
                 await self._send_interaction(
                     interaction,
                     color=discord.Color.red(),
@@ -243,7 +270,6 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                     description=f"Tidak ada sticky message pada channel {channel.mention}",
                 )
             else:
-                data = dict(res[0])
                 try:
                     await channel.fetch_message(data["message_id"])
                     return await self._send_interaction(
@@ -253,12 +279,12 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                         description=f"Sticky message telah terpasang pada channel {channel.mention}",
                     )
                 except discord.errors.NotFound:
-                    target = self.bot.get_channel(channel.id)
+                    target = interaction.guild.get_channel(channel.id)
                     msg = await target.send(data["message"])
 
                     async with self.db_pool.acquire() as conn:
                         await conn.execute(
-                            "UPDATE sticky SET message_id = $2 WHERE channel_id = $1;",
+                            "UPDATE sticky SET message_id=$2 WHERE channel_id=$1;",
                             channel.id,
                             msg.id,
                         )
@@ -281,7 +307,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                 data = [dict(row) for row in res]
                 for sticky in data:
                     try:
-                        channel = await self.bot.fetch_channel(sticky["channel_id"])
+                        channel = await interaction.guild.fetch_channel(sticky["channel_id"])
                         message = await channel.fetch_message(sticky["message_id"])
                         await message.delete()
                     except discord.errors.NotFound:
