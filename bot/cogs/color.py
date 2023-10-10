@@ -396,7 +396,8 @@ class Color(commands.GroupCog, group_name='warnet-color'):
 
         role_list = []
         for i in range(len(self.custom_role_data_list)):
-            role_list.append(interaction.guild.get_role(self.custom_role_data_list[i]))
+            if role := interaction.guild.get_role(self.custom_role_data_list[i]):
+                role_list.append(role)
 
         image_bytes = generate_image_color_list(role_list)
         image_bytes.seek(0)  # Reset the position to the beginning of the BytesIO object

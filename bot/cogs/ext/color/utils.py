@@ -16,9 +16,8 @@ async def check_role_by_name_or_number(
     number: Optional[int],
 ) -> Optional[Role]:
     if name and number:
-        return await interaction.response.send_message(
-            "❌ Please use just `name` or just `number`. Not both!", ephemeral=True
-        )
+        await interaction.followup.send("❌ Please use just `name` or just `number`. Not both!")
+        return None
 
     elif name or number:
         if name:
@@ -31,17 +30,16 @@ async def check_role_by_name_or_number(
                 role_target = None
 
         if not role_target:
-            return await interaction.response.send_message(
-                "❌ Failed to find the color!\nPlease use `/warnet-color list` to see all the available colors.",
-                ephemeral=True,
+            await interaction.followup.send(
+                "❌ Failed to find the color!\nPlease use `/warnet-color list` to see all the available colors."
             )
+            return None
 
         return role_target
 
     else:
-        return await interaction.response.send_message(
-            "❌ Please supply a color `name` or a color `number`!", ephemeral=True
-        )
+        await interaction.followup.send("❌ Please supply a color `name` or a color `number`!")
+        return None
 
 
 def get_current_custom_role_on_user(
