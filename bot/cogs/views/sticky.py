@@ -69,7 +69,7 @@ class StickyPagination(discord.ui.View):
                     field_name = ""
 
                     if sticky_data_list == page_data_list[0]:
-                        field_name = "Channel Name"
+                        field_name = "Channel/Thread Name"
                     else:
                         field_name = "_ _"
 
@@ -88,11 +88,9 @@ class StickyPagination(discord.ui.View):
             embed = discord.Embed(
                 color=discord.Color.gold(),
                 title="WARNET STICKY MESSAGE",
-                description="**Sticky message yang terdapat pada server WARNET**",
+                description="**NO STICKY MESSAGE IN THIS SERVER**",
                 timestamp=datetime.now(),
             )
-
-            embed.add_field(name="Channel | Message", value="**NO STICKY MESSAGE IN THIS SERVER**")
 
             embed.set_footer(text=f"{self.ctx.author.name}", icon_url=self.ctx.author.avatar.url)
             self.pages.append(embed)
@@ -150,7 +148,7 @@ class StickyPagination(discord.ui.View):
     async def next_button_callback(self, interaction: Interaction) -> None:
         if interaction.user != self.ctx.author:
             embed = discord.Embed(
-                description="You cannot control this pagination because you did not execute it.",
+                description="You can't control this pagination because you did not execute it.",
                 color=discord.Color.red(),
             )
             return await interaction.response.send_message(embed=embed, ephemeral=True)
@@ -160,7 +158,7 @@ class StickyPagination(discord.ui.View):
     async def previous_button_callback(self, interaction: Interaction) -> None:
         if interaction.user != self.ctx.author:
             embed = discord.Embed(
-                description="You cannot control this pagination because you did not execute it.",
+                description="You can't control this pagination because you did not execute it.",
                 color=discord.Color.red(),
             )
             return await interaction.response.send_message(embed=embed, ephemeral=True)
