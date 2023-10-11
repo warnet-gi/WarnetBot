@@ -148,7 +148,7 @@ class StickyPagination(discord.ui.View):
     async def next_button_callback(self, interaction: Interaction) -> None:
         if interaction.user != self.ctx.author:
             embed = discord.Embed(
-                description="You can not control this pagination because you did not execute it.",
+                description="You can't control this pagination because you did not execute it.",
                 color=discord.Color.red(),
             )
             return await interaction.response.send_message(embed=embed, ephemeral=True)
@@ -158,7 +158,7 @@ class StickyPagination(discord.ui.View):
     async def previous_button_callback(self, interaction: Interaction) -> None:
         if interaction.user != self.ctx.author:
             embed = discord.Embed(
-                description="You can not control this pagination because you did not execute it.",
+                description="You can't control this pagination because you did not execute it.",
                 color=discord.Color.red(),
             )
             return await interaction.response.send_message(embed=embed, ephemeral=True)
