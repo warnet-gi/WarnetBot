@@ -77,7 +77,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
         self,
         interaction: Interaction,
         message: app_commands.Range[str, 0, 2000],
-        channel: Union[discord.TextChannel, discord.ForumChannel, discord.Thread],
+        channel: Union[discord.TextChannel, discord.Thread],
         delay_time: Optional[app_commands.Range[int, 2, 1800]],
     ) -> None:
         await interaction.response.defer()
@@ -86,8 +86,10 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                 res = await conn.fetchrow(
                     "SELECT channel_id FROM sticky WHERE channel_id=$1;", channel.id
                 )
+
+            target = interaction.guild.get_channel_or_thread(channel.id)
+            instance_name = 'thread' if isinstance(target, discord.Thread) else 'channel'
             if not res:
-                target = interaction.guild.get_channel(channel.id)
                 message = '\n'.join(message.split('\\n'))
                 msg = await target.send(message)
                 if not delay_time:
@@ -109,7 +111,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                     color=discord.Color.green(),
                     title="✅ Sticky message successfully given",
                     description=(
-                        f"Berhasil menambahkan sticky message pada channel {channel.mention}\n"
+                        f"Berhasil menambahkan sticky message pada {instance_name} {channel.mention}\n"
                         f"**Message**: {message}\n"
                         f"**Delay time**: `{delay_time} secs`"
                     ),
@@ -120,7 +122,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                     interaction,
                     color=discord.Color.red(),
                     title="❌ Sticky message already exist",
-                    description=f"Sticky message telah terpasang pada channel {channel.mention}",
+                    description=f"Sticky message telah terpasang pada {instance_name} {channel.mention}",
                 )
 
         else:
@@ -141,7 +143,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
         self,
         interaction: Interaction,
         message: app_commands.Range[str, 0, 2000],
-        channel: Union[discord.TextChannel, discord.ForumChannel, discord.Thread],
+        channel: Union[discord.TextChannel, discord.Thread],
         delay_time: Optional[app_commands.Range[int, 2, 1800]],
     ) -> None:
         await interaction.response.defer()
@@ -151,12 +153,15 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                     "SELECT channel_id,message_id,delay_time FROM sticky WHERE channel_id=$1;",
                     channel.id,
                 )
+
+            target = interaction.guild.get_channel_or_thread(channel.id)
+            instance_name = 'thread' if isinstance(target, discord.Thread) else 'channel'
             if not data:
                 await self._send_interaction(
                     interaction,
                     color=discord.Color.red(),
                     title="❌ Sticky message not exist",
-                    description=f"Tidak ada sticky message pada channel {channel.mention}",
+                    description=f"Tidak ada sticky message pada {instance_name} {channel.mention}",
                 )
             else:
                 if not delay_time:
@@ -167,7 +172,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                     message = '\n'.join(message.split('\\n'))
                     sticky_data = await sticky_msg.edit(content=message)
                 except discord.errors.NotFound:
-                    sticky_channel = interaction.guild.get_channel(channel.id)
+                    sticky_channel = interaction.guild.get_channel_or_thread(channel.id)
                     message = '\n'.join(message.split('\\n'))
                     sticky_data = await sticky_channel.send(message)
 
@@ -186,7 +191,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                     color=discord.Color.green(),
                     title="✅ Sticky message update successfully",
                     description=(
-                        f"Berhasil memperbarui sticky message pada channel {channel.mention}\n"
+                        f"Berhasil memperbarui sticky message pada {instance_name} {channel.mention}\n"
                         f"**New message**: {message}\n"
                         f"**Delay time**: `{delay_time} secs`"
                     ),
@@ -204,7 +209,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
     async def remove_sticky_message(
         self,
         interaction: Interaction,
-        channel: Union[discord.TextChannel, discord.ForumChannel, discord.Thread],
+        channel: Union[discord.TextChannel, discord.Thread],
     ) -> None:
         await interaction.response.defer()
         if interaction.permissions.manage_channels:
@@ -214,12 +219,14 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                     channel.id,
                 )
 
+            target = interaction.guild.get_channel_or_thread(channel.id)
+            instance_name = 'thread' if isinstance(target, discord.Thread) else 'channel'
             if not data:
                 await self._send_interaction(
                     interaction,
                     color=discord.Color.red(),
                     title="❌ Sticky message not exist",
-                    description=f"Tidak ada sticky message pada channel {channel.mention}",
+                    description=f"Tidak ada sticky message pada {instance_name} {channel.mention}",
                 )
             else:
                 try:
@@ -237,7 +244,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                     interaction,
                     color=discord.Color.green(),
                     title="✅ Sticky message removed successfully",
-                    description=f"Berhasil menghapus sticky message pada channel {channel.mention}",
+                    description=f"Berhasil menghapus sticky message pada {instance_name} {channel.mention}",
                 )
         else:
             await self._send_interaction(
@@ -252,7 +259,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
     async def resend_sticky_message(
         self,
         interaction: Interaction,
-        channel: Union[discord.TextChannel, discord.ForumChannel, discord.Thread],
+        channel: Union[discord.TextChannel, discord.Thread],
     ) -> None:
         await interaction.response.defer()
         if interaction.permissions.manage_channels:
@@ -262,12 +269,14 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                     channel.id,
                 )
 
+            target = interaction.guild.get_channel_or_thread(channel.id)
+            instance_name = 'thread' if isinstance(target, discord.Thread) else 'channel'
             if not data:
                 await self._send_interaction(
                     interaction,
                     color=discord.Color.red(),
                     title="❌ Sticky message not exist",
-                    description=f"Tidak ada sticky message pada channel {channel.mention}",
+                    description=f"Tidak ada sticky message pada {instance_name} {channel.mention}",
                 )
             else:
                 try:
@@ -276,10 +285,10 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                         interaction,
                         color=discord.Color.red(),
                         title="❌ Sticky message already exist",
-                        description=f"Sticky message telah terpasang pada channel {channel.mention}",
+                        description=f"Sticky message telah terpasang pada {instance_name} {channel.mention}",
                     )
                 except discord.errors.NotFound:
-                    target = interaction.guild.get_channel(channel.id)
+                    target = interaction.guild.get_channel_or_thread(channel.id)
                     msg = await target.send(data["message"])
 
                     async with self.db_pool.acquire() as conn:
@@ -295,7 +304,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                     interaction,
                     color=discord.Color.green(),
                     title="✅ Sticky message re-send successfully",
-                    description=f"Berhasil mengirim ulang sticky message pada channel {channel.mention}",
+                    description=f"Berhasil mengirim ulang sticky message pada {instance_name} {channel.mention}",
                 )
 
     @app_commands.command(name="purge", description="Remove all sticky message from channels.")
@@ -319,7 +328,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                 interaction,
                 color=discord.Color.green(),
                 title="✅ All sticky message removed successfully",
-                description=f"Berhasil menghapus seluruh sticky message pada channel",
+                description=f"Berhasil menghapus sticky message pada seluruh channel dan thread",
             )
 
         else:
