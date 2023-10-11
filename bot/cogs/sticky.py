@@ -308,27 +308,44 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                 )
 
     @app_commands.command(name="purge", description="Remove all sticky message from channels.")
-    async def purge_sticky_message(self, interaction: Interaction) -> None:
+    @app_commands.describe(
+        invalid_channel_only="Only purge sticky message data from deleted channel or thread"
+    )
+    async def purge_sticky_message(
+        self, interaction: Interaction, invalid_channel_only: Optional[bool]
+    ) -> None:
         await interaction.response.defer()
         if interaction.permissions.manage_channels:
             async with self.db_pool.acquire() as conn:
                 res = await conn.fetch("SELECT * FROM sticky;")
                 data = [dict(row) for row in res]
+                invalid_channel_id_list = []
                 for sticky in data:
                     try:
-                        channel = await interaction.guild.fetch_channel(sticky["channel_id"])
+                        channel = interaction.guild.get_channel_or_thread(sticky["channel_id"])
                         message = await channel.fetch_message(sticky["message_id"])
-                        await message.delete()
+                        if not invalid_channel_only:
+                            await message.delete()
+                    except AttributeError:  # This is happened if channel is None
+                        invalid_channel_id_list.append([sticky["channel_id"]])
                     except discord.errors.NotFound:
                         continue
 
-                await conn.execute("TRUNCATE TABLE sticky;")
+                if not invalid_channel_only:
+                    await conn.execute("TRUNCATE TABLE sticky;")
+                else:
+                    await conn.executemany(
+                        "DELETE FROM sticky WHERE channel_id=$1;", invalid_channel_id_list
+                    )
 
             await self._send_interaction(
                 interaction,
                 color=discord.Color.green(),
                 title="✅ All sticky message removed successfully",
-                description=f"Berhasil menghapus sticky message pada seluruh channel dan thread",
+                description=(
+                    "Berhasil menghapus sticky message pada seluruh channel dan thread"
+                    f"{' yang invalid' if invalid_channel_only else ''}"
+                ),
             )
 
         else:
