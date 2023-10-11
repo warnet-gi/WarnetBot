@@ -90,7 +90,7 @@ def generate_image_color_list(role_list: list[discord.Role]) -> io.BytesIO:
         x_now = (col * column_px) + 10
         y_now = 1
         for role in role_list[col * boundary : (col + 1) * boundary]:
-            name = role.name[:20] + '...' if len(role.name) > 20 else role.name
+            name = role.name[:15] + '...' if len(role.name) > 15 else role.name
             text = f'{number}. {name}'
             fill_color = Paint.Color(Color(*role.color.to_rgb()))
 
