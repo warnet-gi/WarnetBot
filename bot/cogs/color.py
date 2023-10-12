@@ -113,6 +113,8 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         boundary_role = interaction.guild.get_role(CustomRoleConfig.BOUNDARY_ROLE_ID)
         await created_role.edit(position=boundary_role.position - 1)
 
+        self.cache['color-list'] = None
+
         embed = discord.Embed(
             color=valid_color, description=f'✅ Successfully created role: **{created_role.name}**.'
         )
@@ -186,6 +188,8 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         boundary_role = interaction.guild.get_role(CustomRoleConfig.BOUNDARY_ROLE_ID)
         await created_role.edit(position=boundary_role.position - 1)
 
+        self.cache['color-list'] = None
+
         embed = discord.Embed(
             color=valid_color, description=f'✅ Successfully created role: **{created_role.name}**.'
         )
@@ -242,6 +246,8 @@ class Color(commands.GroupCog, group_name='warnet-color'):
                 or interaction.user.id == self.custom_role_data[role_target.id]
             ):
                 edited_role = await role_target.edit(name=new_name, color=valid_color)
+
+                self.cache['color-list'] = None
 
                 embed = discord.Embed(
                     title="Custom role edited!",
@@ -307,6 +313,8 @@ class Color(commands.GroupCog, group_name='warnet-color'):
                 or interaction.user.id == self.custom_role_data[role_target.id]
             ):
                 edited_role = await role_target.edit(name=new_name, color=valid_color)
+
+                self.cache['color-list'] = None
 
                 embed = discord.Embed(
                     title="Custom role edited!",
@@ -399,10 +407,12 @@ class Color(commands.GroupCog, group_name='warnet-color'):
             if role := interaction.guild.get_role(self.custom_role_data_list[i]):
                 role_list.append(role)
 
-        image_bytes = generate_image_color_list(role_list)
-        image_bytes.seek(0)  # Reset the position to the beginning of the BytesIO object
+        if not (image_bytes := self.cache.get('color-list')):
+            image_bytes = generate_image_color_list(role_list)
+            self.cache['color-list'] = image_bytes
 
         filename = 'custom_roles_list.png'
+        image_bytes.seek(0)  # Reset the position to the beginning of the BytesIO object
         file = discord.File(image_bytes, filename)
         embed = discord.Embed(color=discord.Color.dark_embed())
         embed.set_image(url=f'attachment://{filename}')
@@ -471,6 +481,8 @@ class Color(commands.GroupCog, group_name='warnet-color'):
                     self.custom_role_data.pop(role_target.id)
                     self.custom_role_data_list = list(self.custom_role_data.keys())
                     await role_target.delete()
+
+                    self.cache['color-list'] = None
 
                     embed = discord.Embed(
                         title="Deleted color!",
@@ -551,6 +563,8 @@ class Color(commands.GroupCog, group_name='warnet-color'):
                 if ctx.guild.get_role(data['role_id']):
                     self.custom_role_data[data['role_id']] = data['owner_discord_id']
             self.custom_role_data_list = list(self.custom_role_data.keys())
+
+            self.cache['color-list'] = None
 
             await ctx.reply("_Custom roles have been synced_", mention_author=False)
 
