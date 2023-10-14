@@ -160,8 +160,8 @@ class General(commands.Cog):
         day = current_time.day if not day else day
         month = current_time.month if not month else month
         year = current_time.year if not year else year
-        hour = current_time.hour if not hour else hour
-        minute = current_time.minute if not minute else minute
+        hour = current_time.hour if hour is None else hour
+        minute = current_time.minute if minute is None else minute
 
         try:
             idn_dt = idn_tz.localize(datetime(year, month, day, hour=hour, minute=minute))
@@ -193,7 +193,7 @@ class General(commands.Cog):
 
         await ctx.channel.send(
             f"Tata cara menjadi **HOST NOBAR** di server {ctx.guild.name}:\n"
-            f"1.  Silahkan ajukan tiket **Kontak Admin dan Mod** di <#{OPEN_TICKET_CHANNEL_ID}>.\n"
+            f"1. Silahkan ajukan tiket **Kontak Admin dan Mod** di <#{OPEN_TICKET_CHANNEL_ID}>.\n"
             f"2. Tentukan **Judul Film**, **Tanggal**, dan **Jam** nobar. Minimal __satu hari sebelum nobar__, agar dapat diumumkan kepada role **{nobar_role.name}** terlebih dahulu.\n"
             f"3. Pada saat waktu nobar, Admin/Mod akan memberikan kamu akses agar dapat stream pada channel <#{NOBAR_CHANNEL_ID}>."
         )
