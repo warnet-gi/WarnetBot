@@ -8,9 +8,6 @@ on:
     branches:
       - main
 
-permissions:
-  contents: read
-
 jobs:
   test-cov:
     runs-on: ubuntu-latest
@@ -27,4 +24,4 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Test with pytest
-        run: pytest --cov --disable-warnings -q
+        run: python -m pytest --cov --disable-warnings -q
