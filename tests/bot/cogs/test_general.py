@@ -8,12 +8,12 @@ from bot.cogs.general import General
 class GeneralTests(unittest.IsolatedAsyncioTestCase):
     async def test_ping(self):
         mock_latency = PropertyMock(return_value=100)
-        
+
         mock_warnet_bot = MagicMock()
         mock_warnet_bot.latency = mock_latency
 
         mock_context = AsyncMock()
-        
+
         cmd = General(mock_warnet_bot)
         await cmd.ping(mock_warnet_bot, mock_context)
 
@@ -21,20 +21,20 @@ class GeneralTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_nobar(self):
         mock_warnet_bot = MagicMock()
-        
+
         mock_role = MagicMock()
         mock_role.name = "MOCK_ROLE_NAME"
-        
+
         mock_guild = MagicMock()
         mock_guild.name = "MOCK_GUILD_NAME"
         mock_guild.get_role.return_value = mock_role
 
         mock_channel = AsyncMock()
-        
+
         mock_context = AsyncMock()
         mock_context.guild = mock_guild
         mock_context.channel = mock_channel
-        
+
         cmd = General(mock_warnet_bot)
         await cmd.nobar(mock_warnet_bot, mock_context)
 
