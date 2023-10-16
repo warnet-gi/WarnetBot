@@ -298,7 +298,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                             msg.id,
                         )
 
-                    self.sticky_data[channel.id] = [msg.id, data["message"]]
+                    self.sticky_data[channel.id] = [msg.id, data["message"], data["delay_time"]]
 
                 await self._send_interaction(
                     interaction,
