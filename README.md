@@ -24,7 +24,7 @@
 
 ## How to contribute?
 
-Start to contribute to our community by following this [contributing guidelines](https://github.com/Iqrar99/WarnetBot/blob/main/CONTRIBUTING.md).
+Start to contribute to our community by following this [contributing guidelines](./CONTRIBUTING.md).
 
 ## Usage Guide
 
