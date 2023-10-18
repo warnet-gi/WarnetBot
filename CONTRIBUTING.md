@@ -42,7 +42,7 @@ Before creating your pull request, make sure you already **read the whole guidel
 ## Common Problems
 
 - Got **Invalid literal for int() with base 10: 'YOUR_GUILD_ID'** after running `poetry run task start`
-  - Define the `GUILD_ID` value in `.env` first with your Discord Server ID.
+  - Define the `GUILD_ID` value in `.env` file with your Discord Server ID.
 
 ## Sending Pull Request(s)
 

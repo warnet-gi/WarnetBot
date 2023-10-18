@@ -24,7 +24,7 @@
 
 ## How to contribute?
 
-Start to contribute to our community by following this [contributing guidelines](./CONTRIBUTING.md).
+Start contributing to our community by following this [contributing guidelines](./CONTRIBUTING.md).
 
 ## Usage Guide
 
