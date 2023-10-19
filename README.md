@@ -19,17 +19,26 @@
 
 ## Requirement
 
-- python 3.10
-- postgresql
+- Python 3.10
+- PostgreSQL
 
 ## How to contribute?
 
-Start contributing to our community by following this [contributing guidelines](./CONTRIBUTING.md).
+Start contributing to our community by following this [contributing guideline](./CONTRIBUTING.md).
 
 ## Usage Guide
 
-To learn how to use this bot, please visit our [wiki documentation](https://github.com/Iqrar99/WarnetBot/wiki) for the commands info.
+To learn how to use this bot, please visit our [wiki documentation](https://github.com/warnet-gi/WarnetBot/wiki) for the commands info.
 
 ## License
 
-The Warnet Bot is open-sourced software licensed under the [MIT License](https://opensource.org/licenses/MIT).
+The Warnet Bot is open-sourced software licensed under the [MIT License](./LICENSE).
+
+
+## Contributors
+
+Many thanks to all the people who already contributed!
+
+<a href="https://github.com/warnet-gi/WarnetBot/graphs/contributors">
+    <img src="https://contrib.rocks/image?repo=warnet-gi/WarnetBot"/>
+</a>
