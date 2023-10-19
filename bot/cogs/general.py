@@ -90,24 +90,32 @@ class General(commands.Cog):
         aliases=['rm'],
         description='Shows all members associated with a given role.',
     )
-    @app_commands.describe(role='Guild role that you want to see the members associated in it.')
-    async def role_members(self, ctx: commands.Context, role: discord.Role) -> None:
+    @app_commands.describe(
+        role='Guild role that you want to see the members associated in it.',
+        id_only='Only return the discord ID without newline.',
+    )
+    async def role_members(
+        self, ctx: commands.Context, role: discord.Role, id_only: Optional[bool]
+    ) -> None:
         await ctx.typing()
-        content = f"Members with **{role.name}** role\n"
+        content = f"**{len(role.members)}** member(s) with **{role.name}** role\n"
         content += "```json\n"
         members_content = ''
         if role.members:
             for member in role.members:
-                members_content += f"{member.name} - {member.id}\n"
+                if not id_only:
+                    members_content += f"{member.name} - {member.id}\n"
+                else:
+                    members_content += f"{member.id} "
             content += members_content
         else:
-            content += "No members associated with this role"
+            content += "No member associated with this role"
         content += "```"
 
         if len(content) > 2000:
             buffer = io.BytesIO(members_content.encode('utf-8'))
             await ctx.reply(
-                content=f"Members with **{role.name}** role",
+                content=f"**{len(role.members)}** member(s) with **{role.name}** role",
                 file=discord.File(buffer, filename=f"{role.name}.txt"),
                 mention_author=False,
             )
