@@ -34,10 +34,11 @@ class General(commands.Cog):
         embed.set_thumbnail(url=self.bot.user.display_avatar.url)
         embed.add_field(name='Developer', value="momonnie", inline=False)
         embed.add_field(
-            name='Contributor',
+            name='Contributors',
             value=(
                 "- [Irvan789](https://github.com/Irvan789)\n"
-                "- [rafiramadhana](https://github.com/rafiramadhana)"
+                "- [rafiramadhana](https://github.com/rafiramadhana)\n"
+                "- [syhrimr](https://github.com/syhrimr)"
             ),
             inline=False,
         )
