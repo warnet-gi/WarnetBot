@@ -240,8 +240,9 @@ class General(commands.Cog):
             discord.Game(name='Genshin Impact'),
             discord.Game(name='Arknights'),
             discord.Game(name='Honkai: Star Rail'),
+            discord.Game(name='Reverse: 1999'),
             discord.Activity(type=discord.ActivityType.listening, name=f'war! help'),
-            discord.Activity(type=discord.ActivityType.watching, name=f'{humans} Pengguna WARNET'),
+            discord.Activity(type=discord.ActivityType.watching, name=f'{humans} Anak WARNET'),
             discord.Activity(type=discord.ActivityType.competing, name='Spiral Abyss'),
         ]
         discord_status = [
