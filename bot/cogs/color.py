@@ -448,7 +448,8 @@ class Color(commands.GroupCog, group_name='warnet-color'):
             embed = discord.Embed(
                 title="Color info",
                 description=(
-                    f"**Owner**: {owner.name} ({owner.mention})\n"
+                    f"**Role name**: {role_target.name} ({role_target.mention})\n"
+                    f"**Owner**: {(owner.name + ' (' + owner.mention + ')') if owner else 'No Owner'}\n"
                     f"**RGB**: {role_target.color.to_rgb()}\n"
                     f"**HEX**: {str(role_target.color)}\n"
                     f"**Created date**: {create_time.strftime('%A, %d-%m-%Y %H:%M:%S')}"
