@@ -254,7 +254,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                 description=f"Permission Manage Channel Dibutuhkan",
             )
 
-    @app_commands.command(name="re-send", description="Re-send sticky message to channels.")
+    @app_commands.command(name="resend", description="Resend sticky message to channels.")
     @app_commands.describe(channel="Target Channel")
     async def resend_sticky_message(
         self,
