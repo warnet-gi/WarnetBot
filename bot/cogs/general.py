@@ -38,7 +38,8 @@ class General(commands.Cog):
             value=(
                 "- [Irvan789](https://github.com/Irvan789)\n"
                 "- [rafiramadhana](https://github.com/rafiramadhana)\n"
-                "- [syhrimr](https://github.com/syhrimr)"
+                "- [syhrimr](https://github.com/syhrimr)\n"
+                "- [The5cheduler](https://github.com/The5cheduler)"
             ),
             inline=False,
         )
