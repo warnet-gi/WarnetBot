@@ -6,7 +6,7 @@ import pytz
 from discord.ext import commands, tasks
 
 from bot.bot import WarnetBot
-from bot.config import BOOSTER_ROLE_ID, GUILD_ID, ADMIN_CHANNEL_ID
+from bot.config import ADMIN_CHANNEL_ID, BOOSTER_ROLE_ID, GUILD_ID
 
 
 class Booster(commands.Cog):
