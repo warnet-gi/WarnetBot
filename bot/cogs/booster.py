@@ -6,7 +6,7 @@ import pytz
 from discord.ext import commands, tasks
 
 from bot.bot import WarnetBot
-from bot.config import Booster, GUILD_ID
+from bot.config import BOOSTER_ROLE_ID, GUILD_ID, ADMIN_CHANNEL_ID
 
 
 class Booster(commands.Cog):
@@ -21,9 +21,9 @@ class Booster(commands.Cog):
     async def _monthly_booster(self) -> None:
         date = datetime.now(pytz.timezone('Asia/Jakarta'))
         if date.day == 1:
-            channel = self.bot.get_channel(Booster.ADMIN_CHANNEL_ID)
+            channel = self.bot.get_channel(ADMIN_CHANNEL_ID)
             guild = self.bot.get_guild(GUILD_ID)
-            role = guild.get_role(Booster.BOOSTER_ROLE_ID)
+            role = guild.get_role(BOOSTER_ROLE_ID)
             members_content = ''
             for member in role.members:
                 members_content += f"{member.id} "
