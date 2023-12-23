@@ -9,7 +9,7 @@ from bot.bot import WarnetBot
 from bot.config import Booster, GUILD_ID
 
 
-class Loop(commands.Cog):
+class Booster(commands.Cog):
     def __init__(self, bot: WarnetBot) -> None:
         self.bot = bot
 
