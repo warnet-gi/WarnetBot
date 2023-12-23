@@ -37,4 +37,4 @@ class Loop(commands.Cog):
 
 
 async def setup(bot: WarnetBot) -> None:
-    await bot.add_cog(Loop(bot))
+    await bot.add_cog(Booster(bot))
