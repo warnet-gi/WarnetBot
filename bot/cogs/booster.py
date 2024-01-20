@@ -27,7 +27,7 @@ class Booster(commands.Cog):
     @tasks.loop(time=time(hour=0, minute=0, tzinfo=timezone(timedelta(hours=7))))
     async def _monthly_booster(self) -> None:
         date = datetime.now(pytz.timezone('Asia/Jakarta'))
-        if date.day == 21:
+        if date.day == 1:
             admin_channel = self.bot.get_channel(ADMIN_CHANNEL_ID)
             tatsu_log_channel = self.bot.get_channel(TATSU_LOG_CHANNEL_ID)
             guild = self.bot.get_guild(GUILD_ID)
