@@ -32,6 +32,7 @@ class Booster(commands.Cog):
             tatsu_log_channel = self.bot.get_channel(TATSU_LOG_CHANNEL_ID)
             guild = self.bot.get_guild(GUILD_ID)
             role = guild.get_role(BOOSTER_ROLE_ID)
+            month = date.strftime("%B")
             members_content = ''
             for member in role.members:
                 await TatsuApi().add_score(member.id, 0, BOOSTER_MONTHLY_EXP)
@@ -49,9 +50,9 @@ class Booster(commands.Cog):
                 members_content += f"{member.id} "
                 sleep(1.5)
             buffer = io.BytesIO(members_content.encode('utf-8'))
-            file = discord.File(buffer, filename=f"{date.month}_honorary.txt")
+            file = discord.File(buffer, filename=f"{month}_honorary.txt")
             await admin_channel.send(
-                content=f"Exp Honorary Bulanan Sudah dibagikan, ANNOUNCEMENT! \n log honorary bulan {date.month}",
+                content=f"Exp Honorary Bulanan Sudah dibagikan, ANNOUNCEMENT! \n log honorary bulan {month}",
                 file=file,
             )
 
