@@ -24,7 +24,7 @@ class Booster(commands.Cog):
     async def on_connect(self) -> None:
         self._monthly_booster.start()
 
-    @tasks.loop(minutes=5)  # (time=time(hour=0, minute=0, tzinfo=timezone(timedelta(hours=7))))
+    @tasks.loop(time=time(hour=0, minute=0, tzinfo=timezone(timedelta(hours=7))))
     async def _monthly_booster(self) -> None:
         date = datetime.now(pytz.timezone('Asia/Jakarta'))
         if date.day == 21:
