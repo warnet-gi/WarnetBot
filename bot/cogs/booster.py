@@ -37,7 +37,7 @@ class Booster(commands.Cog):
                 await TatsuApi().add_score(member.id, 0, BOOSTER_MONTHLY_EXP)
                 embed = discord.Embed(
                     title="<a:checklist:1077585402422112297> Score updated!",
-                    description=f"Successfully awarded {BOOSTER_MONTHLY_EXP} score to <@{member.id}>",
+                    description=f"Successfully awarded `{BOOSTER_MONTHLY_EXP}` score to <@{member.id}>",
                     timestamp=datetime.now(),
                     colour=0x17A168,
                 )
