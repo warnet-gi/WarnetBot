@@ -56,7 +56,7 @@ class Booster(commands.Cog):
             buffer = io.BytesIO(member_id.encode('utf-8'))
             file = discord.File(buffer, filename=f"{month}_honorary.txt")
             await admin_channel.send(
-                content=f"Exp Honorary Bulanan Sudah dibagikan, jangan lupa Announcement. \n log honorary bulan {month}",
+                content=f"Exp Honorary Bulanan Sudah dibagikan, jangan lupa Announcement.\nlog honorary bulan {month}",
                 file=file,
             )
 

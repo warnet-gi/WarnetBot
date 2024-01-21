@@ -32,7 +32,7 @@ class RankingObject:
 @dataclass
 class GuildRankings:
     guild_id: int
-    rankings: [RankingObject]
+    rankings: list[RankingObject]
     original: dict
 
 

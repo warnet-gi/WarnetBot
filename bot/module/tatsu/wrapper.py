@@ -8,6 +8,9 @@ import bot.module.tatsu.data_structures as ds
 
 class ApiWrapper:
     def __init__(self, key):
+        """ Initiate the handling request
+        :param key: Tatsu API Key. Use 't!apikey create' to obtain this.
+        """
         self.key = key
         self.base_url = "https://api.tatsu.gg/v1/"
         self.headers = {"Authorization": key}
@@ -23,6 +26,7 @@ class ApiWrapper:
 
     @limits(calls=60, period=60)
     async def patch(self, url, payload):
+        """Directly interact with the API to patch object."""
         async with aiohttp.ClientSession() as session:
             async with session.patch(
                 url=self.base_url + url, json=payload, headers=self.headers
@@ -44,19 +48,19 @@ class ApiWrapper:
         except Exception:
             subscription_renewal = None
         user = ds.UserProfile(
-            avatar_hash=result.get('avatar_hash', None),
-            avatar_url=result.get('avatar_url', None),
-            credits_=result.get('credits', None),
-            discriminator=result.get('discriminator', None),
-            user_id=result.get('id', None),
-            info_box=result.get('info_box', None),
-            reputation=result.get('reputation', None),
-            subscription_type=result.get('subscription_type', None),
+            avatar_hash=result.get('avatar_hash'),
+            avatar_url=result.get('avatar_url'),
+            credits_=result.get('credits'),
+            discriminator=result.get('discriminator'),
+            user_id=result.get('id'),
+            info_box=result.get('info_box'),
+            reputation=result.get('reputation'),
+            subscription_type=result.get('subscription_type'),
             subscription_renewal=subscription_renewal,
-            title=result.get('title', None),
-            tokens=result.get('tokens', None),
-            username=result.get('username', None),
-            xp=result.get('xp', None),
+            title=result.get('title'),
+            tokens=result.get('tokens'),
+            username=result.get('username'),
+            xp=result.get('xp'),
             original=result,
         )
         return user
@@ -65,6 +69,7 @@ class ApiWrapper:
         """Gets the all-time ranking for a guild member. Returns a guild member ranking object on success.
         :param guild_id: The ID of the guild
         :param user_id: The user id
+        guild member ranking object: guild_id, rank, score, user_id, and dict all of that
         """
         try:
             result = await self.request(f"/guilds/{guild_id}/rankings/members/{user_id}/all")
@@ -75,12 +80,13 @@ class ApiWrapper:
 
     @staticmethod
     def ranking_object(result) -> ds.RankingObject:
-        """Initiate the rank profile"""
+        """Initiate the rank profile.
+        Returns guild_id, rank, score, user_id, and dict all of that"""
         rank = ds.RankingObject(
-            guild_id=result.get('guild_id', None),
-            rank=result.get('rank', None),
-            score=result.get('score', None),
-            user_id=result.get('user_id', None),
+            guild_id=result.get('guild_id'),
+            rank=result.get('rank'),
+            score=result.get('score'),
+            user_id=result.get('user_id'),
             original=result,
         )
         return rank
@@ -96,7 +102,7 @@ class ApiWrapper:
         except Exception as e:
             raise e
         rankings = ds.GuildRankings(
-            guild_id=result.get('guild_id', None),
+            guild_id=result.get('guild_id'),
             rankings=[self.ranking_object(i) for i in result.get('rankings', [{}])],
             original=result,
         )
@@ -110,8 +116,22 @@ class ApiWrapper:
         except Exception as e:
             raise e
         score = ds.GuildScoreObject(
-            guild_id=result.get('guild_id', None),
-            score=result.get('score', None),
-            user_id=result.get('user_id', None),
+            guild_id=result.get('guild_id'),
+            score=result.get('score'),
+            user_id=result.get('user_id'),
+        )
+        return score
+    
+    async def subtract_score (self, guild_id: int, user_id: int, amount: int) -> ds.GuildScoreObject:
+        url = f"/guilds/{guild_id}/members/{user_id}/score"
+        payload = {'action': 1, 'amount': amount}
+        try:
+            result = await self.patch(url, payload)
+        except Exception as e:
+            raise e
+        score = ds.GuildScoreObject(
+            guild_id=result.get('guild_id'),
+            score=result.get('score'),
+            user_id=result.get('user_id'),
         )
         return score
