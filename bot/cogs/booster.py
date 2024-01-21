@@ -34,11 +34,13 @@ class Booster(commands.Cog):
             role = guild.get_role(BOOSTER_ROLE_ID)
             month = date.strftime("%B")
             member_tag = member_id = ''
+
             for member in role.members:
                 await TatsuApi().add_score(member.id, BOOSTER_MONTHLY_EXP)
                 member_tag += f"<@{member.id}>, "
                 member_id += f"{member.id} "
                 await asyncio.sleep(1.5)
+
             embed = discord.Embed(
                 title="<a:checklist:1077585402422112297> Score updated!",
                 description=f"Successfully awarded `{BOOSTER_MONTHLY_EXP}` score to <@&{role}> ({len(role.members)} members)\n\n{member_tag}",
@@ -50,6 +52,7 @@ class Booster(commands.Cog):
                 icon_url="https://cdn.discordapp.com/attachments/761684443915485184/1038313075260002365/warnet_logo_putih.png",
             )
             await tatsu_log_channel.send(embed=embed)
+
             buffer = io.BytesIO(member_id.encode('utf-8'))
             file = discord.File(buffer, filename=f"{month}_honorary.txt")
             await admin_channel.send(
