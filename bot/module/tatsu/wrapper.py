@@ -45,7 +45,7 @@ class ApiWrapper:
             subscription_renewal = datetime.datetime.strptime(
                 result.get("subscription_renewal"), "%Y-%m-%dT%H:%M:%SZ"
             )
-        except Exception:
+        except ValueError:
             subscription_renewal = None
         user = ds.UserProfile(
             avatar_hash=result.get('avatar_hash'),
