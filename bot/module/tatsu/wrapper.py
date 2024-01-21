@@ -8,7 +8,7 @@ import bot.module.tatsu.data_structures as ds
 
 class ApiWrapper:
     def __init__(self, key):
-        """ Initiate the handling request
+        """Initiate the handling request
         :param key: Tatsu API Key. Use 't!apikey create' to obtain this.
         """
         self.key = key
@@ -121,8 +121,8 @@ class ApiWrapper:
             user_id=result.get('user_id'),
         )
         return score
-    
-    async def subtract_score (self, guild_id: int, user_id: int, amount: int) -> ds.GuildScoreObject:
+
+    async def subtract_score(self, guild_id: int, user_id: int, amount: int) -> ds.GuildScoreObject:
         url = f"/guilds/{guild_id}/members/{user_id}/score"
         payload = {'action': 1, 'amount': amount}
         try:
