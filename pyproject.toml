@@ -15,6 +15,7 @@ pillow = "^10.0.0"
 python = "^3.10"
 python-dotenv = "^0.21.1"
 pytz = "^2022.7.1"
+ratelimit = "^2.2.1"
 taskipy = "^1.12.0"
 
 
