@@ -37,7 +37,7 @@ class Booster(commands.Cog):
 
             for member in role.members:
                 await TatsuApi().add_score(member.id, BOOSTER_MONTHLY_EXP)
-                member_tag += f"<@{member.id}>, "
+                member_tag += f"{member.mention}, "
                 member_id += f"{member.id} "
                 await asyncio.sleep(1.5)
 
