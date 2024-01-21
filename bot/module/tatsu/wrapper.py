@@ -102,11 +102,9 @@ class ApiWrapper:
         )
         return rankings
 
-    async def add_score(
-        self, guild_id: int, user_id: int, action: bool, amount: int
-    ) -> ds.GuildScoreObject:
+    async def add_score(self, guild_id: int, user_id: int, amount: int) -> ds.GuildScoreObject:
         url = f"/guilds/{guild_id}/members/{user_id}/score"
-        payload = {'action': action, 'amount': amount}
+        payload = {'action': 0, 'amount': amount}
         try:
             result = await self.patch(url, payload)
         except Exception as e:
