@@ -41,12 +41,14 @@ class ApiWrapper:
             result = await self.request(f"users/{user_id}/profile")
         except Exception as e:
             raise e
+
         try:
             subscription_renewal = datetime.datetime.strptime(
                 result.get("subscription_renewal"), "%Y-%m-%dT%H:%M:%SZ"
             )
         except ValueError:
             subscription_renewal = None
+
         user = ds.UserProfile(
             avatar_hash=result.get('avatar_hash'),
             avatar_url=result.get('avatar_url'),
@@ -101,6 +103,7 @@ class ApiWrapper:
             result = await self.request(f"/guilds/{guild_id}/rankings/{timeframe}?offset={offset}")
         except Exception as e:
             raise e
+
         rankings = ds.GuildRankings(
             guild_id=result.get('guild_id'),
             rankings=[self.ranking_object(i) for i in result.get('rankings', [{}])],
@@ -111,10 +114,12 @@ class ApiWrapper:
     async def add_score(self, guild_id: int, user_id: int, amount: int) -> ds.GuildScoreObject:
         url = f"/guilds/{guild_id}/members/{user_id}/score"
         payload = {'action': 0, 'amount': amount}
+
         try:
             result = await self.patch(url, payload)
         except Exception as e:
             raise e
+
         score = ds.GuildScoreObject(
             guild_id=result.get('guild_id'),
             score=result.get('score'),
@@ -125,10 +130,12 @@ class ApiWrapper:
     async def subtract_score(self, guild_id: int, user_id: int, amount: int) -> ds.GuildScoreObject:
         url = f"/guilds/{guild_id}/members/{user_id}/score"
         payload = {'action': 1, 'amount': amount}
+
         try:
             result = await self.patch(url, payload)
         except Exception as e:
             raise e
+
         score = ds.GuildScoreObject(
             guild_id=result.get('guild_id'),
             score=result.get('score'),

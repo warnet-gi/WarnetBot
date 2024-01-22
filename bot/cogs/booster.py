@@ -33,30 +33,30 @@ class Booster(commands.Cog):
             guild = self.bot.get_guild(GUILD_ID)
             role = guild.get_role(BOOSTER_ROLE_ID)
             month = date.strftime("%B")
-            member_tag = member_id = ''
+            member_tags = member_ids = ''
 
             for member in role.members:
                 await TatsuApi().add_score(member.id, BOOSTER_MONTHLY_EXP)
-                member_tag += f"{member.mention}, "
-                member_id += f"{member.id} "
+                member_tags += f"{member.mention}, "
+                member_ids += f"{member.id} "
                 await asyncio.sleep(1.5)
 
             embed = discord.Embed(
                 title="<a:checklist:1077585402422112297> Score updated!",
-                description=f"Successfully awarded `{BOOSTER_MONTHLY_EXP}` score to {role.mention}> ({len(role.members)} members)\n\n{member_tag}",
+                description=f"Successfully awarded `{BOOSTER_MONTHLY_EXP}` score to {role.mention} ({len(role.members)} members)\n\n{member_tags}",
                 timestamp=datetime.now(),
-                colour=0x17A168,
+                color=0x17A168,
             )
             embed.set_footer(
-                text="Warnet",
+                text=guild.name,
                 icon_url="https://cdn.discordapp.com/attachments/761684443915485184/1038313075260002365/warnet_logo_putih.png",
             )
             await tatsu_log_channel.send(embed=embed)
 
-            buffer = io.BytesIO(member_id.encode('utf-8'))
+            buffer = io.BytesIO(member_ids.encode('utf-8'))
             file = discord.File(buffer, filename=f"{month}_honorary.txt")
             await admin_channel.send(
-                content=f"Exp Honorary Bulanan Sudah dibagikan, jangan lupa Announcement.\nlog honorary bulan {month}",
+                content=f"Exp Honorary bulanan sudah dibagikan! Jangan lupa untuk melakukan announcement.\nLog Honorary bulan {month}",
                 file=file,
             )
 
