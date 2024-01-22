@@ -1,3 +1,4 @@
+import asyncio
 import io
 from datetime import datetime, time, timedelta, timezone
 
@@ -5,8 +6,14 @@ import discord
 import pytz
 from discord.ext import commands, tasks
 
-from bot.bot import WarnetBot
-from bot.config import ADMIN_CHANNEL_ID, BOOSTER_ROLE_ID, GUILD_ID
+from bot.bot import TatsuApi, WarnetBot
+from bot.config import (
+    ADMIN_CHANNEL_ID,
+    BOOSTER_MONTHLY_EXP,
+    BOOSTER_ROLE_ID,
+    GUILD_ID,
+    TATSU_LOG_CHANNEL_ID,
+)
 
 
 class Booster(commands.Cog):
@@ -21,15 +28,37 @@ class Booster(commands.Cog):
     async def _monthly_booster(self) -> None:
         date = datetime.now(pytz.timezone('Asia/Jakarta'))
         if date.day == 1:
-            channel = self.bot.get_channel(ADMIN_CHANNEL_ID)
+            admin_channel = self.bot.get_channel(ADMIN_CHANNEL_ID)
+            tatsu_log_channel = self.bot.get_channel(TATSU_LOG_CHANNEL_ID)
             guild = self.bot.get_guild(GUILD_ID)
             role = guild.get_role(BOOSTER_ROLE_ID)
-            members_content = ''
+            month = date.strftime("%B")
+            member_tag = member_id = ''
+
             for member in role.members:
-                members_content += f"{member.id} "
-            buffer = io.BytesIO(members_content.encode('utf-8'))
-            file = discord.File(buffer, filename="honorary.txt")
-            await channel.send(file=file)
+                await TatsuApi().add_score(member.id, BOOSTER_MONTHLY_EXP)
+                member_tag += f"{member.mention}, "
+                member_id += f"{member.id} "
+                await asyncio.sleep(1.5)
+
+            embed = discord.Embed(
+                title="<a:checklist:1077585402422112297> Score updated!",
+                description=f"Successfully awarded `{BOOSTER_MONTHLY_EXP}` score to {role.mention}> ({len(role.members)} members)\n\n{member_tag}",
+                timestamp=datetime.now(),
+                colour=0x17A168,
+            )
+            embed.set_footer(
+                text="Warnet",
+                icon_url="https://cdn.discordapp.com/attachments/761684443915485184/1038313075260002365/warnet_logo_putih.png",
+            )
+            await tatsu_log_channel.send(embed=embed)
+
+            buffer = io.BytesIO(member_id.encode('utf-8'))
+            file = discord.File(buffer, filename=f"{month}_honorary.txt")
+            await admin_channel.send(
+                content=f"Exp Honorary Bulanan Sudah dibagikan, jangan lupa Announcement.\nlog honorary bulan {month}",
+                file=file,
+            )
 
     @_monthly_booster.before_loop
     async def _before_monthly_booster(self):

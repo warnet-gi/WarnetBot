@@ -8,6 +8,7 @@ import discord
 from discord.ext.commands import Bot
 
 from bot import __version__, config
+from bot.module.tatsu.wrapper import ApiWrapper
 
 discord.utils.setup_logging(level=logging.INFO, root=False)
 
@@ -80,3 +81,11 @@ class WarnetBot(Bot):
 
     def get_db_pool(self) -> asyncpg.Pool:
         return self.db_pool
+
+
+class TatsuApi:
+    API = ApiWrapper(config.TATSU_TOKEN)
+
+    async def add_score(self, member_id: int, amount: int):
+        result = await self.API.add_score(config.GUILD_ID, member_id, amount)
+        return result.score
