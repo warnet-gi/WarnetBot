@@ -1,11 +1,11 @@
 [tool.poetry]
 name = "warnet-bot"
-version = "1.9.2"
+version = "1.10.0"
 description = "A bot for Warga Nusantara Teyvat (WARNET) discord server"
 authors = ["Iqrar Agalosi Nureyza <misteriqrar@gmail.com>"]
 readme = "README.md"
 license = "MIT"
-repository = "https://github.com/Iqrar99/WarnetBot"
+repository = "https://github.com/warnet-gi/WarnetBot"
 
 [tool.poetry.dependencies]
 asyncpg = "^0.27.0"
