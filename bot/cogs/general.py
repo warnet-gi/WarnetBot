@@ -62,27 +62,27 @@ class General(commands.Cog):
         embed.set_thumbnail(url=self.bot.user.display_avatar.url)
         embed.add_field(
             name='👥 General Commands',
-            value="[Link dokumentasi](https://github.com/Iqrar99/WarnetBot/wiki/Bot-Commands#-general-commands)",
+            value="[Link dokumentasi](https://github.com/warnet-gi/WarnetBot/wiki/Bot-Commands#-general-commands)",
             inline=False,
         )
         embed.add_field(
             name='🎲 TCG Commands',
-            value="[Link dokumentasi](https://github.com/Iqrar99/WarnetBot/wiki/Bot-Commands#-tcg-commands)",
+            value="[Link dokumentasi](https://github.com/warnet-gi/WarnetBot/wiki/Bot-Commands#-tcg-commands)",
             inline=False,
         )
         embed.add_field(
             name='🧷 Sticky Command',
-            value="[Link dokumentasi](https://github.com/Iqrar99/WarnetBot/wiki/Bot-Commands#-sticky-commands)",
+            value="[Link dokumentasi](https://github.com/warnet-gi/WarnetBot/wiki/Bot-Commands#-sticky-commands)",
             inline=False,
         )
         embed.add_field(
             name='✨ Khaenriah Command',
-            value="[Link dokumentasi](https://github.com/Iqrar99/WarnetBot/wiki/Bot-Commands#-khaenriah-commands)",
+            value="[Link dokumentasi](https://github.com/warnet-gi/WarnetBot/wiki/Bot-Commands#-khaenriah-commands)",
             inline=False,
         )
         embed.add_field(
             name='👮 Admin Commands',
-            value="[Link dokumentasi](https://github.com/Iqrar99/WarnetBot/wiki/Bot-Commands#-admin-commands)",
+            value="[Link dokumentasi](https://github.com/warnet-gi/WarnetBot/wiki/Bot-Commands#-admin-commands)",
             inline=False,
         )
         await ctx.send(embed=embed)
