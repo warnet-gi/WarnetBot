@@ -11,6 +11,7 @@ Before creating your pull request, make sure you already **read the whole guidel
   - the `/bot/assets` stores static assets.
   - the `/bot/cogs` stores the bot logic.
   - the `/bot/data` stores script to initialize PostgresSQL database.
+  - the `/bot/module` stores our self-made python modules.
 
 ## Start Running in Local
 
