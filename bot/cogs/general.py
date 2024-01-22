@@ -36,6 +36,7 @@ class General(commands.Cog):
         embed.add_field(
             name='Contributors',
             value=(
+                "- [hilmoo](https://github.com/hilmoo)\n"
                 "- [Irvan789](https://github.com/Irvan789)\n"
                 "- [rafiramadhana](https://github.com/rafiramadhana)\n"
                 "- [syhrimr](https://github.com/syhrimr)\n"
