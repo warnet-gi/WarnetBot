@@ -43,7 +43,7 @@ class Booster(commands.Cog):
 
             embed = discord.Embed(
                 title="<a:checklist:1077585402422112297> Score updated!",
-                description=f"Successfully awarded `{BOOSTER_MONTHLY_EXP}` score to <@&{role}> ({len(role.members)} members)\n\n{member_tag}",
+                description=f"Successfully awarded `{BOOSTER_MONTHLY_EXP}` score to {role.mention}> ({len(role.members)} members)\n\n{member_tag}",
                 timestamp=datetime.now(),
                 colour=0x17A168,
             )
