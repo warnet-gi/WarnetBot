@@ -10,7 +10,7 @@ from discord.ext.commands import Bot
 from bot import __version__, config
 from bot.module.tatsu.wrapper import ApiWrapper
 
-discord.utils.setup_logging(level=logging.INFO, root=False)
+discord.utils.setup_logging(level=logging.INFO, root=True)
 
 BOT_PREFIX = config.BOT_PREFIX
 
