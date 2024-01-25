@@ -30,8 +30,7 @@ class Genshin(commands.GroupCog, group_name="genshin"):
             latest_entry_id = data['rss']['latest_pub_id']
 
         feed = feedparser.parse(genshin_config.RSS_FEED_URL)
-        for idx in range(len(feed.entries[:10])):  # get only 10 latest articles
-            entry = feed.entries[idx]
+        for entry in feed.entries[:10]:  # get only 10 latest articles
             if entry.id != latest_entry_id:
                 logger.info(f'NEW GENSHIN ARTICLE FOUND! ID={entry.id}')
 
