@@ -6,5 +6,8 @@ bot/cogs/*.py                   @Iqrar99
 # Views
 bot/cogs/views/**               @Iqrar99
 
-#Extensions
+# Extensions
 bot/cogs/ext/**                 @Iqrar99
+
+# Modules
+bot/module/tatsu/               @hilmoo
