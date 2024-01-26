@@ -12,6 +12,7 @@ from bot.module.tatsu.wrapper import ApiWrapper
 
 discord.utils.setup_logging(level=logging.INFO, root=True)
 
+logger = logging.getLogger(__name__)
 BOT_PREFIX = config.BOT_PREFIX
 
 
@@ -48,6 +49,8 @@ class WarnetBot(Bot):
         for filename in os.listdir('./bot/cogs'):
             if filename.endswith('.py'):
                 await self.load_extension('bot.cogs.{}'.format(filename[:-3]))
+
+        logger.info('ALL COGS HAVE BEEN LOADED SUCCESSFULLY')
 
     async def close(self) -> None:
         await self.session.close()

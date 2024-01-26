@@ -1,5 +1,6 @@
 import asyncio
 import io
+import logging
 from datetime import datetime, time, timedelta, timezone
 
 import discord
@@ -15,6 +16,8 @@ from bot.config import (
     TATSU_LOG_CHANNEL_ID,
 )
 
+logger = logging.getLogger(__name__)
+
 
 class Booster(commands.Cog):
     def __init__(self, bot: WarnetBot) -> None:
@@ -28,6 +31,8 @@ class Booster(commands.Cog):
     async def _monthly_booster(self) -> None:
         date = datetime.now(pytz.timezone('Asia/Jakarta'))
         if date.day == 1:
+            logger.info(f'MONTHLY EXP BOOSTER IS TRIGGERED: {date.strftime("%B %Y")}')
+
             admin_channel = self.bot.get_channel(ADMIN_CHANNEL_ID)
             tatsu_log_channel = self.bot.get_channel(TATSU_LOG_CHANNEL_ID)
             guild = self.bot.get_guild(GUILD_ID)
