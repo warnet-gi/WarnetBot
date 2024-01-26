@@ -111,34 +111,26 @@ class ApiWrapper:
         )
         return rankings
 
+    async def _modify_score(
+        self, action_type: int, guild_id: int, user_id: int, amount: int
+    ) -> ds.GuildScoreObject:
+        url = f"/guilds/{guild_id}/members/{user_id}/score"
+        payload = {'action': action_type, 'amount': amount}
+
+        try:
+            result = await self.patch(url, payload)
+        except Exception as e:
+            raise e
+
+        score = ds.GuildScoreObject(
+            guild_id=result.get('guild_id'),
+            score=result.get('score'),
+            user_id=result.get('user_id'),
+        )
+        return score
+
     async def add_score(self, guild_id: int, user_id: int, amount: int) -> ds.GuildScoreObject:
-        url = f"/guilds/{guild_id}/members/{user_id}/score"
-        payload = {'action': 0, 'amount': amount}
+        return await self._modify_score(0, guild_id, user_id, amount)
 
-        try:
-            result = await self.patch(url, payload)
-        except Exception as e:
-            raise e
-
-        score = ds.GuildScoreObject(
-            guild_id=result.get('guild_id'),
-            score=result.get('score'),
-            user_id=result.get('user_id'),
-        )
-        return score
-
-    async def subtract_score(self, guild_id: int, user_id: int, amount: int) -> ds.GuildScoreObject:
-        url = f"/guilds/{guild_id}/members/{user_id}/score"
-        payload = {'action': 1, 'amount': amount}
-
-        try:
-            result = await self.patch(url, payload)
-        except Exception as e:
-            raise e
-
-        score = ds.GuildScoreObject(
-            guild_id=result.get('guild_id'),
-            score=result.get('score'),
-            user_id=result.get('user_id'),
-        )
-        return score
+    async def remove_score(self, guild_id: int, user_id: int, amount: int) -> ds.GuildScoreObject:
+        return await self._modify_score(1, guild_id, user_id, amount)
