@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 from typing import Optional
 
@@ -13,6 +14,8 @@ from bot.cogs.ext.color.utils import (
     no_permission_alert,
 )
 from bot.config import CustomRoleConfig
+
+logger = logging.getLogger(__name__)
 
 
 @commands.guild_only()
@@ -98,6 +101,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
             reason="Member Request",
             color=valid_color,
         )
+        logger.info(f'NEW ROLE HAS BEEN CREATED SUCCESSFULLY. ROLE ID: {created_role.id}')
 
         async with self.db_pool.acquire() as conn:
             await conn.execute(
@@ -173,6 +177,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
             reason="Member Request",
             color=valid_color,
         )
+        logger.info(f'NEW ROLE HAS BEEN CREATED SUCCESSFULLY. ROLE ID: {created_role.id}')
 
         async with self.db_pool.acquire() as conn:
             await conn.execute(
@@ -482,6 +487,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
                     self.custom_role_data.pop(role_target.id)
                     self.custom_role_data_list = list(self.custom_role_data.keys())
                     await role_target.delete()
+                    logger.info(f'ROLE ID {role_target.id} IS DELETED')
 
                     self.cache['color-list'] = None
 
@@ -564,6 +570,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
                 if ctx.guild.get_role(data['role_id']):
                     self.custom_role_data[data['role_id']] = data['owner_discord_id']
             self.custom_role_data_list = list(self.custom_role_data.keys())
+            logger.info(f'ROLE LIST HAS BEEN SYNCED SUCCESSFULLY')
 
             self.cache['color-list'] = None
 

@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from datetime import datetime
 from typing import Optional, Union
 
@@ -8,6 +9,8 @@ from discord.ext import commands
 
 from bot.bot import WarnetBot
 from bot.cogs.views.sticky import StickyPagination
+
+logger = logging.getLogger(__name__)
 
 
 @commands.guild_only()
@@ -105,6 +108,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                     )
 
                 self.sticky_data[channel.id] = [msg.id, message, delay_time]
+                logger.info(f'NEW STICKY MESSSAGE HAS BEEN ADDED ON CHANNEL ID {channel.id}')
 
                 await self._send_interaction(
                     interaction,
@@ -239,6 +243,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                     await conn.execute("DELETE FROM sticky WHERE channel_id=$1;", channel.id)
 
                 self.sticky_data.pop(channel.id)
+                logger.info(f'NEW STICKY MESSSAGE HAS BEEN REMOVED ON CHANNEL ID {channel.id}')
 
                 await self._send_interaction(
                     interaction,
@@ -337,6 +342,8 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                     await conn.executemany(
                         "DELETE FROM sticky WHERE channel_id=$1;", invalid_channel_id_list
                     )
+
+            logger.info(f'STICKY MESSSAGES HAVE BEEN PURGED')
 
             await self._send_interaction(
                 interaction,
