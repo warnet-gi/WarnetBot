@@ -61,13 +61,13 @@ class General(commands.Cog):
         )
         embed.set_thumbnail(url=self.bot.user.display_avatar.url)
         embed.add_field(
-            name='👥 General Commands',
-            value="[Link dokumentasi](https://github.com/warnet-gi/WarnetBot/wiki/Bot-Commands#-general-commands)",
+            name='👮 Admin Commands',
+            value="[Link dokumentasi](https://github.com/warnet-gi/WarnetBot/wiki/Bot-Commands#-admin-commands)",
             inline=False,
         )
         embed.add_field(
-            name='🎲 TCG Commands',
-            value="[Link dokumentasi](https://github.com/warnet-gi/WarnetBot/wiki/Bot-Commands#-tcg-commands)",
+            name='👥 General Commands',
+            value="[Link dokumentasi](https://github.com/warnet-gi/WarnetBot/wiki/Bot-Commands#-general-commands)",
             inline=False,
         )
         embed.add_field(
@@ -81,8 +81,8 @@ class General(commands.Cog):
             inline=False,
         )
         embed.add_field(
-            name='👮 Admin Commands',
-            value="[Link dokumentasi](https://github.com/warnet-gi/WarnetBot/wiki/Bot-Commands#-admin-commands)",
+            name='🎲 TCG Commands',
+            value="[Link dokumentasi](https://github.com/warnet-gi/WarnetBot/wiki/Bot-Commands#-tcg-commands)",
             inline=False,
         )
         await ctx.send(embed=embed)

@@ -1,7 +1,7 @@
 from typing import Optional, Union
 
 import discord
-from discord import app_commands, Embed, Interaction
+from discord import app_commands, Interaction
 from discord.ext import commands
 
 from bot import config
