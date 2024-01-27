@@ -221,8 +221,7 @@ class Admin(commands.GroupCog, group_name="admin"):
             )
         message = '\n'.join(message.split('\\n'))  # support newline in slash command
 
-        parsed_time = self._parse_relative_time(time)
-        if parsed_time:
+        if parsed_time := self._parse_relative_time(time):
             day, hour, minute, second = parsed_time
         else:
             return await ctx.send(
@@ -272,11 +271,9 @@ class Admin(commands.GroupCog, group_name="admin"):
             )
 
         async with self.db_pool.acquire() as conn:
-            res = await conn.fetchval(
+            if await conn.fetchval(
                 "SELECT id FROM scheduled_message WHERE id=$1;", scheduled_message_id
-            )
-
-            if res:
+            ):
                 await conn.execute(
                     'UPDATE scheduled_message SET message=$1 WHERE id=$2;',
                     new_message,
@@ -402,9 +399,8 @@ class Admin(commands.GroupCog, group_name="admin"):
     @staticmethod
     def _parse_relative_time(time_text: str) -> Optional[tuple]:
         pattern = r"\d+[dhms]"
-        matched_list = re.findall(pattern, time_text)
 
-        if matched_list:
+        if matched_list := re.findall(pattern, time_text):
             day = hour = minute = second = 0
             for matched in matched_list:
                 number = int(matched[:-1])

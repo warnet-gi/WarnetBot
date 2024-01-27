@@ -22,10 +22,10 @@ class Khaenriah(commands.Cog):
     @commands.group(aliases=['buron'])
     async def buronan(self, ctx: commands.Context) -> None:
         list_of_commands = (
-            f'- {ctx.prefix} buron warn <user> <reason> = Memberikan warning kepada member dan menaikkan level warn nya\n'
-            f'- {ctx.prefix} buron increase/inc <user> = Menaikkan level warning secara manual\n'
-            f'- {ctx.prefix} buron decrease/dec <user> = Menurunkan level warning secara manual\n'
-            f'- {ctx.prefix} buron list = Melihat daftar buronan khaenriah'
+            f'- {ctx.prefix}buron warn <user> <reason> = Memberikan warning kepada member dan menaikkan level warn nya\n'
+            f'- {ctx.prefix}buron increase/inc <user> = Menaikkan level warning secara manual\n'
+            f'- {ctx.prefix}buron decrease/dec <user> = Menurunkan level warning secara manual\n'
+            f'- {ctx.prefix}buron list = Melihat daftar buronan khaenriah'
         )
 
         if not ctx.invoked_subcommand:

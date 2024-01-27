@@ -52,8 +52,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
 
         # Check if a member removed or lost their booster status
         if BOOSTER_ROLE in roles_before and BOOSTER_ROLE not in roles_after:
-            role_being_used = get_current_custom_role_on_user(self, after.guild, after)
-            if role_being_used:
+            if role_being_used := get_current_custom_role_on_user(self, after.guild, after):
                 await after.remove_roles(role_being_used, reason="Lose Booster Status")
 
                 embed = discord.Embed(
@@ -358,8 +357,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         ):
             return await no_permission_alert(interaction)
 
-        role_target = await check_role_by_name_or_number(self, interaction, name, number)
-        if role_target:
+        if role_target := await check_role_by_name_or_number(self, interaction, name, number):
             member = interaction.user
             role_being_used = get_current_custom_role_on_user(self, interaction.guild, member)
             if role_being_used:
@@ -383,8 +381,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
             return await no_permission_alert(interaction)
 
         member = interaction.user
-        role_being_used = get_current_custom_role_on_user(self, interaction.guild, member)
-        if role_being_used:
+        if role_being_used := get_current_custom_role_on_user(self, interaction.guild, member):
             await member.remove_roles(role_being_used)
             embed = discord.Embed(
                 description=f"{member.mention} successfully removed **{role_being_used.name}** from your profile.",
@@ -439,8 +436,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         ):
             return await no_permission_alert(interaction)
 
-        role_target = await check_role_by_name_or_number(self, interaction, name, number)
-        if role_target:
+        if role_target := await check_role_by_name_or_number(self, interaction, name, number):
             async with self.db_pool.acquire() as conn:
                 res = await conn.fetchrow(
                     "SELECT owner_discord_id, created_at FROM custom_role WHERE role_id=$1;",
@@ -473,8 +469,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         self, interaction: Interaction, name: Optional[str], number: Optional[int]
     ) -> None:
         await interaction.response.defer()
-        role_target = await check_role_by_name_or_number(self, interaction, name, number)
-        if role_target:
+        if role_target := await check_role_by_name_or_number(self, interaction, name, number):
             if (
                 interaction.user.guild_permissions.manage_roles
                 or interaction.user.id == self.custom_role_data[role_target.id]
