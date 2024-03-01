@@ -51,8 +51,7 @@ class Booster(commands.Cog):
                 else:
                     error_count += 1
                     member_error += f"{member.mention}, "
-            print(len(role.members))
-            print(succes_count)
+
             if member_ids:
                 embed = discord.Embed(
                     title="<a:checklist:1077585402422112297> Score updated!",
