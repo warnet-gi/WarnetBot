@@ -72,18 +72,6 @@ class Booster(commands.Cog):
                     file=file,
                 )
 
-                if len(role.members) == succes_count:
-                    channel = self.bot.get_channel(ANNOUNCEMENT_CHANNEL_ID)
-                    await channel.send(
-                        f"## Selamat pagi {role.mention}\n\nPesan ini ingin memberi tahu kalian exp bulan ini sudah dibagikan dengan besaran **{BOOSTER_MONTHLY_EXP}**.\n"
-                        f"Terimakasih atas boostnya sehat selalu dan sampai jumpa dibulan berikutnya"
-                    )
-
-                else:
-                    await admin_channel.send(
-                        "Terdapat error saat memberikan exp bulanan ke Honorary Knight. **Announcement gagal dibuat**"
-                    )
-
             if member_error:
                 embed = discord.Embed(
                     title="[Monthly Booster] Error handling user",
@@ -92,6 +80,18 @@ class Booster(commands.Cog):
                 )
 
                 await tatsu_log_channel.send(embed=embed)
+
+            if len(role.members) == succes_count:
+                channel = self.bot.get_channel(ANNOUNCEMENT_CHANNEL_ID)
+                await channel.send(
+                    f"## Selamat pagi {role.mention}\n\nPesan ini ingin memberi tahu kalian exp bulan ini sudah dibagikan dengan besaran **{BOOSTER_MONTHLY_EXP}**.\n"
+                    f"Terimakasih atas boostnya sehat selalu dan sampai jumpa dibulan berikutnya"
+                )
+
+            else:
+                await admin_channel.send(
+                    "Terdapat error saat memberikan exp bulanan ke Honorary Knight. **Announcement gagal dibuat**"
+                )
 
     @_monthly_booster.before_loop
     async def _before_monthly_booster(self):

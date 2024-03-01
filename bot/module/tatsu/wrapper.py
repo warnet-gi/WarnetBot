@@ -126,7 +126,7 @@ class ApiWrapper:
             logger.error(f"An error occurred: {str(e)}")
             logger.error(f'Failed to modify user score. User ID: {user_id}')
 
-        if result is not None:
+        if int(result.get('user_id')) == user_id:
             score = ds.GuildScoreObject(
                 guild_id=result.get('guild_id'),
                 score=result.get('score'),
