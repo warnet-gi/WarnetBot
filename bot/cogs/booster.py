@@ -28,10 +28,10 @@ class Booster(commands.Cog):
     async def on_connect(self) -> None:
         self._monthly_booster.start()
 
-    @tasks.loop(time=time(hour=4, minute=54, tzinfo=timezone(timedelta(hours=7))))
+    @tasks.loop(time=time(hour=0, minute=0, tzinfo=timezone(timedelta(hours=7))))
     async def _monthly_booster(self) -> None:
         date = datetime.now(pytz.timezone('Asia/Jakarta'))
-        if date.day == 2:
+        if date.day == 1:
             logger.info(f'MONTHLY EXP BOOSTER IS TRIGGERED: {date.strftime("%B %Y")}')
 
             admin_channel = self.bot.get_channel(ADMIN_CHANNEL_ID)
