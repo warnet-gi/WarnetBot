@@ -84,5 +84,4 @@ class TatsuApi:
     API = ApiWrapper(config.TATSU_TOKEN)
 
     async def add_score(self, member_id: int, amount: int):
-        result = await self.API.add_score(config.GUILD_ID, member_id, amount)
-        return result
+        return await self.API.add_score(config.GUILD_ID, member_id, amount)

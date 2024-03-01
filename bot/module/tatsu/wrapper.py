@@ -119,20 +119,24 @@ class ApiWrapper:
     ) -> ds.GuildScoreObject:
         url = f"/guilds/{guild_id}/members/{user_id}/score"
         payload = {'action': action_type, 'amount': amount}
+        result = None
 
         try:
             result = await self.patch(url, payload)
         except Exception as e:
             logger.error(f"An error occurred: {str(e)}")
-            logger.error(f'Failed to modify user score. User ID: {user_id}')
 
-        if int(result.get('user_id')) == user_id:
-            score = ds.GuildScoreObject(
-                guild_id=result.get('guild_id'),
-                score=result.get('score'),
-                user_id=result.get('user_id'),
-            )
-            return score
+        if result is not None:
+            if int(result.get('user_id')) == user_id:
+                score = ds.GuildScoreObject(
+                    guild_id=result.get('guild_id'),
+                    score=result.get('score'),
+                    user_id=result.get('user_id'),
+                )
+                return score
+            else:
+                logger.error(f'Failed to modify user score. User ID: {user_id}')
+                return None
         else:
             return None
 
