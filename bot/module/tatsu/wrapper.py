@@ -1,9 +1,12 @@
 import datetime
+import logging
 
 import aiohttp
 from ratelimit import limits
 
 import bot.module.tatsu.data_structures as ds
+
+logger = logging.getLogger(__name__)
 
 
 class ApiWrapper:
@@ -117,10 +120,7 @@ class ApiWrapper:
         url = f"/guilds/{guild_id}/members/{user_id}/score"
         payload = {'action': action_type, 'amount': amount}
 
-        try:
-            result = await self.patch(url, payload)
-        except Exception as e:
-            raise e
+        result = await self.patch(url, payload)
 
         score = ds.GuildScoreObject(
             guild_id=result.get('guild_id'),

@@ -38,10 +38,15 @@ class Booster(commands.Cog):
             guild = self.bot.get_guild(GUILD_ID)
             role = guild.get_role(BOOSTER_ROLE_ID)
             month = date.strftime("%B")
-            member_tags = member_ids = ''
+            member_tags = member_ids = member_error = ''
 
             for member in role.members:
-                await TatsuApi().add_score(member.id, BOOSTER_MONTHLY_EXP)
+                try:
+                    await TatsuApi().add_score(member.id, BOOSTER_MONTHLY_EXP)
+                except Exception as e:
+                    member_error += f"{member.mention} "
+                    logger.error(f'Failed to modify user score. User ID: {member.id}')
+
                 member_tags += f"{member.mention}, "
                 member_ids += f"{member.id} "
                 await asyncio.sleep(1.5)
@@ -64,6 +69,13 @@ class Booster(commands.Cog):
                 content=f"Exp Honorary bulanan sudah dibagikan! Jangan lupa untuk melakukan announcement.\nLog Honorary bulan {month}",
                 file=file,
             )
+
+            if member_error != '':
+                embed = discord.Embed(
+                    title="Error handling user", description=member_error, colour=0xFF0000
+                )
+
+                await tatsu_log_channel.send(embed=embed)
 
     @_monthly_booster.before_loop
     async def _before_monthly_booster(self):
