@@ -124,13 +124,17 @@ class ApiWrapper:
             result = await self.patch(url, payload)
         except Exception as e:
             logger.error(f"An error occurred: {str(e)}")
+            logger.error(f'Failed to modify user score. User ID: {user_id}')
 
-        score = ds.GuildScoreObject(
-            guild_id=result.get('guild_id'),
-            score=result.get('score'),
-            user_id=result.get('user_id'),
-        )
-        return score
+        if result is not None:
+            score = ds.GuildScoreObject(
+                guild_id=result.get('guild_id'),
+                score=result.get('score'),
+                user_id=result.get('user_id'),
+            )
+            return score
+        else:
+            return None
 
     async def add_score(self, guild_id: int, user_id: int, amount: int) -> ds.GuildScoreObject:
         return await self._modify_score(0, guild_id, user_id, amount)

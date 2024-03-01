@@ -85,4 +85,4 @@ class TatsuApi:
 
     async def add_score(self, member_id: int, amount: int):
         result = await self.API.add_score(config.GUILD_ID, member_id, amount)
-        return result.score
+        return result

@@ -10,6 +10,7 @@ from discord.ext import commands, tasks
 from bot.bot import TatsuApi, WarnetBot
 from bot.config import (
     ADMIN_CHANNEL_ID,
+    ANNOUNCEMENT_CHANNEL_ID,
     BOOSTER_MONTHLY_EXP,
     BOOSTER_ROLE_ID,
     GUILD_ID,
@@ -27,10 +28,10 @@ class Booster(commands.Cog):
     async def on_connect(self) -> None:
         self._monthly_booster.start()
 
-    @tasks.loop(time=time(hour=0, minute=0, tzinfo=timezone(timedelta(hours=7))))
+    @tasks.loop(time=time(hour=4, minute=54, tzinfo=timezone(timedelta(hours=7))))
     async def _monthly_booster(self) -> None:
         date = datetime.now(pytz.timezone('Asia/Jakarta'))
-        if date.day == 1:
+        if date.day == 2:
             logger.info(f'MONTHLY EXP BOOSTER IS TRIGGERED: {date.strftime("%B %Y")}')
 
             admin_channel = self.bot.get_channel(ADMIN_CHANNEL_ID)
@@ -39,16 +40,19 @@ class Booster(commands.Cog):
             role = guild.get_role(BOOSTER_ROLE_ID)
             month = date.strftime("%B")
             member_tags = member_ids = member_error = ''
+            succes_count = error_count = 0
 
             for member in role.members:
-                try:
-                    await TatsuApi().add_score(member.id, BOOSTER_MONTHLY_EXP)
+                result = await TatsuApi().add_score(member.id, BOOSTER_MONTHLY_EXP)
+                if result is not None:
+                    succes_count += 1
                     member_tags += f"{member.mention}, "
                     member_ids += f"{member.id} "
-                except Exception as e:
-                    member_error += f"{member.mention} "
-                    logger.error(f'Failed to modify user score. User ID: {member.id}')
-
+                else:
+                    error_count += 1
+                    member_error += f"{member.mention}, "
+            print(len(role.members))
+            print(succes_count)
             if member_ids:
                 embed = discord.Embed(
                     title="<a:checklist:1077585402422112297> Score updated!",
@@ -65,9 +69,21 @@ class Booster(commands.Cog):
                 buffer = io.BytesIO(member_ids.encode('utf-8'))
                 file = discord.File(buffer, filename=f"{month}_honorary.txt")
                 await admin_channel.send(
-                    content=f"Exp Honorary bulanan sudah dibagikan! Jangan lupa untuk melakukan announcement.\nLog Honorary bulan {month}",
+                    content=f"Exp Honorary bulanan sudah dibagikan!\nJumlah member berhasil: `{succes_count}` || Jumlah member error: `{error_count}` member.\nLog Honorary bulan {month}",
                     file=file,
                 )
+
+                if len(role.members) == succes_count:
+                    channel = self.bot.get_channel(ANNOUNCEMENT_CHANNEL_ID)
+                    await channel.send(
+                        f"## Selamat pagi {role.mention}\n\nPesan ini ingin memberi tahu kalian exp bulan ini sudah dibagikan dengan besaran **{BOOSTER_MONTHLY_EXP}**.\n"
+                        f"Terimakasih atas boostnya sehat selalu dan sampai jumpa dibulan berikutnya"
+                    )
+
+                else:
+                    await admin_channel.send(
+                        "Terdapat error saat memberikan exp bulanan ke Honorary Knight. **Announcement gagal dibuat**"
+                    )
 
             if member_error:
                 embed = discord.Embed(
