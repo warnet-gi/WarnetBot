@@ -1,12 +1,9 @@
 import datetime
-import logging
 
 import aiohttp
 from ratelimit import limits
 
 import bot.module.tatsu.data_structures as ds
-
-logger = logging.getLogger(__name__)
 
 
 class ApiWrapper:
