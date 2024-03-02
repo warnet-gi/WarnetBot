@@ -126,7 +126,7 @@ class ApiWrapper:
         except Exception as e:
             logger.error(f"An error occurred: {str(e)}")
 
-        if result is not None:
+        if result:
             if int(result.get('user_id')) == user_id:
                 score = ds.GuildScoreObject(
                     guild_id=result.get('guild_id'),

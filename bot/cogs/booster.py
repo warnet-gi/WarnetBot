@@ -40,12 +40,12 @@ class Booster(commands.Cog):
             role = guild.get_role(BOOSTER_ROLE_ID)
             month = date.strftime("%B")
             member_tags = member_ids = member_error = ''
-            succes_count = error_count = 0
+            success_count = error_count = 0
 
             for member in role.members:
                 result = await TatsuApi().add_score(member.id, BOOSTER_MONTHLY_EXP)
-                if result is not None:
-                    succes_count += 1
+                if result:
+                    success_count += 1
                     member_tags += f"{member.mention}, "
                     member_ids += f"{member.id} "
                 else:
@@ -68,7 +68,7 @@ class Booster(commands.Cog):
                 buffer = io.BytesIO(member_ids.encode('utf-8'))
                 file = discord.File(buffer, filename=f"{month}_honorary.txt")
                 await admin_channel.send(
-                    content=f"Exp Honorary bulanan sudah dibagikan!\nJumlah member berhasil: `{succes_count}` || Jumlah member error: `{error_count}` member.\nLog Honorary bulan {month}",
+                    content=f"Exp Honorary bulanan sudah dibagikan!\nJumlah member berhasil: `{success_count}` || Jumlah member error: `{error_count}` member.\nLog Honorary bulan {month}",
                     file=file,
                 )
 
@@ -81,7 +81,7 @@ class Booster(commands.Cog):
 
                 await tatsu_log_channel.send(embed=embed)
 
-            if len(role.members) == succes_count:
+            if len(role.members) == success_count:
                 channel = self.bot.get_channel(ANNOUNCEMENT_CHANNEL_ID)
                 await channel.send(
                     f"## Selamat pagi {role.mention}\n\nPesan ini ingin memberi tahu kalian exp bulan ini sudah dibagikan dengan besaran **{BOOSTER_MONTHLY_EXP}**.\n"
