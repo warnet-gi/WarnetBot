@@ -1,3 +1,4 @@
+import asyncio
 import io
 import logging
 from datetime import datetime, time, timedelta, timezone
@@ -51,10 +52,12 @@ class Booster(commands.Cog):
                     error_count += 1
                     member_error += f"{member.mention}, "
 
+                await asyncio.sleep(1.5)
+
             if member_ids:
                 embed = discord.Embed(
                     title="<a:checklist:1077585402422112297> Score updated!",
-                    description=f"Successfully awarded `{BOOSTER_MONTHLY_EXP}` score to {role.mention} ({len(role.members)} members)\n\n{member_tags}",
+                    description=f"Successfully awarded `{BOOSTER_MONTHLY_EXP}` score to {role.mention} ({success_count} members)\n\n{member_tags}",
                     timestamp=datetime.now(),
                     color=discord.Color.green(),
                 )
@@ -77,7 +80,7 @@ class Booster(commands.Cog):
             if member_error:
                 embed = discord.Embed(
                     title="[Monthly Booster] Error handling user",
-                    description=f"{member_error}",
+                    description=f"({error_count} members)\n\n{member_error}",
                     color=discord.Color.red(),
                 )
 
