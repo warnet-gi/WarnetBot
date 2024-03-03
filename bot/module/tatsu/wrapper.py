@@ -1,9 +1,13 @@
 import datetime
+import logging
+from typing import Optional
 
 import aiohttp
 from ratelimit import limits
 
 import bot.module.tatsu.data_structures as ds
+
+logger = logging.getLogger(__name__)
 
 
 class ApiWrapper:
@@ -113,21 +117,27 @@ class ApiWrapper:
 
     async def _modify_score(
         self, action_type: int, guild_id: int, user_id: int, amount: int
-    ) -> ds.GuildScoreObject:
+    ) -> Optional[ds.GuildScoreObject]:
         url = f"/guilds/{guild_id}/members/{user_id}/score"
         payload = {'action': action_type, 'amount': amount}
+        result = None
 
         try:
             result = await self.patch(url, payload)
+            logger.info(result)
         except Exception as e:
-            raise e
+            logger.error(f"An error occurred: {str(e)}")
 
-        score = ds.GuildScoreObject(
-            guild_id=result.get('guild_id'),
-            score=result.get('score'),
-            user_id=result.get('user_id'),
-        )
-        return score
+        if result and int(result.get('user_id')) == user_id:
+            score = ds.GuildScoreObject(
+                guild_id=result.get('guild_id'),
+                score=result.get('score'),
+                user_id=result.get('user_id'),
+            )
+            return score
+        else:
+            logger.error(f'Failed to modify user score. User ID: {user_id}')
+            return None
 
     async def add_score(self, guild_id: int, user_id: int, amount: int) -> ds.GuildScoreObject:
         return await self._modify_score(0, guild_id, user_id, amount)
