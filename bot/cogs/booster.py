@@ -1,4 +1,3 @@
-import asyncio
 import io
 import logging
 from datetime import datetime, time, timedelta, timezone
@@ -57,7 +56,7 @@ class Booster(commands.Cog):
                     title="<a:checklist:1077585402422112297> Score updated!",
                     description=f"Successfully awarded `{BOOSTER_MONTHLY_EXP}` score to {role.mention} ({len(role.members)} members)\n\n{member_tags}",
                     timestamp=datetime.now(),
-                    color=0x17A168,
+                    color=discord.Color.green(),
                 )
                 embed.set_footer(
                     text=guild.name,
@@ -68,7 +67,10 @@ class Booster(commands.Cog):
                 buffer = io.BytesIO(member_ids.encode('utf-8'))
                 file = discord.File(buffer, filename=f"{month}_honorary.txt")
                 await admin_channel.send(
-                    content=f"Exp Honorary bulanan sudah dibagikan!\nJumlah member berhasil: `{success_count}` || Jumlah member error: `{error_count}` member.\nLog Honorary bulan {month}",
+                    content=(
+                        f"Exp Honorary bulanan sudah dibagikan!\n- Jumlah member berhasil: `{success_count}`\n"
+                        f"- Jumlah member error: `{error_count}`\nLog Honorary bulan {month}"
+                    ),
                     file=file,
                 )
 
@@ -76,7 +78,7 @@ class Booster(commands.Cog):
                 embed = discord.Embed(
                     title="[Monthly Booster] Error handling user",
                     description=f"{member_error}",
-                    color=discord.Colour.red(),
+                    color=discord.Color.red(),
                 )
 
                 await tatsu_log_channel.send(embed=embed)
@@ -84,13 +86,13 @@ class Booster(commands.Cog):
             if len(role.members) == success_count:
                 channel = self.bot.get_channel(ANNOUNCEMENT_CHANNEL_ID)
                 await channel.send(
-                    f"## Selamat pagi {role.mention}\n\nPesan ini ingin memberi tahu kalian exp bulan ini sudah dibagikan dengan besaran **{BOOSTER_MONTHLY_EXP}**.\n"
-                    f"Terimakasih atas boostnya sehat selalu dan sampai jumpa dibulan berikutnya"
+                    f"## Halo {role.mention}!\n\nKami ingin memberi tahu kalian bahwa exp bulan ini sudah dibagikan sebesar **{BOOSTER_MONTHLY_EXP}**.\n"
+                    f"Terima kasih atas boostnya. Sehat selalu dan sampai jumpa di bulan berikutnya! ❤️"
                 )
 
             else:
                 await admin_channel.send(
-                    "Terdapat error saat memberikan exp bulanan ke Honorary Knight. **Announcement gagal dibuat**"
+                    "Terdapat error saat memberikan exp bulanan ke Honorary Knight.\n**Announcement gagal dibuat**"
                 )
 
     @_monthly_booster.before_loop
