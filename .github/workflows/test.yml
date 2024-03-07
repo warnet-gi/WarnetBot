@@ -24,4 +24,10 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Test with pytest
-        run: env $(cat .env.example | grep -v '^#' | xargs) python -m pytest --cov --disable-warnings -q
+        run: env $(cat .env.example | grep -v '^#' | xargs) python -m pytest --cov --disable-warnings -q --cov-report xml:coverage.xml
+
+      - name: Get coverage
+        uses: orgoro/coverage@v3.1
+        with:
+            coverageFile: coverage.xml
+            token: ${{ secrets.GITHUB_TOKEN }}
