@@ -34,7 +34,7 @@ class Genshin(commands.GroupCog, group_name="genshin"):
             if entry.id != latest_entry_id:
                 logger.info(f'NEW GENSHIN ARTICLE FOUND! ID={entry.id}')
 
-                pattern = re.compile(r'src="(https://.+\.(?:jpg|png))"')
+                pattern = re.compile(r'src=\"(https://.+\.(?:jpg|png))\"')
                 try:
                     entry_image_link = pattern.search(entry.content[0].value).group(1)
                 except AttributeError:
