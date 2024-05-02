@@ -116,16 +116,20 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         boundary_role = interaction.guild.get_role(CustomRoleConfig.BOUNDARY_ROLE_ID)
         await created_role.edit(position=boundary_role.position - 1)
 
+        # Use created role immediately
+        await interaction.user.add_roles(created_role)
+
         self.cache['color-list'] = None
 
         embed = discord.Embed(
-            color=valid_color, description=f'✅ Successfully created role: **{created_role.name}**.'
+            color=valid_color,
+            description=f'✅ Successfully created and attached role: **{created_role.name}**.',
         )
         embed.add_field(
             name="What to do next?",
             value=(
                 "- Use `/warnet-color list` to check list of all available custom roles\n"
-                "- Use `/warnet-color set` to use your created role, or\n"
+                "- Use `/warnet-color set` to use any custom role, or\n"
                 "- Ask Admin/Mod to attach custom icon on your custom role (read <#822872937161162795> for instruction), or\n"
                 "- Use `/warnet-color remove` to take off your current custom role, or\n"
                 "- Use `/warnet-color edit hex/rgb` to edit your created custom role"
@@ -192,16 +196,20 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         boundary_role = interaction.guild.get_role(CustomRoleConfig.BOUNDARY_ROLE_ID)
         await created_role.edit(position=boundary_role.position - 1)
 
+        # Use created role immediately
+        await interaction.user.add_roles(created_role)
+
         self.cache['color-list'] = None
 
         embed = discord.Embed(
-            color=valid_color, description=f'✅ Successfully created role: **{created_role.name}**.'
+            color=valid_color,
+            description=f'✅ Successfully created and attached: **{created_role.name}**.',
         )
         embed.add_field(
             name="What to do next?",
             value=(
                 "- Use `/warnet-color list` to check list of all available custom roles\n"
-                "- Use `/warnet-color set` to use your created role, or\n"
+                "- Use `/warnet-color set` to use any custom  role, or\n"
                 "- Ask Admin/Mod to attach custom icon on your custom role (read <#822872937161162795> for instruction), or\n"
                 "- Use `/warnet-color remove` to take off your current custom role, or\n"
                 "- Use `/warnet-color edit hex/rgb` to edit your created custom role"
