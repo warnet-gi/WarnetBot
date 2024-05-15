@@ -117,7 +117,10 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         await created_role.edit(position=boundary_role.position - 1)
 
         # Use created role immediately
-        await interaction.user.add_roles(created_role)
+        role_being_used = get_current_custom_role_on_user(self, interaction.guild, role_owner)
+        if role_being_used:
+            await role_owner.remove_roles(role_being_used)
+        await role_owner.add_roles(created_role)
 
         self.cache['color-list'] = None
 
@@ -197,7 +200,10 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         await created_role.edit(position=boundary_role.position - 1)
 
         # Use created role immediately
-        await interaction.user.add_roles(created_role)
+        role_being_used = get_current_custom_role_on_user(self, interaction.guild, role_owner)
+        if role_being_used:
+            await role_owner.remove_roles(role_being_used)
+        await role_owner.add_roles(created_role)
 
         self.cache['color-list'] = None
 
