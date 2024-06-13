@@ -11,7 +11,7 @@ from bot import __version__, config
 from bot.config.logger import handler
 from bot.module.tatsu.wrapper import ApiWrapper
 
-discord.utils.setup_logging(level=logging.INFO, root=True, handler=handler.setFormatter(handler))
+discord.utils.setup_logging(level=logging.INFO, root=True, handler=handler)
 
 logger = logging.getLogger(__name__)
 BOT_PREFIX = config.BOT_PREFIX
