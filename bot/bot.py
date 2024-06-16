@@ -8,9 +8,10 @@ import discord
 from discord.ext.commands import Bot
 
 from bot import __version__, config
+from bot.config.logger import handler
 from bot.module.tatsu.wrapper import ApiWrapper
 
-discord.utils.setup_logging(level=logging.INFO, root=True)
+discord.utils.setup_logging(level=logging.INFO, root=True, handler=handler)
 
 logger = logging.getLogger(__name__)
 BOT_PREFIX = config.BOT_PREFIX
