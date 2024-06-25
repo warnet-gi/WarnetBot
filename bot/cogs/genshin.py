@@ -30,27 +30,33 @@ class Genshin(commands.GroupCog, group_name="genshin"):
             latest_entry_id = data['rss']['latest_pub_id']
 
         feed = feedparser.parse(genshin_config.RSS_FEED_URL)
-        for entry in feed.entries[:10]:  # get only 10 latest articles
-            if entry.id != latest_entry_id:
-                logger.info(f'NEW GENSHIN ARTICLE FOUND! ID={entry.id}')
 
-                pattern = re.compile(r'src=\"(https://.+\.(?:jpg|png))\"')
-                try:
-                    entry_image_link = pattern.search(entry.content[0].value).group(1)
-                except AttributeError:
-                    entry_image_link = None
+        if feed.status == 200:
+            logger.info('RSS feed fetched successfully!')
+            for entry in feed.entries[:10]:  # get only 10 latest articles
+                if entry.id != latest_entry_id:
+                    logger.info(f'NEW GENSHIN ARTICLE FOUND! ID={entry.id}')
 
-                embed = discord.Embed(
-                    title=entry.title,
-                    url=entry.link,
-                    description=entry.summary,
-                    color=discord.Color.dark_embed(),
-                )
-                embed.set_image(url=entry_image_link)
-                await info_channel.send(embed=embed)
+                    pattern = re.compile(r'src=\"(https://.+\.(?:jpg|png))\"')
+                    try:
+                        entry_image_link = pattern.search(entry.content[0].value).group(1)
+                    except AttributeError:
+                        entry_image_link = None
 
-            else:
-                break
+                    embed = discord.Embed(
+                        title=entry.title,
+                        url=entry.link,
+                        description=entry.summary,
+                        color=discord.Color.dark_embed(),
+                    )
+                    embed.set_image(url=entry_image_link)
+                    await info_channel.send(embed=embed)
+
+                else:
+                    break
+        
+        else:
+            logger.error(f'Failed to fetch RSS feed! Status code: {feed.status}')
 
         newest_entry = feed.entries[0]
         if data['rss']['latest_pub_id'] != newest_entry.id:
