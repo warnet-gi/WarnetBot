@@ -21,7 +21,7 @@ class Genshin(commands.GroupCog, group_name="genshin"):
     async def on_connect(self) -> None:
         self._rss.start()
 
-    @tasks.loop(minutes=10)
+    @tasks.loop(minutes=5)
     async def _rss(self) -> None:
         info_channel = self.bot.get_channel(genshin_config.INFORMATION_CHANNEL_ID)
 
