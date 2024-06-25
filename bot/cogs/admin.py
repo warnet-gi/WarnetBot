@@ -120,6 +120,55 @@ class Admin(commands.GroupCog, group_name="admin"):
         else:
             await send_missing_permission_error_embed(interaction)
 
+    @app_commands.command(
+        name='give-role-on-poll', description='Give a role to all members who voted a poll.'
+    )
+    @app_commands.describe(
+        role='Role that will be given to all members in voice channel target.',
+        channel_poll='Channel where the poll message is located.',
+        message_id='message id where poll created.',
+        poll_id='Poll id that will be used to get the voters (default=1).',
+    )
+    async def give_role_on_poll(
+        self,
+        interaction: Interaction,
+        role: discord.Role,
+        channel_poll: discord.TextChannel,
+        message_id: app_commands.Range[str, 1],
+        poll_id: Optional[int] = 1,
+    ) -> None:
+        await interaction.response.defer()
+
+        poll_message = await channel_poll.fetch_message(int(message_id))
+        if not poll_message:
+            return await interaction.followup.send(
+                content="Poll message not found.", ephemeral=True
+            )
+
+        poll_answer = discord.Poll.get_answer(poll_message.poll, id=poll_id)
+
+        if interaction.user.guild_permissions.manage_roles:
+            cnt = 0
+            async for voter in poll_answer.voters():
+                if not voter.get_role(role.id):
+                    await voter.add_roles(role)
+                    cnt += 1
+
+            embed = discord.Embed(
+                color=discord.Color.green(),
+                title='✅ Role successfully given',
+                description=f"Role {role.mention} telah diberikan kepada **{cnt}** member di poll **{poll_message.poll.question}**.",
+                timestamp=datetime.now(),
+            )
+            embed.set_footer(
+                text=f'Given by {interaction.user.name}',
+                icon_url=interaction.user.display_avatar.url,
+            )
+            await interaction.followup.send(embed=embed)
+
+        else:
+            await send_missing_permission_error_embed(interaction)
+
     @app_commands.command(name='send-message', description='Send message via bot.')
     @app_commands.describe(
         message='Message you want to send.',
