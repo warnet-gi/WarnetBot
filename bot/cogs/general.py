@@ -233,19 +233,15 @@ class General(commands.Cog):
 
     @tasks.loop(minutes=2)
     async def _change_presence(self) -> None:
-        humans = 0
-        for g in self.bot.guilds:
-            humans += sum(not m.bot for m in g.members)
-
         activity_status = [
-            discord.Game(name='PC WARNET'),
+            discord.Game(name='PC Warnet'),
             discord.Game(name='Genshin Impact'),
             discord.Game(name='Arknights'),
             discord.Game(name='Honkai: Star Rail'),
             discord.Game(name='Wuthering Waves'),
             discord.Activity(type=discord.ActivityType.listening, name=f'war! help'),
-            discord.Activity(type=discord.ActivityType.watching, name=f'{humans} Anak WARNET'),
             discord.Activity(type=discord.ActivityType.competing, name='Spiral Abyss'),
+            discord.Activity(type=discord.ActivityType.competing, name='Imaginarium Theater'),
         ]
         discord_status = [
             discord.Status.online,
