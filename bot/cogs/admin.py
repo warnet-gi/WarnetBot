@@ -124,10 +124,10 @@ class Admin(commands.GroupCog, group_name="admin"):
         name='give-role-on-poll', description='Give a role to all members who voted a poll.'
     )
     @app_commands.describe(
+        role='Role that will be given to all members in voice channel target.',
         channel_poll='Channel where the poll message is located.',
         message_id='message id where poll created.',
         poll_id='Poll id that will be used to get the voters (default=1).',
-        role='Role that will be given to all members in voice channel target.',
     )
     async def give_role_on_poll(
         self,
