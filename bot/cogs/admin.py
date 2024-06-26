@@ -139,13 +139,19 @@ class Admin(commands.GroupCog, group_name="admin"):
     ) -> None:
         await interaction.response.defer()
 
-        poll_message = await channel_poll.fetch_message(int(message_id))
-        if not poll_message:
+        try:
+            poll_message = await channel_poll.fetch_message(int(message_id))
+        except discord.NotFound:
             return await interaction.followup.send(
-                content="Poll message not found.", ephemeral=True
+                content="Message not found in the given channel (wrong message ID).", ephemeral=True
             )
 
-        poll_answer = discord.Poll.get_answer(poll_message.poll, id=poll_id)
+        if poll_message.poll:
+            poll_answer = discord.Poll.get_answer(poll_message.poll, id=poll_id)
+        else:
+            return await interaction.followup.send(
+                content="Poll not found in the message.", ephemeral=True
+            )
 
         if interaction.user.guild_permissions.manage_roles:
             cnt = 0
