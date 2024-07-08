@@ -58,6 +58,13 @@ class Admin(commands.GroupCog, group_name="admin"):
 
         await ctx.send(f"Synced the tree to {ret}/{len(guilds)}.")
 
+    @commands.command()
+    @commands.is_owner()
+    async def log(self, ctx: commands.Context) -> None:
+        await ctx.reply(
+            file=discord.File("bot/data/bot.log", filename="bot.log"), mention_author=False
+        )
+
     @commands.command(name='channeltopic', aliases=['ct'])
     async def channel_topic(self, ctx: commands.Context) -> None:
         if ctx.author.guild_permissions.manage_channels:

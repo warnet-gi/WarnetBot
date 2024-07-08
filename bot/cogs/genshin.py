@@ -54,7 +54,7 @@ class Genshin(commands.GroupCog, group_name="genshin"):
 
                 else:
                     break
-        
+
         else:
             logger.error(f'Failed to fetch RSS feed! Status code: {feed.status}')
 
