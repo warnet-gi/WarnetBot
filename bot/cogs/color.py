@@ -133,11 +133,11 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         embed.add_field(
             name="What to do next?",
             value=(
-                "- Use `/warnet-color list` to check list of all available custom roles\n"
-                "- Use `/warnet-color set` to use any custom role, or\n"
-                "- Ask Admin/Mod to attach custom icon on your custom role (read <#822872937161162795> for instruction), or\n"
-                "- Use `/warnet-color remove` to take off your current custom role, or\n"
-                "- Use `/warnet-color edit hex/rgb` to edit your created custom role"
+                "- Use </warnet-color list:1159052621177425951> to check list of all available custom roles\n"
+                "- Use </warnet-color set:1159052621177425951> to use any custom  role, or\n"
+                "- Ask </warnet-color icon:1159052621177425951> attach custom icon on your custom role (read <#822872937161162795> for instruction), or\n"
+                "- Use </warnet-color remove:1159052621177425951> to take off your current custom role, or\n"
+                "- Use </warnet-color edit hex:1159052621177425951> or </warnet-color edit rgb:1159052621177425951> to edit your created custom role"
             ),
         )
 
@@ -220,7 +220,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
                 "- Use </warnet-color set:1159052621177425951> to use any custom  role, or\n"
                 "- Ask </warnet-color icon:1159052621177425951> attach custom icon on your custom role (read <#822872937161162795> for instruction), or\n"
                 "- Use </warnet-color remove:1159052621177425951> to take off your current custom role, or\n"
-                "- Use </warnet-color edit hex::1159052621177425951> or </warnet-color edit rgb:1159052621177425951> to edit your created custom role"
+                "- Use </warnet-color edit hex:1159052621177425951> or </warnet-color edit rgb:1159052621177425951> to edit your created custom role"
             ),
         )
 
@@ -563,43 +563,47 @@ class Color(commands.GroupCog, group_name='warnet-color'):
             color=discord.Color.light_embed(),
         )
         embed.add_field(
-            name='/warnet-color add hex',
+            name='/</arnet-color add hex:1159052621177425951>',
             value='Membuat custom role dengan warna tertentu menggunakan kode HEX.',
         )
         embed.add_field(
-            name='/warnet-color add rgb',
+            name='</warnet-color add rgb:1159052621177425951>',
             value='Membuat custom role dengan warna tertentu menggunakan kode RGB.',
         )
         embed.add_field(
-            name='/warnet-color edit hex',
+            name='</warnet-color edit hex:1159052621177425951>',
             value='Mengedit nama custom role dan mengganti warna menggunakan kode HEX.',
         )
         embed.add_field(
-            name='/warnet-color edit rgb',
+            name='</warnet-color edit rgb:1159052621177425951>',
             value='Mengedit nama custom role dan mengganti warna menggunakan kode RGB.',
         )
         embed.add_field(
-            name='/warnet-color list',
+            name='</warnet-color list:1159052621177425951>',
             value='Melihat daftar custom role yang tersedia.',
         )
         embed.add_field(
-            name='/warnet-color set',
+            name='</warnet-color set:1159052621177425951>',
             value='Memasang custom role yang ada pada profile.',
         )
         embed.add_field(
-            name='/warnet-color remove',
+            name='</warnet-color icon:1159052621177425951>',
+            value='Memasang icon pada custom role yang sudah terpasang.',
+        )
+        embed.add_field(
+            name='</warnet-color remove:1159052621177425951>',
             value='Mencopot custom role yang ada pada profile.',
         )
         embed.add_field(
-            name='/warnet-color info',
+            name='</warnet-color info:1159052621177425951>',
             value='Menampilkan informasi warna, tanggal pembuatan, dan pemilik dari custom role.',
         )
         embed.add_field(
-            name='/warnet-color delete',
+            name='</warnet-color delete:1159052621177425951>',
             value='Menghapus custom role dari database secara permanen. Membutuhkan permission `manage_roles`.',
         )
         embed.add_field(
-            name='/warnet-color help',
+            name='</warnet-color help:1159052621177425951>',
             value='Menampilkan daftar perintah yang tersedia untuk fitur custom role.',
         )
         return await interaction.followup.send(embed=embed)
