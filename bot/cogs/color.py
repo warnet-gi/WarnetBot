@@ -1,9 +1,11 @@
+from ctypes import Union
+import io
 import logging
 from datetime import datetime
-from typing import Optional
+from typing import Literal, Optional
 
 import discord
-from discord import app_commands, Interaction
+from discord import Attachment, app_commands, Interaction
 from discord.ext import commands
 
 from bot.bot import WarnetBot
@@ -14,6 +16,7 @@ from bot.cogs.ext.color.utils import (
     no_permission_alert,
 )
 from bot.config import CustomRoleConfig
+from bot.cogs.views.color import AcceptIconAttachment
 
 logger = logging.getLogger(__name__)
 
@@ -384,6 +387,42 @@ class Color(commands.GroupCog, group_name='warnet-color'):
                 color=role_target.color,
             )
             return await interaction.followup.send(embed=embed)
+
+    @app_commands.command(name='icon', description='Attach a icon on custom role.')
+    @app_commands.describe(
+        role='The role you want to attach the icon.',
+        icon='The icon you want to attach to the role. Must be a PNG or JPEG(JPG included) file (Maximum 256 KB).',
+    )
+    async def set_icon(
+        self, interaction: Interaction, role: discord.Role, icon: discord.Attachment
+    ) -> None:
+        await interaction.response.defer()
+        if role not in interaction.user.roles:
+            return await interaction.followup.send("❌ Please use the role first.", ephemeral=True)
+
+        if icon.content_type not in ["image/jpeg", "image/png"]:
+            return await interaction.followup.send(
+                "❌ Please pass in a valid PNG or JPEG file!", ephemeral=True
+            )
+
+        if icon.size > 256 * 1024:
+            return await interaction.followup.send(
+                "❌ The image file size must be less than 256 KB!", ephemeral=True
+            )
+
+        byte = await icon.read()
+        bytes = io.BytesIO(byte)
+        file = discord.File(bytes, icon.filename)
+
+        embed = discord.Embed(
+            description=f"Please ask admin or mod to attach this icon to {role.mention}.\nThe button will be disabled in 3 hours.",
+            color=role.color,
+        )
+        embed.set_image(url=f'attachment://{icon.filename}')
+
+        await interaction.followup.send(
+            embed=embed, file=file, view=AcceptIconAttachment(role, bytes)
+        )
 
     @app_commands.command(name='remove', description='Remove your current custom role.')
     async def remove_color(self, interaction: Interaction) -> None:
