@@ -396,7 +396,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         self, interaction: Interaction, role: discord.Role, icon: discord.Attachment
     ) -> None:
         await interaction.response.defer()
-        if role not in interaction.user.roles:
+        if interaction.user.get_role(role.id) is None:
             return await interaction.followup.send("❌ Please use the role first.", ephemeral=True)
 
         if icon.content_type not in ["image/jpeg", "image/png"]:
@@ -414,7 +414,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         file = discord.File(bytes, icon.filename)
 
         embed = discord.Embed(
-            description=f"Please ask admin or mod to attach this icon to {role.mention}.\nThe button will be disabled in 3 hours.",
+            description=f"Please ask admin or mod to attach this icon to {role.mention}.\nThe button will be disabled in 1 hours.",
             color=role.color,
         )
         embed.set_image(url=f'attachment://{icon.filename}')

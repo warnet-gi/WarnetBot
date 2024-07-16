@@ -8,7 +8,7 @@ from bot.cogs.ext.color.utils import no_permission_alert
 
 class AcceptIconAttachment(discord.ui.View):
     def __init__(self, role, bytes):
-        super().__init__(timeout=10800)
+        super().__init__(timeout=3600)
         self.role: discord.Role = role
         self.bytes: BytesIO = bytes
 
