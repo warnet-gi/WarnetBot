@@ -1,5 +1,5 @@
 from io import BytesIO
-from math import e
+
 import discord
 from discord import Interaction
 

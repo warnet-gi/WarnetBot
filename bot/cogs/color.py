@@ -1,11 +1,10 @@
-from ctypes import Union
 import io
 import logging
 from datetime import datetime
-from typing import Literal, Optional
+from typing import Optional
 
 import discord
-from discord import Attachment, app_commands, Interaction
+from discord import app_commands, Interaction
 from discord.ext import commands
 
 from bot.bot import WarnetBot
@@ -15,8 +14,8 @@ from bot.cogs.ext.color.utils import (
     get_current_custom_role_on_user,
     no_permission_alert,
 )
-from bot.config import CustomRoleConfig
 from bot.cogs.views.color import AcceptIconAttachment
+from bot.config import CustomRoleConfig
 
 logger = logging.getLogger(__name__)
 
