@@ -7,7 +7,7 @@ from discord.ext import commands, tasks
 
 from bot.bot import WarnetBot
 from bot.cogs.ext.temprole.time import parse_time_string
-from bot.config import GUILD_ID
+from bot.config import GUILD_ID, GiveawayConfig
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +36,11 @@ class Temporary(commands.GroupCog, group_name='warnet-temp'):
         role: discord.Role,
     ) -> None:
         await interaction.response.defer()
+        if role.id is not GiveawayConfig.GIVEAWAY_ROLE_ID:
+            return await interaction.followup.send(
+                'cannot add blacklist giveaway role!!', ephemeral=True
+            )
+
         if not interaction.user.guild_permissions.manage_roles:
             return await interaction.followup.send(
                 'You do not have permission to manage roles', ephemeral=True
@@ -87,10 +92,8 @@ class Temporary(commands.GroupCog, group_name='warnet-temp'):
             try:
                 user = guild.get_member(int(record['user_id']))
                 role = guild.get_role(int(record['role_id']))
-
-                if user and role:
-                    await user.remove_roles(role)
-                    user_success.append(user.id)
+                await user.remove_roles(role)
+                user_success.append(user.id)
             except Exception:
                 pass
 

@@ -72,3 +72,8 @@ class TCGConfig:
         TCG_TITLE_ROLE_ID[2]: '<:MasterDuelist:1052440400822018078>',
         TCG_TITLE_ROLE_ID[3]: '<:ImmortalDuelist:1052440404135518228>',
     }
+
+
+class GiveawayConfig:
+    GIVEAWAY_ROLE_ID = 1058433863333978172
+    BIG_GIVEAWAY = 50000
