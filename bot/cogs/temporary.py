@@ -28,7 +28,7 @@ class Temporary(commands.GroupCog, group_name='warnet-temp'):
         duration='Example: 1d2h3m4s',
         role='Role to add',
     )
-    async def give_role_on_poll(
+    async def add_temporary_role(
         self,
         interaction: Interaction,
         user: discord.Member,
@@ -36,7 +36,7 @@ class Temporary(commands.GroupCog, group_name='warnet-temp'):
         role: discord.Role,
     ) -> None:
         await interaction.response.defer()
-        if role.id is GiveawayConfig.BLACKLIST_ROLE_ID:
+        if role.id == GiveawayConfig.BLACKLIST_ROLE_ID:
             return await interaction.followup.send(
                 'Cannot add blacklist giveaway role!!', ephemeral=True
             )
@@ -51,6 +51,10 @@ class Temporary(commands.GroupCog, group_name='warnet-temp'):
             if duration_seconds < 60:
                 return await interaction.followup.send(
                     'Duration must be at least 1 minute', ephemeral=True
+                )
+            if duration_seconds > 60 * 60 * 24 * 365:
+                return await interaction.followup.send(
+                    'Duration must be at most 1 year', ephemeral=True
                 )
             await user.add_roles(role)
         except ValueError:
@@ -89,16 +93,14 @@ class Temporary(commands.GroupCog, group_name='warnet-temp'):
             )
 
         for record in records:
-            try:
-                user = guild.get_member(int(record['user_id']))
+            user = guild.get_member(int(record['user_id']))
+            if user:
                 role = guild.get_role(int(record['role_id']))
                 await user.remove_roles(role)
                 user_success.append(user.id)
-            except Exception:
-                pass
 
-        for user in user_success:
-            async with self.db_pool.acquire() as conn:
+        async with self.db_pool.acquire() as conn:
+            for user in user_success:
                 await conn.execute(
                     'DELETE FROM temp_role WHERE user_id = $1',
                     user,
