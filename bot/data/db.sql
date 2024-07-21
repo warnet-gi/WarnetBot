@@ -62,3 +62,14 @@ CREATE TABLE custom_role(
 	UNIQUE(role_id)
 );
 CREATE INDEX IF NOT EXISTS custom_role_role_id_idx ON custom_role (role_id);
+
+----- TEMPORARY ROLE FEATURE ------
+-----------------------------------
+CREATE TABLE temp_role(
+    user_id BIGINT NOT NULL,
+    role_id BIGINT NOT NULL,
+    end_time TIMESTAMP NOT NULL
+	PRIMARY KEY(user_id),
+	UNIQUE(user_id)
+);
+CREATE INDEX IF NOT EXISTS temp_role_role_id_idx ON temp_role (user_id);
