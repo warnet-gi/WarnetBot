@@ -7,7 +7,6 @@ from discord import app_commands, Interaction
 from discord.ext import commands, tasks
 
 from bot.bot import WarnetBot
-from bot.cogs.ext.temprole.time import parse_time_string
 from bot.config import GiveawayConfig, GUILD_ID
 
 logger = logging.getLogger(__name__)
@@ -89,7 +88,9 @@ class Giveaway(commands.GroupCog, group_name='warnet-ga'):
                     end_time,
                     end_time,
                 )
-            logger.info(f'Added role {blacklist_role.id} to user {ghost.id} for {ghosting_day} days')
+            logger.info(
+                f'Added role {blacklist_role.id} to user {ghost.id} for {ghosting_day} days'
+            )
 
         embed = discord.Embed(
             title="Role Added",
