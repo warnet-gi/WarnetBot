@@ -25,7 +25,7 @@ class Temporary(commands.GroupCog, group_name='warnet-temp'):
     @app_commands.command(name='add', description='Adds a temprole to user')
     @app_commands.describe(
         user='User to add temprole to',
-        duration='Duration of temprole',
+        duration='Example: 1d2h3m4s',
         role='Role to add',
     )
     async def give_role_on_poll(
