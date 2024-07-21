@@ -71,7 +71,7 @@ class Giveaway(commands.GroupCog, group_name='warnet-ga'):
             end_time = datetime.now(timezone.utc) + timedelta(days=winner_day)
             async with self.db_pool.acquire() as conn:
                 await conn.execute(
-                    'INSERT INTO black_ga (user_id, end_time, last_time, has_role) VALUES ($1, $2, $3, TRUE)',
+                    'INSERT INTO black_ga (user_id, end_time, last_time) VALUES ($1, $2, $3)',
                     winn.id,
                     end_time,
                     end_time,
@@ -83,7 +83,7 @@ class Giveaway(commands.GroupCog, group_name='warnet-ga'):
             end_time = datetime.now(timezone.utc) + timedelta(days=ghosting_day)
             async with self.db_pool.acquire() as conn:
                 await conn.execute(
-                    'INSERT INTO black_ga (user_id, end_time, last_time, has_role) VALUES ($1, $2, $3, TRUE)',
+                    'INSERT INTO black_ga (user_id, end_time, last_time) VALUES ($1, $2, $3)',
                     ghost.id,
                     end_time,
                     end_time,

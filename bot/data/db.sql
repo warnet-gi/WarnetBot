@@ -81,7 +81,7 @@ CREATE TABLE black_ga(
     user_id BIGINT NOT NULL,
     end_time TIMESTAMP NOT NULL,
 	last_time TIMESTAMP NOT NULL,
-	has_role BOOLEAN DEFAULT FALSE NOT NULL,
+	has_role BOOLEAN DEFAULT TRUE NOT NULL,
 	PRIMARY KEY(user_id),
 	UNIQUE(user_id)
 );
