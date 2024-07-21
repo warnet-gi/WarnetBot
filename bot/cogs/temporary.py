@@ -36,6 +36,11 @@ class Temporary(commands.GroupCog, group_name='warnet-temp'):
         role: discord.Role,
     ) -> None:
         await interaction.response.defer()
+        if not interaction.user.guild_permissions.manage_roles:
+            return await interaction.followup.send(
+                'You do not have permission to manage roles', ephemeral=True
+            )
+
         try:
             duration_seconds = parse_time_string(duration)
             if duration_seconds < 60:
@@ -95,9 +100,7 @@ class Temporary(commands.GroupCog, group_name='warnet-temp'):
                     'DELETE FROM temp_role WHERE user_id = $1',
                     user,
                 )
-            logger.info(
-                f'Removed role {role.id} from {user} users'
-            )
+            logger.info(f'Removed role {role.id} from {user} users')
 
     @_check_temprole.before_loop
     async def _before_check_temprole(self):
