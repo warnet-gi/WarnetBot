@@ -229,16 +229,14 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         name='hex', description='Edit a color role with a new name and new HEX color.'
     )
     @app_commands.describe(
-        method='The method to edit the color role. (name/number)',
-        method_data='if method is "name" pass the name of the color role, if "number" pass the number of the color role.',
+        role='The name or number of the color role you want to edit.',
         new_name='The new name of the color role.',
         hex='The HEX color value of the new color.',
     )
     async def edit_hex_color(
         self,
         interaction: Interaction,
-        method: Literal['name', 'number'],
-        method_data: str,
+        role: str,
         new_name: str,
         hex: str,
     ) -> None:
@@ -258,16 +256,12 @@ class Color(commands.GroupCog, group_name='warnet-color'):
                 ephemeral=True,
             )
 
-        if method == 'name':
-            name = method_data
-            number = None
-        else:
+        if re.match(r'^\d+$', role):
             name = None
-            if not re.match(r'^\d+$', method_data):
-                return await interaction.followup.send(
-                    "❌ Please pass in a valid number!", ephemeral=True
-                )
-            number = int(method_data)
+            number = int(role)
+        else:
+            name = role
+            number = None
 
         role_target = await check_role_by_name_or_number(self, interaction, name, number)
         if role_target:
@@ -305,8 +299,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         name='rgb', description='Edit a color role with a new name and new RGB color.'
     )
     @app_commands.describe(
-        method='The method to edit the color role. (name/number)',
-        method_data='if method is "name" pass the name of the color role, if "number" pass the number of the color role.',
+        role='The name or number of the color role you want to edit.',
         new_name='The new name of the color role.',
         r='The red value of the color. (0-255)',
         g='The green value of the color. (0-255)',
@@ -315,8 +308,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
     async def edit_rgb_color(
         self,
         interaction: Interaction,
-        method: Literal['name', 'number'],
-        method_data: str,
+        role: str,
         new_name: str,
         r: int,
         g: int,
@@ -336,16 +328,12 @@ class Color(commands.GroupCog, group_name='warnet-color'):
                 "❌ Please pass in a valid RGB code!", ephemeral=True
             )
 
-        if method == 'name':
-            name = method_data
-            number = None
-        else:
+        if re.match(r'^\d+$', role):
             name = None
-            if not re.match(r'^\d+$', method_data):
-                return await interaction.followup.send(
-                    "❌ Please pass in a valid number!", ephemeral=True
-                )
-            number = int(method_data)
+            number = int(role)
+        else:
+            name = role
+            number = None
 
         role_target = await check_role_by_name_or_number(self, interaction, name, number)
         if role_target:
@@ -381,14 +369,12 @@ class Color(commands.GroupCog, group_name='warnet-color'):
 
     @app_commands.command(name='set', description='Attach a custom role on your profile.')
     @app_commands.describe(
-        method='The method to edit the color role. (name/number)',
-        method_data='if method is "name" pass the name of the color role, if "number" pass the number of the color role.',
+        role='The name or number of the color role you want to edit.',
     )
     async def set_color(
         self,
         interaction: Interaction,
-        method: Literal['name', 'number'],
-        method_data: str,
+        role: str,
     ) -> None:
         await interaction.response.defer()
         if (
@@ -397,16 +383,12 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         ):
             return await no_permission_alert(interaction)
 
-        if method == 'name':
-            name = method_data
-            number = None
-        else:
+        if re.match(r'^\d+$', role):
             name = None
-            if not re.match(r'^\d+$', method_data):
-                return await interaction.followup.send(
-                    "❌ Please pass in a valid number!", ephemeral=True
-                )
-            number = int(method_data)
+            number = int(role)
+        else:
+            name = role
+            number = None
 
         if role_target := await check_role_by_name_or_number(self, interaction, name, number):
             member = interaction.user
@@ -474,14 +456,12 @@ class Color(commands.GroupCog, group_name='warnet-color'):
 
     @app_commands.command(name='info', description='Show the basic info of a custom role.')
     @app_commands.describe(
-        method='The method to edit the color role. (name/number)',
-        method_data='if method is "name" pass the name of the color role, if "number" pass the number of the color role.',
+        role='The name or number of the color role you want to edit.',
     )
     async def info_color(
         self,
         interaction: Interaction,
-        method: Literal['name', 'number'],
-        method_data: str,
+        role: str,
     ) -> None:
         await interaction.response.defer()
         if (
@@ -490,16 +470,12 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         ):
             return await no_permission_alert(interaction)
 
-        if method == 'name':
-            name = method_data
-            number = None
-        else:
+        if re.match(r'^\d+$', role):
             name = None
-            if not re.match(r'^\d+$', method_data):
-                return await interaction.followup.send(
-                    "❌ Please pass in a valid number!", ephemeral=True
-                )
-            number = int(method_data)
+            number = int(role)
+        else:
+            name = role
+            number = None
 
         if role_target := await check_role_by_name_or_number(self, interaction, name, number):
             async with self.db_pool.acquire() as conn:
@@ -527,26 +503,20 @@ class Color(commands.GroupCog, group_name='warnet-color'):
 
     @app_commands.command(name='delete', description='Delete custom role from list and database.')
     @app_commands.describe(
-        method='The method to edit the color role. (name/number)',
-        method_data='if method is "name" pass the name of the color role, if "number" pass the number of the color role.',
+        role='The name or number of the color role you want to edit.',
     )
     async def delete_color(
         self,
         interaction: Interaction,
-        method: Literal['name', 'number'],
-        method_data: str,
+        role: str,
     ) -> None:
         await interaction.response.defer()
-        if method == 'name':
-            name = method_data
-            number = None
-        else:
+        if re.match(r'^\d+$', role):
             name = None
-            if not re.match(r'^\d+$', method_data):
-                return await interaction.followup.send(
-                    "❌ Please pass in a valid number!", ephemeral=True
-                )
-            number = int(method_data)
+            number = int(role)
+        else:
+            name = role
+            number = None
 
         if role_target := await check_role_by_name_or_number(self, interaction, name, number):
             if (
