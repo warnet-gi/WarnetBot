@@ -1,4 +1,5 @@
 import logging
+import re
 from datetime import datetime
 from typing import Literal
 
@@ -14,7 +15,6 @@ from bot.cogs.ext.color.utils import (
     no_permission_alert,
 )
 from bot.config import CustomRoleConfig
-import re
 
 logger = logging.getLogger(__name__)
 
