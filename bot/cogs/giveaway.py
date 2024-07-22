@@ -28,7 +28,7 @@ class Giveaway(commands.GroupCog, group_name='warnet-ga'):
         winner='Winner of the giveaway. Example: 1234567890,0987654321',
         ghosting='the ghost. Example: 1234567890,0987654321',
     )
-    async def give_role_on_poll(
+    async def add_giveaway_blacklist(
         self,
         interaction: Interaction,
         amount: int,
