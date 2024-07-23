@@ -59,19 +59,34 @@ class Temporary(commands.GroupCog, group_name='warnet-temp'):
             await user.add_roles(role)
         except ValueError:
             return await interaction.followup.send('Invalid duration format', ephemeral=True)
-        except:
+        except discord.HTTPException:
             return await interaction.followup.send(f'Something went wrong', ephemeral=True)
 
         logger.info(f'Added role {role} to user {user.id} for {duration_seconds} seconds')
         total_duration = datetime.now(timezone.utc) + timedelta(seconds=duration_seconds)
 
         async with self.db_pool.acquire() as conn:
-            await conn.execute(
-                'INSERT INTO temp_role (user_id, role_id, end_time) VALUES ($1, $2, $3)',
+            in_table = await conn.fetchval(
+                'SELECT 1 FROM temp_role WHERE user_id = $1 AND role_id = $2',
                 user.id,
                 role.id,
-                total_duration,
             )
+
+        async with self.db_pool.acquire() as conn:
+            if in_table:
+                await conn.execute(
+                    'UPDATE temp_role SET end_time = $1 WHERE user_id = $2 AND role_id = $3',
+                    total_duration,
+                    user.id,
+                    role.id,
+                )
+            else:
+                await conn.execute(
+                    'INSERT INTO temp_role (user_id, role_id, end_time) VALUES ($1, $2, $3)',
+                    user.id,
+                    role.id,
+                    total_duration,
+                )
 
         embed = discord.Embed(
             title="Role Added",
