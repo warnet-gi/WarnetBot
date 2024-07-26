@@ -62,3 +62,27 @@ CREATE TABLE custom_role(
 	UNIQUE(role_id)
 );
 CREATE INDEX IF NOT EXISTS custom_role_role_id_idx ON custom_role (role_id);
+
+----- TEMPORARY ROLE FEATURE ------
+-----------------------------------
+CREATE TABLE temp_role(
+	id SERIAL NOT NULL,
+    user_id BIGINT NOT NULL,
+    role_id BIGINT NOT NULL,
+    end_time TIMESTAMP NOT NULL,
+	PRIMARY KEY(id),
+	UNIQUE(id)
+);
+CREATE INDEX IF NOT EXISTS temp_role_role_id_idx ON temp_role (id);
+
+--- GIVEAWAY BLACKLIST FEATURE ----
+-----------------------------------
+CREATE TABLE black_ga(
+    user_id BIGINT NOT NULL,
+    end_time TIMESTAMP NOT NULL,
+	has_role BOOLEAN DEFAULT TRUE NOT NULL,
+	status_user INT DEFAULT 0 NOT NULL, -- 0: default, 1: win, 2: ghost, 3: strek
+	PRIMARY KEY(user_id),
+	UNIQUE(user_id)
+);
+CREATE INDEX IF NOT EXISTS black_ga_id_idx ON black_ga (user_id);
