@@ -13,7 +13,7 @@ class AcceptIconAttachment(discord.ui.View):
         self.bytes: BytesIO = bytes
 
     @discord.ui.button(label="Accept", style=discord.ButtonStyle.success, emoji="✅")
-    async def add_role_icon(self, interaction: Interaction, button: discord.ui.Button):
+    async def add_role_icon(self, interaction: Interaction, button: discord.ui.Button) -> None:
         await interaction.response.defer(ephemeral=True)
         if not interaction.user.guild_permissions.manage_roles:
             return await no_permission_alert(interaction)
