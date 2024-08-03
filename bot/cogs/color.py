@@ -596,7 +596,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
             color=discord.Color.light_embed(),
         )
         embed.add_field(
-            name='/</arnet-color add hex:1159052621177425951>',
+            name='</warnet-color add hex:1159052621177425951>',
             value='Membuat custom role dengan warna tertentu menggunakan kode HEX.',
         )
         embed.add_field(
