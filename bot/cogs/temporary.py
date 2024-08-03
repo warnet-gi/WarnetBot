@@ -114,14 +114,14 @@ class Temporary(commands.GroupCog, group_name='warnet-temp'):
             user = guild.get_member(record['user_id'])
             role = guild.get_role(record['role_id'])
 
-            if not user or not role:
+            if not user:
                 continue
 
-            if user.get_role(role.id) is None:
+            if user.get_role(role.id) is None or not role:
                 user_success.append(user.id)
                 continue
 
-            try :
+            try:
                 await user.remove_roles(role)
                 user_success.append(user.id)
             except discord.HTTPException:
