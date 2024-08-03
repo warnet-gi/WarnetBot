@@ -135,7 +135,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
             value=(
                 "- Use </warnet-color list:1159052621177425951> to check list of all available custom roles\n"
                 "- Use </warnet-color set:1159052621177425951> to use any custom  role, or\n"
-                "- Ask </warnet-color icon:1159052621177425951> attach custom icon on your custom role (read <#822872937161162795> for instruction), or\n"
+                "- Use </warnet-color icon:1159052621177425951> to attach custom icon on your custom role (read <#822872937161162795> for instruction), or\n"
                 "- Use </warnet-color remove:1159052621177425951> to take off your current custom role, or\n"
                 "- Use </warnet-color edit hex:1159052621177425951> or </warnet-color edit rgb:1159052621177425951> to edit your created custom role"
             ),
@@ -218,7 +218,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
             value=(
                 "- Use </warnet-color list:1159052621177425951> to check list of all available custom roles\n"
                 "- Use </warnet-color set:1159052621177425951> to use any custom  role, or\n"
-                "- Ask </warnet-color icon:1159052621177425951> attach custom icon on your custom role (read <#822872937161162795> for instruction), or\n"
+                "- Use </warnet-color icon:1159052621177425951> to attach custom icon on your custom role (read <#822872937161162795> for instruction), or\n"
                 "- Use </warnet-color remove:1159052621177425951> to take off your current custom role, or\n"
                 "- Use </warnet-color edit hex:1159052621177425951> or </warnet-color edit rgb:1159052621177425951> to edit your created custom role"
             ),

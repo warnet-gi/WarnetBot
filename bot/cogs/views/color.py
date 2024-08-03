@@ -15,10 +15,7 @@ class AcceptIconAttachment(discord.ui.View):
     @discord.ui.button(label="Accept", style=discord.ButtonStyle.success, emoji="✅")
     async def add_role_icon(self, interaction: Interaction, button: discord.ui.Button):
         await interaction.response.defer(ephemeral=True)
-        if (
-            not interaction.user.premium_since
-            and not interaction.user.guild_permissions.manage_roles
-        ):
+        if not interaction.user.guild_permissions.manage_roles:
             return await no_permission_alert(interaction)
 
         try:
@@ -28,7 +25,7 @@ class AcceptIconAttachment(discord.ui.View):
                 "Failed to update role icon. Please try again later. Make sure the bot has higher role than the role you want to edit.",
                 ephemeral=True,
             )
-        
+
         if edited_role:
             embed = discord.Embed(
                 title="Role Icon Updated",
