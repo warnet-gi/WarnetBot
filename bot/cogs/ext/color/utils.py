@@ -15,31 +15,22 @@ async def check_role_by_name_or_number(
     name: Optional[str],
     number: Optional[int],
 ) -> Optional[Role]:
-    if name and number:
-        await interaction.followup.send("❌ Please use just `name` or just `number`. Not both!")
+    if name:
+        role_target = discord.utils.find(lambda r: r.name == name, interaction.guild.roles)
+    elif number:
+        try:
+            role_target_id = self.custom_role_data_list[number - 1]
+            role_target = interaction.guild.get_role(role_target_id)
+        except IndexError:
+            role_target = None
+
+    if not role_target:
+        await interaction.followup.send(
+            "❌ Failed to find the color!\nPlease use `/warnet-color list` to see all the available colors."
+        )
         return None
 
-    elif name or number:
-        if name:
-            role_target = discord.utils.find(lambda r: r.name == name, interaction.guild.roles)
-        elif number:
-            try:
-                role_target_id = self.custom_role_data_list[number - 1]
-                role_target = interaction.guild.get_role(role_target_id)
-            except IndexError:
-                role_target = None
-
-        if not role_target:
-            await interaction.followup.send(
-                "❌ Failed to find the color!\nPlease use `/warnet-color list` to see all the available colors."
-            )
-            return None
-
-        return role_target
-
-    else:
-        await interaction.followup.send("❌ Please supply a color `name` or a color `number`!")
-        return None
+    return role_target
 
 
 def get_current_custom_role_on_user(
