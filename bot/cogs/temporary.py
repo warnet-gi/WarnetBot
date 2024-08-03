@@ -109,13 +109,23 @@ class Temporary(commands.GroupCog, group_name='warnet-temp'):
 
         if not records:
             return
-        
+
         for record in records:
             user = guild.get_member(record['user_id'])
-            if user:
-                role = guild.get_role(record['role_id'])
+            role = guild.get_role(record['role_id'])
+
+            if not user or not role:
+                continue
+
+            if user.get_role(role.id) is None:
+                user_success.append(user.id)
+                continue
+
+            try :
                 await user.remove_roles(role)
                 user_success.append(user.id)
+            except discord.HTTPException:
+                logger.error(f'Failed to remove role {role.id} from user {user.id}')
 
         async with self.db_pool.acquire() as conn:
             for user in user_success:
