@@ -107,10 +107,13 @@ class Temporary(commands.GroupCog, group_name='warnet-temp'):
                 current_time,
             )
 
+        if not records:
+            return
+        
         for record in records:
-            user = guild.get_member(int(record['user_id']))
+            user = guild.get_member(record['user_id'])
             if user:
-                role = guild.get_role(int(record['role_id']))
+                role = guild.get_role(record['role_id'])
                 await user.remove_roles(role)
                 user_success.append(user.id)
 
