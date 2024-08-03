@@ -66,27 +66,13 @@ class Temporary(commands.GroupCog, group_name='warnet-temp'):
         total_duration = datetime.now(timezone.utc) + timedelta(seconds=duration_seconds)
 
         async with self.db_pool.acquire() as conn:
-            in_table = await conn.fetchval(
-                'SELECT 1 FROM temp_role WHERE user_id = $1 AND role_id = $2',
-                user.id,
-                role.id,
-            )
-
-        async with self.db_pool.acquire() as conn:
-            if in_table:
-                await conn.execute(
-                    'UPDATE temp_role SET end_time = $1 WHERE user_id = $2 AND role_id = $3',
-                    total_duration,
-                    user.id,
-                    role.id,
-                )
-            else:
-                await conn.execute(
-                    'INSERT INTO temp_role (user_id, role_id, end_time) VALUES ($1, $2, $3)',
-                    user.id,
-                    role.id,
-                    total_duration,
-                )
+            query = '''
+                INSERT INTO temp_role (user_id, role_id, end_time)
+                VALUES ($1, $2, $3)
+                ON CONFLICT (user_id, role_id)
+                DO UPDATE SET end_time = EXCLUDED.end_time
+            '''
+            await conn.execute(query, user.id, role.id, total_duration)
 
         embed = discord.Embed(
             title="Role Added",
@@ -99,11 +85,11 @@ class Temporary(commands.GroupCog, group_name='warnet-temp'):
     async def _check_temprole(self) -> None:
         current_time = datetime.now(timezone.utc)
         guild = self.bot.get_guild(GUILD_ID)
-        user_success = []
+        id_success = []
 
         async with self.db_pool.acquire() as conn:
             records = await conn.fetch(
-                'SELECT user_id, role_id FROM temp_role WHERE end_time <= $1',
+                'SELECT id, user_id, role_id FROM temp_role WHERE end_time <= $1',
                 current_time,
             )
 
@@ -118,20 +104,20 @@ class Temporary(commands.GroupCog, group_name='warnet-temp'):
                 continue
 
             if user.get_role(role.id) is None or not role:
-                user_success.append(user.id)
+                id_success.append(record['id'])
                 continue
 
             try:
                 await user.remove_roles(role)
-                user_success.append(user.id)
+                id_success.append(record['id'])
             except discord.HTTPException:
                 logger.error(f'Failed to remove role {role.id} from user {user.id}')
 
         async with self.db_pool.acquire() as conn:
-            for user in user_success:
+            for id in id_success:
                 await conn.execute(
-                    'DELETE FROM temp_role WHERE user_id = $1',
-                    user,
+                    'DELETE FROM temp_role WHERE id = $1',
+                    id,
                 )
             logger.info(f'Removed role {role.id} from {user} users')
 
