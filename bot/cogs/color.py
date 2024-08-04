@@ -404,7 +404,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
             )
             return await interaction.followup.send(embed=embed)
 
-    @app_commands.command(name='icon', description='Attach a icon on custom role.')
+    @app_commands.command(name='icon', description='Attach an icon on custom role.')
     @app_commands.describe(
         role='The role you want to attach the icon.',
         icon='The icon you want to attach to the role. Must be a PNG or JPEG(JPG included) file (Maximum 256 KB).',
