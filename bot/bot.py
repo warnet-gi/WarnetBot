@@ -59,8 +59,7 @@ class WarnetBot(Bot):
 
     async def start(self, debug: bool = False) -> None:
         self.start_time = time.time()
-        # self.debug = debug
-        self.debug = False
+        self.debug = debug
 
 
         if self.debug:
