@@ -42,7 +42,7 @@ class WarnetBot(Bot):
             self.session = aiohttp.ClientSession()
 
         self.bot_app_info = await self.application_info()
-        self.owner_id = self.bot_app_info.owner.id
+        self.owner_ids = {m.id for m in self.bot_app_info.team.members}
 
         await self.load_cogs()
 
@@ -59,7 +59,9 @@ class WarnetBot(Bot):
 
     async def start(self, debug: bool = False) -> None:
         self.start_time = time.time()
-        self.debug = debug
+        # self.debug = debug
+        self.debug = False
+
 
         if self.debug:
             self.db_pool = await asyncpg.create_pool(
