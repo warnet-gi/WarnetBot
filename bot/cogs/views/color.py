@@ -19,7 +19,9 @@ class AcceptIconAttachment(discord.ui.View):
             return await no_permission_alert(interaction)
 
         try:
-            edited_role = await self.role.edit(display_icon=self.bytes.getvalue())
+            edited_role = await self.role.edit(
+                display_icon=self.bytes.getvalue(), reason=f"Approved by {interaction.user.name}"
+            )
         except discord.HTTPException:
             return await interaction.followup.send(
                 "Failed to update role icon. Please try again later. Make sure the bot has higher role than the role you want to edit.",
@@ -31,6 +33,10 @@ class AcceptIconAttachment(discord.ui.View):
                 title="Role Icon Updated",
                 description=f"Role {edited_role.mention} icon has been updated.",
                 color=discord.Color.green(),
+            )
+            embed.set_footer(
+                text=f"Accepted by {interaction.user.name}",
+                icon_url=interaction.user.display_avatar.url,
             )
 
             button.label = "Accepted"

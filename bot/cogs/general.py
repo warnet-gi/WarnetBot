@@ -211,12 +211,18 @@ class General(commands.Cog):
     )
     async def role_members(self, ctx: commands.Context) -> None:
         await ctx.typing()
-        embed = discord.Embed(title="HoYoverse Calendar 2024",
-                              color=ctx.author.color,
-                              description=("For Genshin Impact, Honkai: Star Rail, and Zenless Zone Zero\n\n"
-                                           "Dates are estimation based on previous versions' pattern, it may or may not change, "
-                                           "if there are any changes in the future, this calendar will (eventually) be updated."))
-        embed.set_image(url="https://cdn.discordapp.com/attachments/761680288592953365/1274667473966207060/hoyo2024_2.png")
+        embed = discord.Embed(
+            title="HoYoverse Calendar 2024",
+            color=ctx.author.color,
+            description=(
+                "For Genshin Impact, Honkai: Star Rail, and Zenless Zone Zero\n\n"
+                "Dates are estimation based on previous versions' pattern, it may or may not change, "
+                "if there are any changes in the future, this calendar will (eventually) be updated."
+            ),
+        )
+        embed.set_image(
+            url="https://cdn.discordapp.com/attachments/761680288592953365/1274667473966207060/hoyo2024_2.png"
+        )
         await ctx.reply(embed=embed, mention_author=False)
 
     @commands.Cog.listener()

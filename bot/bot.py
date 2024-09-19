@@ -61,7 +61,6 @@ class WarnetBot(Bot):
         self.start_time = time.time()
         self.debug = debug
 
-
         if self.debug:
             self.db_pool = await asyncpg.create_pool(
                 host=config.LOCAL_DB_HOST,
