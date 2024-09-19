@@ -115,7 +115,8 @@ class Color(commands.GroupCog, group_name='warnet-color'):
 
         # Put recent created role under boundary role
         boundary_role = interaction.guild.get_role(CustomRoleConfig.BOUNDARY_ROLE_ID)
-        await created_role.edit(position=boundary_role.position - 1)
+        while created_role.position != boundary_role.position - 1:
+            created_role = await created_role.edit(position=boundary_role.position - 1)
 
         # Use created role immediately
         role_being_used = get_current_custom_role_on_user(self, interaction.guild, role_owner)
