@@ -28,7 +28,7 @@ class Temporary(commands.GroupCog, group_name='warnet-temp'):
         duration='Example: 1d2h3m4s',
         role='Role to add',
     )
-    async def give_role_on_poll(
+    async def add_temporary_role(
         self,
         interaction: Interaction,
         user: discord.Member,
@@ -36,7 +36,7 @@ class Temporary(commands.GroupCog, group_name='warnet-temp'):
         role: discord.Role,
     ) -> None:
         await interaction.response.defer()
-        if role.id is GiveawayConfig.BLACKLIST_ROLE_ID:
+        if role.id == GiveawayConfig.BLACKLIST_ROLE_ID:
             return await interaction.followup.send(
                 'Cannot add blacklist giveaway role!!', ephemeral=True
             )
@@ -52,22 +52,27 @@ class Temporary(commands.GroupCog, group_name='warnet-temp'):
                 return await interaction.followup.send(
                     'Duration must be at least 1 minute', ephemeral=True
                 )
+            if duration_seconds > 60 * 60 * 24 * 365:
+                return await interaction.followup.send(
+                    'Duration must be at most 1 year', ephemeral=True
+                )
             await user.add_roles(role)
         except ValueError:
             return await interaction.followup.send('Invalid duration format', ephemeral=True)
-        except:
+        except discord.HTTPException:
             return await interaction.followup.send(f'Something went wrong', ephemeral=True)
 
         logger.info(f'Added role {role} to user {user.id} for {duration_seconds} seconds')
         total_duration = datetime.now(timezone.utc) + timedelta(seconds=duration_seconds)
 
         async with self.db_pool.acquire() as conn:
-            await conn.execute(
-                'INSERT INTO temp_role (user_id, role_id, end_time) VALUES ($1, $2, $3)',
-                user.id,
-                role.id,
-                total_duration,
-            )
+            query = '''
+                INSERT INTO temp_role (user_id, role_id, end_time)
+                VALUES ($1, $2, $3)
+                ON CONFLICT (user_id, role_id)
+                DO UPDATE SET end_time = EXCLUDED.end_time
+            '''
+            await conn.execute(query, user.id, role.id, total_duration)
 
         embed = discord.Embed(
             title="Role Added",
@@ -80,28 +85,39 @@ class Temporary(commands.GroupCog, group_name='warnet-temp'):
     async def _check_temprole(self) -> None:
         current_time = datetime.now(timezone.utc)
         guild = self.bot.get_guild(GUILD_ID)
-        user_success = []
+        id_success = []
 
         async with self.db_pool.acquire() as conn:
             records = await conn.fetch(
-                'SELECT user_id, role_id FROM temp_role WHERE end_time <= $1',
+                'SELECT id, user_id, role_id FROM temp_role WHERE end_time <= $1',
                 current_time,
             )
 
-        for record in records:
-            try:
-                user = guild.get_member(int(record['user_id']))
-                role = guild.get_role(int(record['role_id']))
-                await user.remove_roles(role)
-                user_success.append(user.id)
-            except Exception:
-                pass
+        if not records:
+            return
 
-        for user in user_success:
-            async with self.db_pool.acquire() as conn:
+        for record in records:
+            user = guild.get_member(record['user_id'])
+            role = guild.get_role(record['role_id'])
+
+            if not user:
+                continue
+
+            if user.get_role(role.id) is None or not role:
+                id_success.append(record['id'])
+                continue
+
+            try:
+                await user.remove_roles(role)
+                id_success.append(record['id'])
+            except discord.HTTPException:
+                logger.error(f'Failed to remove role {role.id} from user {user.id}')
+
+        async with self.db_pool.acquire() as conn:
+            for id in id_success:
                 await conn.execute(
-                    'DELETE FROM temp_role WHERE user_id = $1',
-                    user,
+                    'DELETE FROM temp_role WHERE id = $1',
+                    id,
                 )
             logger.info(f'Removed role {role.id} from {user} users')
 

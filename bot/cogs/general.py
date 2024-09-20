@@ -80,11 +80,6 @@ class General(commands.Cog):
             value="[Link dokumentasi](https://github.com/warnet-gi/WarnetBot/wiki/Bot-Commands#-khaenriah-commands)",
             inline=False,
         )
-        embed.add_field(
-            name='🎲 TCG Commands',
-            value="[Link dokumentasi](https://github.com/warnet-gi/WarnetBot/wiki/Bot-Commands#-tcg-commands)",
-            inline=False,
-        )
         await ctx.send(embed=embed)
 
     @commands.guild_only()
@@ -208,6 +203,27 @@ class General(commands.Cog):
             f"2. Tentukan **Judul Film**, **Tanggal**, dan **Jam** nobar. Minimal __satu hari sebelum nobar__, agar dapat diumumkan kepada role **{nobar_role.name}** terlebih dahulu.\n"
             f"3. Pada saat waktu nobar, Admin/Mod akan memberikan kamu akses agar dapat stream pada channel <#{NOBAR_CHANNEL_ID}>."
         )
+
+    @commands.hybrid_command(
+        name='calendar',
+        aliases=['cal'],
+        description='Shows HoYoverse calendar for Genshin, HSR, and ZZZ.',
+    )
+    async def role_members(self, ctx: commands.Context) -> None:
+        await ctx.typing()
+        embed = discord.Embed(
+            title="HoYoverse Calendar 2024",
+            color=ctx.author.color,
+            description=(
+                "For Genshin Impact, Honkai: Star Rail, and Zenless Zone Zero\n\n"
+                "Dates are estimation based on previous versions' pattern, it may or may not change, "
+                "if there are any changes in the future, this calendar will (eventually) be updated."
+            ),
+        )
+        embed.set_image(
+            url="https://cdn.discordapp.com/attachments/761680288592953365/1274667473966207060/hoyo2024_2.png"
+        )
+        await ctx.reply(embed=embed, mention_author=False)
 
     @commands.Cog.listener()
     async def on_connect(self) -> None:

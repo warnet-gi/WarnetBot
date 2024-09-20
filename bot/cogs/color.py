@@ -1,6 +1,6 @@
+import io
 import logging
 from datetime import datetime
-from typing import Optional
 
 import discord
 from discord import app_commands, Interaction
@@ -13,6 +13,7 @@ from bot.cogs.ext.color.utils import (
     get_current_custom_role_on_user,
     no_permission_alert,
 )
+from bot.cogs.views.color import AcceptIconAttachment
 from bot.config import CustomRoleConfig
 
 logger = logging.getLogger(__name__)
@@ -114,7 +115,8 @@ class Color(commands.GroupCog, group_name='warnet-color'):
 
         # Put recent created role under boundary role
         boundary_role = interaction.guild.get_role(CustomRoleConfig.BOUNDARY_ROLE_ID)
-        await created_role.edit(position=boundary_role.position - 1)
+        while created_role.position != boundary_role.position - 1:
+            created_role = await created_role.edit(position=boundary_role.position - 1)
 
         # Use created role immediately
         role_being_used = get_current_custom_role_on_user(self, interaction.guild, role_owner)
@@ -131,11 +133,11 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         embed.add_field(
             name="What to do next?",
             value=(
-                "- Use `/warnet-color list` to check list of all available custom roles\n"
-                "- Use `/warnet-color set` to use any custom role, or\n"
-                "- Ask Admin/Mod to attach custom icon on your custom role (read <#822872937161162795> for instruction), or\n"
-                "- Use `/warnet-color remove` to take off your current custom role, or\n"
-                "- Use `/warnet-color edit hex/rgb` to edit your created custom role"
+                "- Use </warnet-color list:1159052621177425951> to check list of all available custom roles\n"
+                "- Use </warnet-color set:1159052621177425951> to use any custom  role, or\n"
+                "- Use </warnet-color icon:1159052621177425951> to attach custom icon on your custom role (read <#822872937161162795> for instruction), or\n"
+                "- Use </warnet-color remove:1159052621177425951> to take off your current custom role, or\n"
+                "- Use </warnet-color edit hex:1159052621177425951> or </warnet-color edit rgb:1159052621177425951> to edit your created custom role"
             ),
         )
 
@@ -214,11 +216,11 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         embed.add_field(
             name="What to do next?",
             value=(
-                "- Use `/warnet-color list` to check list of all available custom roles\n"
-                "- Use `/warnet-color set` to use any custom  role, or\n"
-                "- Ask Admin/Mod to attach custom icon on your custom role (read <#822872937161162795> for instruction), or\n"
-                "- Use `/warnet-color remove` to take off your current custom role, or\n"
-                "- Use `/warnet-color edit hex/rgb` to edit your created custom role"
+                "- Use </warnet-color list:1159052621177425951> to check list of all available custom roles\n"
+                "- Use </warnet-color set:1159052621177425951> to use any custom  role, or\n"
+                "- Use </warnet-color icon:1159052621177425951> to attach custom icon on your custom role (read <#822872937161162795> for instruction), or\n"
+                "- Use </warnet-color remove:1159052621177425951> to take off your current custom role, or\n"
+                "- Use </warnet-color edit hex:1159052621177425951> or </warnet-color edit rgb:1159052621177425951> to edit your created custom role"
             ),
         )
 
@@ -228,18 +230,16 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         name='hex', description='Edit a color role with a new name and new HEX color.'
     )
     @app_commands.describe(
+        role_id_or_name='The name or number of the color role you want to edit.',
         new_name='The new name of the color role.',
         hex='The HEX color value of the new color.',
-        name='The name of the color role you want to edit. Required if "number" is empty.',
-        number='The number of the color role you want to edit. Required if "name" is empty.',
     )
     async def edit_hex_color(
         self,
         interaction: Interaction,
+        role_id_or_name: str,
         new_name: str,
         hex: str,
-        name: Optional[str],
-        number: Optional[int],
     ) -> None:
         await interaction.response.defer()
         if (
@@ -256,6 +256,13 @@ class Color(commands.GroupCog, group_name='warnet-color'):
                 "❌ Please pass in a valid HEX code!\n\nExample: `#FFF456` or `FFF456`",
                 ephemeral=True,
             )
+
+        if role_id_or_name.isdigit():
+            name = None
+            number = int(role_id_or_name)
+        else:
+            name = role_id_or_name
+            number = None
 
         role_target = await check_role_by_name_or_number(self, interaction, name, number)
         if role_target:
@@ -293,22 +300,20 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         name='rgb', description='Edit a color role with a new name and new RGB color.'
     )
     @app_commands.describe(
+        role_id_or_name='The name or number of the color role you want to edit.',
         new_name='The new name of the color role.',
         r='The red value of the color. (0-255)',
         g='The green value of the color. (0-255)',
         b='The blue value of the color. (0-255)',
-        name='The name of the color role you want to edit. Required if "number" is empty.',
-        number='The number of the color role you want to edit. Required if "name" is empty.',
     )
     async def edit_rgb_color(
         self,
         interaction: Interaction,
+        role_id_or_name: str,
         new_name: str,
         r: int,
         g: int,
         b: int,
-        name: Optional[str],
-        number: Optional[int],
     ) -> None:
         await interaction.response.defer()
         if (
@@ -323,6 +328,13 @@ class Color(commands.GroupCog, group_name='warnet-color'):
             return await interaction.followup.send(
                 "❌ Please pass in a valid RGB code!", ephemeral=True
             )
+
+        if role_id_or_name.isdigit():
+            name = None
+            number = int(role_id_or_name)
+        else:
+            name = role_id_or_name
+            number = None
 
         role_target = await check_role_by_name_or_number(self, interaction, name, number)
         if role_target:
@@ -358,11 +370,12 @@ class Color(commands.GroupCog, group_name='warnet-color'):
 
     @app_commands.command(name='set', description='Attach a custom role on your profile.')
     @app_commands.describe(
-        name='The name of the color role you want to use. Required if "number" is empty.',
-        number='The number of the color role you want to use. Required if "name" is empty.',
+        role_id_or_name='The name or number of the color role you want to edit.',
     )
     async def set_color(
-        self, interaction: Interaction, name: Optional[str], number: Optional[int]
+        self,
+        interaction: Interaction,
+        role_id_or_name: str,
     ) -> None:
         await interaction.response.defer()
         if (
@@ -370,6 +383,13 @@ class Color(commands.GroupCog, group_name='warnet-color'):
             and not interaction.user.guild_permissions.manage_roles
         ):
             return await no_permission_alert(interaction)
+
+        if role_id_or_name.isdigit():
+            name = None
+            number = int(role_id_or_name)
+        else:
+            name = role_id_or_name
+            number = None
 
         if role_target := await check_role_by_name_or_number(self, interaction, name, number):
             member = interaction.user
@@ -384,6 +404,42 @@ class Color(commands.GroupCog, group_name='warnet-color'):
                 color=role_target.color,
             )
             return await interaction.followup.send(embed=embed)
+
+    @app_commands.command(name='icon', description='Attach an icon on custom role.')
+    @app_commands.describe(
+        role='The role you want to attach the icon.',
+        icon='The icon you want to attach to the role. Must be a PNG or JPEG(JPG included) file (Maximum 256 KB).',
+    )
+    async def set_icon(
+        self, interaction: Interaction, role: discord.Role, icon: discord.Attachment
+    ) -> None:
+        await interaction.response.defer()
+        if interaction.user.get_role(role.id) is None:
+            return await interaction.followup.send("❌ Please use the role first.", ephemeral=True)
+
+        if icon.content_type not in ["image/jpeg", "image/png"]:
+            return await interaction.followup.send(
+                "❌ Please pass in a valid PNG or JPEG file!", ephemeral=True
+            )
+
+        if icon.size > 256 * 1024:
+            return await interaction.followup.send(
+                "❌ The image file size must be less than 256 KB!", ephemeral=True
+            )
+
+        byte = await icon.read()
+        bytes = io.BytesIO(byte)
+        file = discord.File(bytes, icon.filename)
+
+        embed = discord.Embed(
+            description=f"Please ask admin or mod to attach this icon to {role.mention}.\nThe button will be disabled in 1 hours.",
+            color=role.color,
+        )
+        embed.set_image(url=f'attachment://{icon.filename}')
+
+        await interaction.followup.send(
+            embed=embed, file=file, view=AcceptIconAttachment(role, bytes)
+        )
 
     @app_commands.command(name='remove', description='Remove your current custom role.')
     async def remove_color(self, interaction: Interaction) -> None:
@@ -437,11 +493,12 @@ class Color(commands.GroupCog, group_name='warnet-color'):
 
     @app_commands.command(name='info', description='Show the basic info of a custom role.')
     @app_commands.describe(
-        name='The name of the color role you want to see the info. Required if "number" is empty.',
-        number='The number of the color role you want to see the info. Required if "name" is empty.',
+        role_id_or_name='The name or number of the color role you want to edit.',
     )
     async def info_color(
-        self, interaction: Interaction, name: Optional[str], number: Optional[int]
+        self,
+        interaction: Interaction,
+        role_id_or_name: str,
     ) -> None:
         await interaction.response.defer()
         if (
@@ -449,6 +506,13 @@ class Color(commands.GroupCog, group_name='warnet-color'):
             and not interaction.user.guild_permissions.manage_roles
         ):
             return await no_permission_alert(interaction)
+
+        if role_id_or_name.isdigit():
+            name = None
+            number = int(role_id_or_name)
+        else:
+            name = role_id_or_name
+            number = None
 
         if role_target := await check_role_by_name_or_number(self, interaction, name, number):
             async with self.db_pool.acquire() as conn:
@@ -476,13 +540,21 @@ class Color(commands.GroupCog, group_name='warnet-color'):
 
     @app_commands.command(name='delete', description='Delete custom role from list and database.')
     @app_commands.describe(
-        name='The name of the color role you want delete. Required if "number" is empty.',
-        number='The number of the color role you want to delete. Required if "name" is empty.',
+        role_id_or_name='The name or number of the color role you want to edit.',
     )
     async def delete_color(
-        self, interaction: Interaction, name: Optional[str], number: Optional[int]
+        self,
+        interaction: Interaction,
+        role_id_or_name: str,
     ) -> None:
         await interaction.response.defer()
+        if role_id_or_name.isdigit():
+            name = None
+            number = int(role_id_or_name)
+        else:
+            name = role_id_or_name
+            number = None
+
         if role_target := await check_role_by_name_or_number(self, interaction, name, number):
             if (
                 interaction.user.guild_permissions.manage_roles
@@ -525,43 +597,47 @@ class Color(commands.GroupCog, group_name='warnet-color'):
             color=discord.Color.light_embed(),
         )
         embed.add_field(
-            name='/warnet-color add hex',
+            name='</warnet-color add hex:1159052621177425951>',
             value='Membuat custom role dengan warna tertentu menggunakan kode HEX.',
         )
         embed.add_field(
-            name='/warnet-color add rgb',
+            name='</warnet-color add rgb:1159052621177425951>',
             value='Membuat custom role dengan warna tertentu menggunakan kode RGB.',
         )
         embed.add_field(
-            name='/warnet-color edit hex',
+            name='</warnet-color edit hex:1159052621177425951>',
             value='Mengedit nama custom role dan mengganti warna menggunakan kode HEX.',
         )
         embed.add_field(
-            name='/warnet-color edit rgb',
+            name='</warnet-color edit rgb:1159052621177425951>',
             value='Mengedit nama custom role dan mengganti warna menggunakan kode RGB.',
         )
         embed.add_field(
-            name='/warnet-color list',
+            name='</warnet-color list:1159052621177425951>',
             value='Melihat daftar custom role yang tersedia.',
         )
         embed.add_field(
-            name='/warnet-color set',
+            name='</warnet-color set:1159052621177425951>',
             value='Memasang custom role yang ada pada profile.',
         )
         embed.add_field(
-            name='/warnet-color remove',
+            name='</warnet-color icon:1159052621177425951>',
+            value='Memasang icon pada custom role yang sudah terpasang.',
+        )
+        embed.add_field(
+            name='</warnet-color remove:1159052621177425951>',
             value='Mencopot custom role yang ada pada profile.',
         )
         embed.add_field(
-            name='/warnet-color info',
+            name='</warnet-color info:1159052621177425951>',
             value='Menampilkan informasi warna, tanggal pembuatan, dan pemilik dari custom role.',
         )
         embed.add_field(
-            name='/warnet-color delete',
+            name='</warnet-color delete:1159052621177425951>',
             value='Menghapus custom role dari database secara permanen. Membutuhkan permission `manage_roles`.',
         )
         embed.add_field(
-            name='/warnet-color help',
+            name='</warnet-color help:1159052621177425951>',
             value='Menampilkan daftar perintah yang tersedia untuk fitur custom role.',
         )
         return await interaction.followup.send(embed=embed)
