@@ -24,9 +24,9 @@ class Giveaway(commands.GroupCog, group_name='warnet-ga'):
 
     @app_commands.command(name='blacklist', description='Blacklist a user from giveaway')
     @app_commands.describe(
-        amount='Amount of giveaway. Example: 50000',
+        amount='Giveaway prizes. Example: 50000',
         winner='Winner of the giveaway. Example: 1234567890,0987654321',
-        ghosting='the ghost. Example: 1234567890,0987654321',
+        ghosting='Member who do not claim the giveaway. Example: 1234567890,0987654321',
     )
     async def add_giveaway_blacklist(
         self,
@@ -64,8 +64,10 @@ class Giveaway(commands.GroupCog, group_name='warnet-ga'):
         else:
             winner_day: 30
             ghosting_day: 15
+
         end_time_no_streak = datetime.now(timezone.utc) + timedelta(days=winner_day)
         end_time_streak = datetime.now(timezone.utc) + timedelta(days=winner_day * 2)
+        end_time_ghosting = datetime.now(timezone.utc) + timedelta(days=ghosting_day)
         blacklist_role = interaction.guild.get_role(GiveawayConfig.BLACKLIST_ROLE_ID)
 
         async with self.db_pool.acquire() as conn:
@@ -77,10 +79,11 @@ class Giveaway(commands.GroupCog, group_name='warnet-ga'):
                 await winn.add_roles(blacklist_role)
                 if win in streak_user:
                     await conn.execute(
-                        'UPDATE black_ga SET (end_time, status_user) VALUES ($2, $3) WHERE user_id = $1',
+                        'UPDATE black_ga SET (end_time, status_user, cooldown_time) VALUES ($2, $3, $4) WHERE user_id = $1',
                         winn.id,
                         end_time_streak,
-                        3,
+                        0,
+                        end_time_no_streak,
                     )
                 else:
                     await conn.execute(
@@ -89,21 +92,28 @@ class Giveaway(commands.GroupCog, group_name='warnet-ga'):
                         end_time_no_streak,
                         1,
                     )
-            logger.info(f'Added role {blacklist_role.id} to user {winn.id} for {winner_day} days')
-
-        for ghost in ghostss:
-            await ghost.add_roles(blacklist_role)
-            end_time = datetime.now(timezone.utc) + timedelta(days=ghosting_day)
-            async with self.db_pool.acquire() as conn:
-                await conn.execute(
-                    'INSERT INTO black_ga (user_id, end_time, status_user) VALUES ($1, $2, $3)',
-                    ghost.id,
-                    end_time,
-                    2,
+                logger.info(
+                    f'Added role {blacklist_role.id} to user {winn.id} for {winner_day} days'
                 )
-            logger.info(
-                f'Added role {blacklist_role.id} to user {ghost.id} for {ghosting_day} days'
-            )
+
+            for ghost in ghostss:
+                await ghost.add_roles(blacklist_role)
+                if ghost in streak_user:
+                    await conn.execute(
+                        'UPDATE black_ga SET (end_time) VALUES ($2) WHERE user_id = $1',
+                        ghost.id,
+                        end_time_ghosting,
+                    )
+                else:
+                    await conn.execute(
+                        'INSERT INTO black_ga (user_id, end_time, status_user) VALUES ($1, $2, $3)',
+                        ghost.id,
+                        end_time_ghosting,
+                        0,
+                    )
+                logger.info(
+                    f'Added role {blacklist_role.id} to user {ghost.id} for {ghosting_day} days'
+                )
 
         embed = discord.Embed(
             title="Role Added",
@@ -123,28 +133,26 @@ class Giveaway(commands.GroupCog, group_name='warnet-ga'):
     @tasks.loop(seconds=60)
     async def _check_blacklist_ga(self) -> None:
         guild = self.bot.get_guild(GUILD_ID)
+        blacklist_role = guild.get_role(GiveawayConfig.BLACKLIST_ROLE_ID)
 
         async with self.db_pool.acquire() as conn:
             user_want_remove = await conn.fetch(
                 'SELECT user_id FROM black_ga WHERE end_time <= $1 AND has_role = TRUE',
-                datetime.now(timezone.utc) - timedelta(days=30),
+                datetime.now(timezone.utc),
+            )
+            user_want_delete = await conn.fetch(
+                'SELECT user_id FROM black_ga WHERE has_role = FALSE AND status_user = 0',
             )
 
             for user in user_want_remove:
                 user = guild.get_member(int(user['user_id']))
                 if user:
-                    blacklist_role = guild.get_role(GiveawayConfig.BLACKLIST_ROLE_ID)
                     await user.remove_roles(blacklist_role)
                     await conn.execute(
                         'UPDATE black_ga SET has_role = FALSE WHERE user_id = $1',
                         user.id,
                     )
                     logger.info(f'Removed role {blacklist_role.id} from user {user.id} (rm role)')
-
-        async with self.db_pool.acquire() as conn:
-            user_want_delete = await conn.fetch(
-                'SELECT user_id FROM black_ga WHERE AND has_role = FALSE AND status_user != 1',
-            )
 
             for user in user_want_delete:
                 if user:
