@@ -7,7 +7,7 @@ from discord.ext import commands, tasks
 
 from bot.bot import WarnetBot
 from bot.cogs.ext.temprole.time import parse_time_string
-from bot.config import GiveawayConfig, GUILD_ID
+from bot.config import BLACKLIST_GA_ROLE_ID, GUILD_ID
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +36,7 @@ class Temporary(commands.GroupCog, group_name='warnet-temp'):
         role: discord.Role,
     ) -> None:
         await interaction.response.defer()
-        if role.id == GiveawayConfig.BLACKLIST_ROLE_ID:
+        if role.id == BLACKLIST_GA_ROLE_ID:
             return await interaction.followup.send(
                 'Cannot add blacklist giveaway role!!', ephemeral=True
             )

@@ -77,7 +77,7 @@ CREATE INDEX IF NOT EXISTS temp_role_user_role_idx ON temp_role (user_id, role_i
 
 --- GIVEAWAY BLACKLIST FEATURE ----
 -----------------------------------
-CREATE TABLE black_ga(
+CREATE TABLE blacklist_ga(
     user_id BIGINT NOT NULL,
     end_time TIMESTAMP WITH TIME ZONE NOT NULL,
 	cooldown_time TIMESTAMP WITH TIME ZONE,
@@ -86,4 +86,4 @@ CREATE TABLE black_ga(
 	PRIMARY KEY(user_id),
 	UNIQUE(user_id)
 );
-CREATE INDEX IF NOT EXISTS black_ga_id_idx ON black_ga (user_id);
+CREATE INDEX IF NOT EXISTS blacklist_ga_id_idx ON blacklist_ga (user_id);
