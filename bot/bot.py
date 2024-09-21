@@ -42,10 +42,7 @@ class WarnetBot(Bot):
             self.session = aiohttp.ClientSession()
 
         self.bot_app_info = await self.application_info()
-        if self.bot_app_info.team:
-            self.owner_ids = {m.id for m in self.bot_app_info.team.members}
-        else:
-            self.owner_id = self.bot_app_info.owner.id
+        self.owner_ids = {m.id for m in self.bot_app_info.team.members}
 
         await self.load_cogs()
 

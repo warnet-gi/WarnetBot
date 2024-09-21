@@ -24,14 +24,14 @@ class Giveaway(commands.GroupCog, group_name='warnet-ga'):
 
     @app_commands.command(name='blacklist', description='Blacklist a user from giveaway')
     @app_commands.describe(
-        big_GA='Yes if the giveaway is large than Rp50.000',
+        big='Yes if the giveaway is large than Rp50.000',
         winners='Winner of the giveaway. Example: 1234567890,0987654321',
         ghosts='Member who do not claim the giveaway. Example: 1234567890,0987654321',
     )
     async def add_giveaway_blacklist(
         self,
         interaction: Interaction,
-        big_GA: bool,
+        big: bool,
         winners: str,
         ghosts: Optional[str] = None,
     ) -> None:
@@ -41,9 +41,8 @@ class Giveaway(commands.GroupCog, group_name='warnet-ga'):
 
         winner_list: list[discord.Member] = []
         winners = winners.split(',')
-        print(winners)
         for winner in winners:
-            if (user := interaction.guild.get_member(winner)) is None:
+            if (user := interaction.guild.get_member(int(winner))) is None:
                 return await interaction.followup.send(f'User {winner} not found', ephemeral=True)
             winner_list.append(user)
 
@@ -51,24 +50,23 @@ class Giveaway(commands.GroupCog, group_name='warnet-ga'):
         if ghosts:
             ghosts = ghosts.split(',')
             for ghost in ghosts:
-                if user := interaction.guild.get_member(ghost):
+                if (user := interaction.guild.get_member(int(ghost))) is None:
                     return await interaction.followup.send(
                         f'User {ghost} not found', ephemeral=True
                     )
                 ghost_list.append(user)
 
-        if big_GA:
-            winner_day = 15
-            ghosting_day = 7
-        else:
+        if big:
             winner_day = 30
             ghosting_day = 15
+        else:
+            winner_day = 15
+            ghosting_day = 7
 
-        # change to days, seconds only for testing
         now = datetime.now(timezone.utc)
-        end_time_no_streak = now + timedelta(seconds=winner_day)
-        end_time_streak = now + timedelta(seconds=winner_day * 2)
-        end_time_ghosting = now + timedelta(seconds=ghosting_day)
+        end_time_no_streak = now + timedelta(days=winner_day)
+        end_time_streak = now + timedelta(days=winner_day * 2)
+        end_time_ghosting = now + timedelta(days=ghosting_day)
         blacklist_role = interaction.guild.get_role(BLACKLIST_GA_ROLE_ID)
 
         async with self.db_pool.acquire() as conn:
@@ -83,12 +81,13 @@ class Giveaway(commands.GroupCog, group_name='warnet-ga'):
                     await conn.execute(
                         '''
                         UPDATE blacklist_ga 
-                        SET end_time = $2, status_user = $3
+                        SET end_time = $2, status_user = $3, cooldown_time = $4
                         WHERE user_id = $1
                         ''',
                         winner.id,
                         end_time_streak,
                         0,
+                        end_time_streak,
                     )
                 else:
                     await conn.execute(
@@ -106,7 +105,7 @@ class Giveaway(commands.GroupCog, group_name='warnet-ga'):
                 await ghost.add_roles(blacklist_role)
                 if ghost.id in streak_user:
                     await conn.execute(
-                        'UPDATE blacklist_ga SET (end_time) VALUES ($2) WHERE user_id = $1',
+                        'UPDATE blacklist_ga SET end_time = $2 WHERE user_id = $1',
                         ghost.id,
                         end_time_ghosting,
                     )
