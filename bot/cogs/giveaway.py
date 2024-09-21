@@ -40,17 +40,18 @@ class Giveaway(commands.GroupCog, group_name='warnet-ga'):
             return await interaction.followup.send('You are not an admin', ephemeral=True)
 
         winner_list: list[discord.Member] = []
-        for (winner := winners.split(',')) in winners:
-            if (user := interaction.guild.get_member(winner)):
-                return await interaction.followup.send(
-                    f'User {winner} not found', ephemeral=True
-                )
+        winners = winners.split(',')
+        print(winners)
+        for winner in winners:
+            if (user := interaction.guild.get_member(winner)) is None:
+                return await interaction.followup.send(f'User {winner} not found', ephemeral=True)
             winner_list.append(user)
 
         ghost_list: list[discord.Member] = []
         if ghosts:
-            for (ghost := ghosts.split(',')) in ghosts:
-                if (user := interaction.guild.get_member(ghost)):
+            ghosts = ghosts.split(',')
+            for ghost in ghosts:
+                if user := interaction.guild.get_member(ghost):
                     return await interaction.followup.send(
                         f'User {ghost} not found', ephemeral=True
                     )
@@ -147,7 +148,7 @@ class Giveaway(commands.GroupCog, group_name='warnet-ga'):
                 now,
             )
             for user in user_want_remove:
-                if (user := guild.get_member(int(user['user_id']))):
+                if user := guild.get_member(int(user['user_id'])):
                     await user.remove_roles(blacklist_role)
                     await conn.execute(
                         'UPDATE blacklist_ga SET has_role = FALSE WHERE user_id = $1',
