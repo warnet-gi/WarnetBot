@@ -24,9 +24,9 @@ class Giveaway(commands.GroupCog, group_name='warnet-ga'):
 
     @app_commands.command(name='blacklist', description='Blacklist a user from giveaway')
     @app_commands.describe(
-        big='Yes if the giveaway is large than Rp50.000',
-        winners='Winner of the giveaway. Example: 1234567890,0987654321',
-        ghosts='Member who do not claim the giveaway. Example: 1234567890,0987654321',
+        big='Yes if the giveaway is more than Rp50.000',
+        winners='Discord IDs of the giveaway winner. Example: 1234567890,0987654321',
+        ghosts='Member IDs who do not claim the giveaway. Example: 1234567890,0987654321',
     )
     async def add_giveaway_blacklist(
         self,
