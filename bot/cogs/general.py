@@ -209,7 +209,7 @@ class General(commands.Cog):
         aliases=['cal'],
         description='Shows HoYoverse calendar for Genshin, HSR, and ZZZ.',
     )
-    async def role_members(self, ctx: commands.Context) -> None:
+    async def calendar(self, ctx: commands.Context) -> None:
         await ctx.typing()
         embed = discord.Embed(
             title="HoYoverse Calendar 2024",
