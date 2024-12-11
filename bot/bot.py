@@ -25,7 +25,7 @@ class WarnetBot(Bot):
             strip_after_prefix=True,
             intents=discord.Intents.all(),
             help_command=None,
-            log_handler=None
+            log_handler=None,
         )
         self.session: aiohttp.ClientSession = None
         self.version = __version__
