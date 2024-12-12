@@ -1,5 +1,7 @@
+import os
 import re
 from datetime import datetime, timedelta
+from io import StringIO
 from typing import Literal, Optional, Union
 
 import discord
@@ -60,10 +62,40 @@ class Admin(commands.GroupCog, group_name="admin"):
 
     @commands.command()
     @commands.is_owner()
-    async def log(self, ctx: commands.Context) -> None:
-        await ctx.reply(
-            file=discord.File("bot/data/bot.log", filename="bot.log"), mention_author=False
-        )
+    async def log(self, ctx: commands.Context, log_type: Optional[str] = 'd') -> None:
+        log_dir = "bot/data/log/"
+        if log_type == 'd':
+            latest_log_file = max(
+                (f for f in os.listdir(log_dir) if f.endswith(".log")),
+                key=lambda x: os.path.getmtime(os.path.join(log_dir, x)),
+            )
+            await ctx.reply(
+                file=discord.File(os.path.join(log_dir, latest_log_file), filename=latest_log_file),
+                mention_author=False,
+            )
+
+        elif log_type == 'w':
+            log_content = StringIO()
+
+            log_files = sorted(
+                [f for f in os.listdir(log_dir) if f.endswith(".log")],
+                key=lambda x: os.path.getmtime(os.path.join(log_dir, x)),
+            )
+
+            for log_file in log_files:
+                log_file_path = os.path.join(log_dir, log_file)
+                with open(log_file_path, "r") as f:
+                    log_content.write(f.read().rstrip("\n"))
+
+            log_content.seek(0)
+            await ctx.reply(
+                file=discord.File(log_content, filename="weekly.log"),
+                mention_author=False,
+            )
+        else:
+            await ctx.reply(
+                "Invalid log type. Use `d` for latest log or `w` for weekly log.",
+            )
 
     @commands.command(name='channeltopic', aliases=['ct'])
     async def channel_topic(self, ctx: commands.Context) -> None:

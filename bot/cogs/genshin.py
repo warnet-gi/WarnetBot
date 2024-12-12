@@ -32,11 +32,8 @@ class Genshin(commands.GroupCog, group_name="genshin"):
         feed = feedparser.parse(genshin_config.RSS_FEED_URL)
 
         if feed.status == 200:
-            logger.info('RSS feed fetched successfully!')
             for entry in feed.entries[:10]:  # get only 10 latest articles
                 if entry.id != latest_entry_id:
-                    logger.info(f'NEW GENSHIN ARTICLE FOUND! ID={entry.id}')
-
                     pattern = re.compile(r'src=\"(https://.+\.(?:jpg|png))\"')
                     try:
                         entry_image_link = pattern.search(entry.content[0].value).group(1)

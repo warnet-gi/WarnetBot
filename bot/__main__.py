@@ -2,6 +2,7 @@ import asyncio
 
 from bot import config
 from bot.bot import WarnetBot
+from bot.config.logger import setup_logger
 
 
 def main():
@@ -13,4 +14,5 @@ def main():
 
 
 if __name__ == "__main__":
+    setup_logger()
     main()
