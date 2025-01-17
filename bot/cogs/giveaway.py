@@ -81,12 +81,11 @@ class Giveaway(commands.GroupCog, group_name='warnet-ga'):
                     await conn.execute(
                         '''
                         UPDATE blacklist_ga 
-                        SET end_time = $2, status_user = $3, cooldown_time = $4
+                        SET end_time = $2, cooldown_time = $3, status_user = 0, has_role = TRUE
                         WHERE user_id = $1
                         ''',
                         winner.id,
                         end_time_streak,
-                        0,
                         end_time_streak,
                     )
                 else:
@@ -105,7 +104,7 @@ class Giveaway(commands.GroupCog, group_name='warnet-ga'):
                 await ghost.add_roles(blacklist_role)
                 if ghost.id in streak_user:
                     await conn.execute(
-                        'UPDATE blacklist_ga SET end_time = $2 WHERE user_id = $1',
+                        'UPDATE blacklist_ga SET end_time = $2 AND has_role = TRUE WHERE user_id = $1',
                         ghost.id,
                         end_time_ghosting,
                     )
@@ -150,7 +149,7 @@ class Giveaway(commands.GroupCog, group_name='warnet-ga'):
                 if user := guild.get_member(int(user['user_id'])):
                     await user.remove_roles(blacklist_role)
                     await conn.execute(
-                        'UPDATE blacklist_ga SET has_role = FALSE WHERE user_id = $1',
+                        'UPDATE blacklist_ga SET has_role = FALSE AND end_time = null WHERE user_id = $1',
                         user.id,
                     )
                     logger.info(f'Removed role {blacklist_role.id} from user {user.id} (rm role)')
