@@ -155,7 +155,7 @@ class Giveaway(commands.GroupCog, group_name='warnet-ga'):
                     logger.info(f'Removed role {blacklist_role.id} from user {user.id} (rm role)')
 
             user_want_delete = await conn.fetch(
-                'SELECT user_id FROM blacklist_ga WHERE has_role = FALSE AND status_user = 0 OR cooldown_time <= $1',
+                'SELECT user_id FROM blacklist_ga WHERE has_role = FALSE AND (status_user = 0 OR cooldown_time <= $1)',
                 now,
             )
             for user in user_want_delete:
