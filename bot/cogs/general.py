@@ -222,7 +222,7 @@ class General(commands.Cog):
             ),
         )
         embed.set_image(
-            url="https://media.discordapp.net/attachments/1054633264419188786/1331548250351599677/hoyo2025_1.png?ex=67920471&is=6790b2f1&hm=beb722be0f17f0d691745fe1c11657a33d096841660bebbe3ad6978f7310680c"
+            url="https://cdn.discordapp.com/attachments/1054633264419188786/1331548250351599677/hoyo2025_1.png?ex=679355f1&is=67920471&hm=4487e147de9f07eee0ea5856c505d056e697ec2993eafde03207d4717f4f1dd1"
         )
         await ctx.reply(embed=embed, mention_author=False)
 
