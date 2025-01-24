@@ -216,13 +216,13 @@ class General(commands.Cog):
             color=ctx.author.color,
             description=(
                 "For Genshin Impact, Honkai: Star Rail, and Zenless Zone Zero\n\n"
-                "Dates are estimation based on previous versions' pattern, it may or may not change, "
-                "if there are any changes in the future, this calendar will (eventually) be updated."
-                "Rev: initial upload 21/12/2024"
+                "Dates are estimation based on previous versions' pattern, it may or may not change,\n\n"
+                "if there are any changes in the future, this calendar will (eventually) be updated.\n\n"
+                "Rev: 22/01/2025. Zenless 1.5 - 7 weeks"
             ),
         )
         embed.set_image(
-            url="https://cdn.discordapp.com/attachments/1054633264419188786/1320030721212940288/hoyo2025.png?ex=67681de8&is=6766cc68&hm=1dc0dd5d0a4d3a9a7f80f38d8aa7b69c111245da5f4e8b58f21fe203fb7e7fc6&"
+            url="https://cdn.discordapp.com/attachments/1054633264419188786/1331548250351599677/hoyo2025_1.png?ex=679355f1&is=67920471&hm=4487e147de9f07eee0ea5856c505d056e697ec2993eafde03207d4717f4f1dd1"
         )
         await ctx.reply(embed=embed, mention_author=False)
 
