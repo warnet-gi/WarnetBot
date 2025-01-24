@@ -417,6 +417,22 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         if interaction.user.get_role(role.id) is None:
             return await interaction.followup.send("❌ Please use the role first.", ephemeral=True)
 
+        async with self.db_pool.acquire() as conn:
+            res = await conn.fetchrow(
+                "SELECT owner_discord_id FROM custom_role WHERE role_id=$1;",
+                role.id,
+            )
+
+        if res is None:
+            return await interaction.followup.send(
+                "❌ This role is not a custom role.", ephemeral=True
+            )
+
+        if interaction.user.id != res['owner_discord_id']:
+            return await interaction.followup.send(
+                "❌ Only the role owner can change the role icon.", ephemeral=True
+            )
+
         if icon.content_type not in ["image/jpeg", "image/png"]:
             return await interaction.followup.send(
                 "❌ Please pass in a valid PNG or JPEG file!", ephemeral=True
