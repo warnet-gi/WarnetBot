@@ -66,7 +66,7 @@ class Admin(commands.GroupCog, group_name="admin"):
         log_dir = "bot/data/log/"
         if log_type == 'd':
             latest_log_file = max(
-                (f for f in os.listdir(log_dir) if f.endswith(".log")),
+                (f for f in os.listdir(log_dir) if f.startswith("bot.log")),
                 key=lambda x: os.path.getmtime(os.path.join(log_dir, x)),
             )
             await ctx.reply(
