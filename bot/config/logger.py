@@ -18,10 +18,6 @@ class DebugConsoleHandler(logging.StreamHandler):
         super().emit(record)
 
 
-def get_log_filename_daily():
-    return datetime.now(timezone('Asia/Jakarta')).strftime("%Y-%m-%d") + ".log"
-
-
 def setup_logger():
     formatter = logging.Formatter(
         '[{asctime}] [{levelname:<8}] {name}: {message}', datefmt="%Y-%m-%d %H:%M:%S", style='{'
@@ -32,7 +28,7 @@ def setup_logger():
     console_handler.setLevel(logging.DEBUG)
 
     file_handler = logging.handlers.TimedRotatingFileHandler(
-        filename="bot/data/log/" + get_log_filename_daily(),
+        filename="bot/data/log/bot.log",
         when="midnight",
         interval=1,
         backupCount=7,

@@ -66,7 +66,7 @@ class Admin(commands.GroupCog, group_name="admin"):
         log_dir = "bot/data/log/"
         if log_type == 'd':
             latest_log_file = max(
-                (f for f in os.listdir(log_dir) if f.endswith(".log")),
+                (f for f in os.listdir(log_dir) if f.startswith("bot.log")),
                 key=lambda x: os.path.getmtime(os.path.join(log_dir, x)),
             )
             await ctx.reply(
@@ -78,14 +78,14 @@ class Admin(commands.GroupCog, group_name="admin"):
             log_content = StringIO()
 
             log_files = sorted(
-                [f for f in os.listdir(log_dir) if f.endswith(".log")],
+                [f for f in os.listdir(log_dir) if f.startswith("bot.log")],
                 key=lambda x: os.path.getmtime(os.path.join(log_dir, x)),
             )
 
             for log_file in log_files:
                 log_file_path = os.path.join(log_dir, log_file)
-                with open(log_file_path, "r") as f:
-                    log_content.write(f.read().rstrip("\n"))
+                with open(log_file_path, "r", encoding="utf-8") as f:
+                    log_content.write(f.read().rstrip("\n") + "\n")
 
             log_content.seek(0)
             await ctx.reply(
