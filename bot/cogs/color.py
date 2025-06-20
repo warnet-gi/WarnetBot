@@ -2,6 +2,7 @@ import io
 import logging
 from datetime import datetime
 
+import aiohttp
 import discord
 from discord import app_commands, Interaction
 from discord.ext import commands
@@ -676,6 +677,236 @@ class Color(commands.GroupCog, group_name='warnet-color'):
             self.cache['color-list'] = None
 
             await ctx.reply("_Custom roles have been synced_", mention_author=False)
+
+    @color_add.command(
+        name='unstable_gradient',
+        description='(UNSTABLE) Add a color to the color list using gradient color.',
+    )
+    @app_commands.describe(
+        name='The name of the color role you want to create.',
+        hex_primary='The primary HEX color value of the new color role.',
+        hex_secondary='The secondary HEX color value of the new color role.',
+    )
+    async def add_hex_gradient_color(
+        self, interaction: Interaction, name: str, hex_primary: str, hex_secondary: str
+    ) -> None:
+        await interaction.response.defer()
+        if (
+            not interaction.user.premium_since
+            and not interaction.user.guild_permissions.manage_roles
+        ):
+            return await no_permission_alert(interaction)
+
+        if len(self.custom_role_data_list) == CustomRoleConfig.CUSTOM_ROLE_LIMIT:
+            return await interaction.followup.send(
+                "❌ Maximum custom role limit has been reached. You can't create any new custom role."
+            )
+
+        try:
+            hex_primary = '#' + hex_primary if not hex_primary.startswith('#') else hex_primary
+            valid_color_primary = discord.Color.from_str(hex)
+        except ValueError:
+            return await interaction.followup.send(
+                "❌ Please pass in a valid HEX code! (primary) \n\nExample: `#FFF456` or `FFF456`",
+                ephemeral=True,
+            )
+
+        try:
+            hex_secondary = (
+                '#' + hex_secondary if not hex_secondary.startswith('#') else hex_secondary
+            )
+            valid_color_secondary = discord.Color.from_str(hex_secondary)
+        except ValueError:
+            return await interaction.followup.send(
+                "❌ Please pass in a valid HEX code! (secondary) \n\nExample: `#FFF456` or `FFF456`",
+                ephemeral=True,
+            )
+
+        role_owner = interaction.user
+        url = f"https://discord.com/api/v9/guilds/{interaction.guild.id}/roles"
+        headers = {
+            "Authorization": f"Bot {self.bot.http.token}",
+            "Content-Type": "application/json",
+            "X-Audit-Log-Reason": "Member Request",
+        }
+        payload = {
+            "name": name,
+            "color": int(valid_color_primary.value, 16),
+            "colors": {
+                "primary_color": int(valid_color_primary.value, 16),
+                "secondary_color": int(valid_color_secondary.value, 16),
+                "tertiary_color": None,
+            },
+            "permissions": "0",
+        }
+
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, json=payload, headers=headers) as resp:
+                print(f"Response status: {resp.status}")
+                if resp.status not in (200, 201):
+                    return await interaction.followup.send(
+                        f"❌ Failed to create gradient role. Discord API returned status {resp.status}.",
+                        ephemeral=True,
+                    )
+                data = await resp.json()
+                created_role = interaction.guild.get_role(int(data["id"]))
+                if not created_role:
+                    return await interaction.followup.send(
+                        "❌ Role was created but could not be found in the guild.",
+                        ephemeral=True,
+                    )
+        logger.info(f'NEW ROLE HAS BEEN CREATED SUCCESSFULLY. ROLE ID: {created_role.id}')
+
+        async with self.db_pool.acquire() as conn:
+            await conn.execute(
+                'INSERT INTO custom_role (role_id, owner_discord_id) VALUES ($1, $2)',
+                created_role.id,
+                role_owner.id,
+            )
+
+        self.custom_role_data[created_role.id] = role_owner.id
+        self.custom_role_data_list = list(self.custom_role_data.keys())
+
+        # Put recent created role under boundary role
+        boundary_role = interaction.guild.get_role(CustomRoleConfig.BOUNDARY_ROLE_ID)
+        while created_role.position != boundary_role.position - 1:
+            created_role = await created_role.edit(position=boundary_role.position - 1)
+
+        # Use created role immediately
+        role_being_used = get_current_custom_role_on_user(self, interaction.guild, role_owner)
+        if role_being_used:
+            await role_owner.remove_roles(role_being_used)
+        await role_owner.add_roles(created_role)
+
+        self.cache['color-list'] = None
+
+        embed = discord.Embed(
+            color=valid_color_primary,
+            description=f'✅ Successfully created and attached role: **{created_role.name}**.',
+        )
+        embed.add_field(
+            name="What to do next?",
+            value=(
+                "- Use </warnet-color list:1159052621177425951> to check list of all available custom roles\n"
+                "- Use </warnet-color set:1159052621177425951> to use any custom  role, or\n"
+                "- Use </warnet-color icon:1159052621177425951> to attach custom icon on your custom role (read <#822872937161162795> for instruction), or\n"
+                "- Use </warnet-color remove:1159052621177425951> to take off your current custom role, or\n"
+                "- Use </warnet-color edit hex:1159052621177425951> or </warnet-color edit rgb:1159052621177425951> to edit your created custom role"
+            ),
+        )
+
+        await interaction.followup.send(embed=embed)
+
+    @color_edit.command(
+        name='unstable_gradient',
+        description='(UNSTABLE) Edit a color role with a new name and new Gradient color.',
+    )
+    @app_commands.describe(
+        role_id_or_name='The name or number of the color role you want to edit.',
+        new_name='The new name of the color role.',
+        hex_primary='The primary HEX color value of the new color role.',
+        hex_secondary='The secondary HEX color value of the new color role.',
+    )
+    async def edit_hex_color(
+        self,
+        interaction: Interaction,
+        role_id_or_name: str,
+        new_name: str,
+        hex_primary: str,
+        hex_secondary: str,
+    ) -> None:
+        await interaction.response.defer()
+        if (
+            not interaction.user.premium_since
+            and not interaction.user.guild_permissions.manage_roles
+        ):
+            return await no_permission_alert(interaction)
+
+        try:
+            hex_primary = '#' + hex_primary if not hex_primary.startswith('#') else hex_primary
+            valid_color_primary = discord.Color.from_str(hex)
+        except ValueError:
+            return await interaction.followup.send(
+                "❌ Please pass in a valid HEX code! (primary) \n\nExample: `#FFF456` or `FFF456`",
+                ephemeral=True,
+            )
+
+        try:
+            hex_secondary = (
+                '#' + hex_secondary if not hex_secondary.startswith('#') else hex_secondary
+            )
+            valid_color_secondary = discord.Color.from_str(hex_secondary)
+        except ValueError:
+            return await interaction.followup.send(
+                "❌ Please pass in a valid HEX code! (secondary) \n\nExample: `#FFF456` or `FFF456`",
+                ephemeral=True,
+            )
+
+        if role_id_or_name.isdigit():
+            name = None
+            number = int(role_id_or_name)
+        else:
+            name = role_id_or_name
+            number = None
+
+        role_target = await check_role_by_name_or_number(self, interaction, name, number)
+        if role_target:
+            if (
+                interaction.user.guild_permissions.manage_roles
+                or interaction.user.id == self.custom_role_data[role_target.id]
+            ):
+                url = f"https://discord.com/api/v9/guilds/{interaction.guild.id}/roles/{role_target.id}"
+                headers = {
+                    "Authorization": f"Bot {self.bot.http.token}",
+                    "Content-Type": "application/json",
+                    "X-Audit-Log-Reason": "Member Request",
+                }
+                payload = {
+                    "name": new_name,
+                    "color": valid_color_primary.value,
+                    "colors": {
+                        "primary_color": valid_color_primary.value,
+                        "secondary_color": valid_color_secondary.value,
+                    },
+                }
+                async with aiohttp.ClientSession() as session:
+                    async with session.patch(url, json=payload, headers=headers) as resp:
+                        print(f"Response status: {resp.status}")
+                        if resp.status not in (200, 201):
+                            return await interaction.followup.send(
+                                f"❌ Failed to edit gradient role. Discord API returned status {resp.status}.",
+                                ephemeral=True,
+                            )
+                        data = await resp.json()
+                        edited_role = (
+                            interaction.guild.get_role(int(data["id"]))
+                            if "id" in data
+                            else role_target
+                        )
+
+                self.cache['color-list'] = None
+
+                embed = discord.Embed(
+                    title="Custom role edited!",
+                    timestamp=datetime.now(),
+                    color=edited_role.color,
+                )
+                embed.add_field(
+                    name="New custom role settings:",
+                    value=(
+                        f"- **Name:** {edited_role.name}\n"
+                        f"- **R:** {edited_role.color.r}\n"
+                        f"- **G:** {edited_role.color.g}\n"
+                        f"- **B:** {edited_role.color.b}\n"
+                        f"- **HEX:** {str(edited_role.color)}\n"
+                    ),
+                )
+                return await interaction.followup.send(embed=embed)
+
+            else:
+                return await interaction.followup.send(
+                    "❌ You don't have permission to use this command", ephemeral=True
+                )
 
 
 async def setup(bot: WarnetBot) -> None:
