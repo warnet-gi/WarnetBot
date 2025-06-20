@@ -13,6 +13,7 @@ from bot.cogs.ext.color.utils import (
     check_role_by_name_or_number,
     generate_image_color_list,
     get_current_custom_role_on_user,
+    move_role_to_boundary,
     no_permission_alert,
 )
 from bot.cogs.views.color import AcceptIconAttachment
@@ -116,9 +117,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         self.custom_role_data_list = list(self.custom_role_data.keys())
 
         # Put recent created role under boundary role
-        boundary_role = interaction.guild.get_role(CustomRoleConfig.BOUNDARY_ROLE_ID)
-        while created_role.position != boundary_role.position - 1:
-            created_role = await created_role.edit(position=boundary_role.position - 1)
+        await move_role_to_boundary(interaction, created_role)
 
         # Use created role immediately
         role_being_used = get_current_custom_role_on_user(self, interaction.guild, role_owner)
@@ -200,8 +199,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         self.custom_role_data_list = list(self.custom_role_data.keys())
 
         # Put recent created role under boundary role
-        boundary_role = interaction.guild.get_role(CustomRoleConfig.BOUNDARY_ROLE_ID)
-        await created_role.edit(position=boundary_role.position - 1)
+        await move_role_to_boundary(interaction, created_role)
 
         # Use created role immediately
         role_being_used = get_current_custom_role_on_user(self, interaction.guild, role_owner)
@@ -772,9 +770,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         self.custom_role_data_list = list(self.custom_role_data.keys())
 
         # Put recent created role under boundary role
-        boundary_role = interaction.guild.get_role(CustomRoleConfig.BOUNDARY_ROLE_ID)
-        while created_role.position != boundary_role.position - 1:
-            created_role = await created_role.edit(position=boundary_role.position - 1)
+        await move_role_to_boundary(interaction, created_role)
 
         # Use created role immediately
         role_being_used = get_current_custom_role_on_user(self, interaction.guild, role_owner)

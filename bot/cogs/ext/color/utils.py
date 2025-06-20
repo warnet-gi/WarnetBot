@@ -1,3 +1,4 @@
+import asyncio
 import io
 from typing import Optional
 
@@ -110,3 +111,14 @@ async def no_permission_alert(interaction: Interaction) -> None:
     return await interaction.followup.send(
         "❌ You don't have permission to use this command", ephemeral=True
     )
+
+
+async def move_role_to_boundary(interaction: Interaction, created_role: discord.Role) -> None:
+    upper_boundary_role_position = interaction.guild.get_role(
+        CustomRoleConfig.UPPER_BOUNDARY_ROLE_ID
+    ).position
+    bottom_boundary_role_position = interaction.guild.get_role(
+        CustomRoleConfig.BOTTOM_BOUNDARY_ROLE_ID
+    ).position
+    if created_role.position < bottom_boundary_role_position:
+        created_role = await created_role.edit(position=upper_boundary_role_position - 1)
