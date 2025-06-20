@@ -877,7 +877,6 @@ class Color(commands.GroupCog, group_name='warnet-color'):
                 }
                 async with aiohttp.ClientSession() as session:
                     async with session.patch(url, json=payload, headers=headers) as resp:
-                        print(f"Response status: {resp.status}")
                         if resp.status == 200:
                             return await interaction.followup.send(
                                 f"❌ Failed to edit gradient role. Discord API returned status {resp.status}.",
