@@ -708,20 +708,13 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         try:
             hex_primary = '#' + hex_primary if not hex_primary.startswith('#') else hex_primary
             valid_color_primary = discord.Color.from_str(hex_primary)
-        except ValueError:
-            return await interaction.followup.send(
-                "❌ Please pass in a valid HEX code! (primary) \n\nExample: `#FFF456` or `FFF456`",
-                ephemeral=True,
-            )
-
-        try:
             hex_secondary = (
                 '#' + hex_secondary if not hex_secondary.startswith('#') else hex_secondary
             )
             valid_color_secondary = discord.Color.from_str(hex_secondary)
         except ValueError:
             return await interaction.followup.send(
-                "❌ Please pass in a valid HEX code! (secondary) \n\nExample: `#FFF456` or `FFF456`",
+                "❌ Please pass in a valid HEX code! \n\nExample: `#FFF456` or `FFF456`",
                 ephemeral=True,
             )
 
@@ -828,20 +821,13 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         try:
             hex_primary = '#' + hex_primary if not hex_primary.startswith('#') else hex_primary
             valid_color_primary = discord.Color.from_str(hex_primary)
-        except ValueError:
-            return await interaction.followup.send(
-                "❌ Please pass in a valid HEX code! (primary) \n\nExample: `#FFF456` or `FFF456`",
-                ephemeral=True,
-            )
-
-        try:
             hex_secondary = (
                 '#' + hex_secondary if not hex_secondary.startswith('#') else hex_secondary
             )
             valid_color_secondary = discord.Color.from_str(hex_secondary)
         except ValueError:
             return await interaction.followup.send(
-                "❌ Please pass in a valid HEX code! (secondary) \n\nExample: `#FFF456` or `FFF456`",
+                "❌ Please pass in a valid HEX code! (primary) \n\nExample: `#FFF456` or `FFF456`",
                 ephemeral=True,
             )
 
