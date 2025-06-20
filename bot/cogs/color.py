@@ -1,6 +1,7 @@
 import io
 import logging
 from datetime import datetime
+from typing import Optional
 
 import aiohttp
 import discord
@@ -239,7 +240,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         self,
         interaction: Interaction,
         role_id_or_name: str,
-        new_name: str,
+        new_name: Optional[str],
         hex: str,
     ) -> None:
         await interaction.response.defer()
@@ -271,6 +272,8 @@ class Color(commands.GroupCog, group_name='warnet-color'):
                 interaction.user.guild_permissions.manage_roles
                 or interaction.user.id == self.custom_role_data[role_target.id]
             ):
+                if not new_name:
+                    new_name = role_target.name
                 edited_role = await role_target.edit(name=new_name, color=valid_color)
 
                 self.cache['color-list'] = None
@@ -311,7 +314,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         self,
         interaction: Interaction,
         role_id_or_name: str,
-        new_name: str,
+        new_name: Optional[str],
         r: int,
         g: int,
         b: int,
@@ -343,6 +346,8 @@ class Color(commands.GroupCog, group_name='warnet-color'):
                 interaction.user.guild_permissions.manage_roles
                 or interaction.user.id == self.custom_role_data[role_target.id]
             ):
+                if not new_name:
+                    new_name = role_target.name
                 edited_role = await role_target.edit(name=new_name, color=valid_color)
 
                 self.cache['color-list'] = None
@@ -704,7 +709,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
 
         try:
             hex_primary = '#' + hex_primary if not hex_primary.startswith('#') else hex_primary
-            valid_color_primary = discord.Color.from_str(hex)
+            valid_color_primary = discord.Color.from_str(hex_primary)
         except ValueError:
             return await interaction.followup.send(
                 "❌ Please pass in a valid HEX code! (primary) \n\nExample: `#FFF456` or `FFF456`",
@@ -731,10 +736,10 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         }
         payload = {
             "name": name,
-            "color": int(valid_color_primary.value, 16),
+            "color": valid_color_primary.value,
             "colors": {
-                "primary_color": int(valid_color_primary.value, 16),
-                "secondary_color": int(valid_color_secondary.value, 16),
+                "primary_color": valid_color_primary.value,
+                "secondary_color": valid_color_secondary.value,
                 "tertiary_color": None,
             },
             "permissions": "0",
@@ -742,8 +747,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
 
         async with aiohttp.ClientSession() as session:
             async with session.post(url, json=payload, headers=headers) as resp:
-                print(f"Response status: {resp.status}")
-                if resp.status not in (200, 201):
+                if resp.status == 200:
                     return await interaction.followup.send(
                         f"❌ Failed to create gradient role. Discord API returned status {resp.status}.",
                         ephemeral=True,
@@ -807,11 +811,11 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         hex_primary='The primary HEX color value of the new color role.',
         hex_secondary='The secondary HEX color value of the new color role.',
     )
-    async def edit_hex_color(
+    async def edit_hex_gradient_color(
         self,
         interaction: Interaction,
         role_id_or_name: str,
-        new_name: str,
+        new_name: Optional[str],
         hex_primary: str,
         hex_secondary: str,
     ) -> None:
@@ -824,7 +828,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
 
         try:
             hex_primary = '#' + hex_primary if not hex_primary.startswith('#') else hex_primary
-            valid_color_primary = discord.Color.from_str(hex)
+            valid_color_primary = discord.Color.from_str(hex_primary)
         except ValueError:
             return await interaction.followup.send(
                 "❌ Please pass in a valid HEX code! (primary) \n\nExample: `#FFF456` or `FFF456`",
@@ -855,6 +859,8 @@ class Color(commands.GroupCog, group_name='warnet-color'):
                 interaction.user.guild_permissions.manage_roles
                 or interaction.user.id == self.custom_role_data[role_target.id]
             ):
+                if not new_name:
+                    new_name = role_target.name
                 url = f"https://discord.com/api/v9/guilds/{interaction.guild.id}/roles/{role_target.id}"
                 headers = {
                     "Authorization": f"Bot {self.bot.http.token}",
@@ -872,7 +878,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
                 async with aiohttp.ClientSession() as session:
                     async with session.patch(url, json=payload, headers=headers) as resp:
                         print(f"Response status: {resp.status}")
-                        if resp.status not in (200, 201):
+                        if resp.status == 200:
                             return await interaction.followup.send(
                                 f"❌ Failed to edit gradient role. Discord API returned status {resp.status}.",
                                 ephemeral=True,
@@ -895,10 +901,8 @@ class Color(commands.GroupCog, group_name='warnet-color'):
                     name="New custom role settings:",
                     value=(
                         f"- **Name:** {edited_role.name}\n"
-                        f"- **R:** {edited_role.color.r}\n"
-                        f"- **G:** {edited_role.color.g}\n"
-                        f"- **B:** {edited_role.color.b}\n"
-                        f"- **HEX:** {str(edited_role.color)}\n"
+                        f"- **Hex Primary:** {valid_color_primary}\n"
+                        f"- **Hex Secondary:** {valid_color_secondary}\n"
                     ),
                 )
                 return await interaction.followup.send(embed=embed)
