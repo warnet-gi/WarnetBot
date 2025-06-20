@@ -794,6 +794,9 @@ class Color(commands.GroupCog, group_name='warnet-color'):
                 "- Use </warnet-color edit hex:1159052621177425951> or </warnet-color edit rgb:1159052621177425951> to edit your created custom role"
             ),
         )
+        embed.set_footer(
+            text="⚠️ This is an unstable feature. If unexpected things happen, please report to the admin."
+        )
 
         await interaction.followup.send(embed=embed)
 
