@@ -1,3 +1,4 @@
+import asyncio
 import io
 from typing import Optional
 
@@ -104,6 +105,15 @@ def generate_image_color_list(role_list: list[discord.Role]) -> io.BytesIO:
     image.save(image_bytes, format='PNG')
 
     return image_bytes
+
+
+def hex_to_discord_color(hex_color: str) -> discord.Color:
+    """
+    Convert a hex color string to a discord.Color object.
+    """
+    hex_color = '#' + hex_color if not hex_color.startswith('#') else hex_color
+    valid_color = discord.Color.from_str(hex_color)
+    return valid_color
 
 
 async def no_permission_alert(interaction: Interaction) -> None:
