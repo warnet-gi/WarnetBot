@@ -13,6 +13,7 @@ from bot.cogs.ext.color.utils import (
     check_role_by_name_or_number,
     generate_image_color_list,
     get_current_custom_role_on_user,
+    hex_to_discord_color,
     no_permission_alert,
 )
 from bot.cogs.views.color import AcceptIconAttachment
@@ -89,8 +90,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
             )
 
         try:
-            hex = '#' + hex if not hex.startswith('#') else hex
-            valid_color = discord.Color.from_str(hex)
+            valid_color = hex_to_discord_color(hex)
         except ValueError:
             return await interaction.followup.send(
                 "❌ Please pass in a valid HEX code!\n\nExample: `#FFF456` or `FFF456`",
@@ -254,8 +254,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
             return await no_permission_alert(interaction)
 
         try:
-            hex = '#' + hex if not hex.startswith('#') else hex
-            valid_color = discord.Color.from_str(hex)
+            valid_color = hex_to_discord_color(hex)
         except ValueError:
             return await interaction.followup.send(
                 "❌ Please pass in a valid HEX code!\n\nExample: `#FFF456` or `FFF456`",
@@ -711,15 +710,18 @@ class Color(commands.GroupCog, group_name='warnet-color'):
             )
 
         try:
-            hex_primary = '#' + hex_primary if not hex_primary.startswith('#') else hex_primary
-            valid_color_primary = discord.Color.from_str(hex_primary)
-            hex_secondary = (
-                '#' + hex_secondary if not hex_secondary.startswith('#') else hex_secondary
-            )
-            valid_color_secondary = discord.Color.from_str(hex_secondary)
+            valid_color_primary = hex_to_discord_color(hex_primary)
         except ValueError:
             return await interaction.followup.send(
-                "❌ Please pass in a valid HEX code! \n\nExample: `#FFF456` or `FFF456`",
+                "❌ Please pass in a valid HEX code! (Primary color)\n\nExample: `#FFF456` or `FFF456`",
+                ephemeral=True,
+            )
+
+        try:
+            valid_color_secondary = hex_to_discord_color(hex_secondary)
+        except ValueError:
+            return await interaction.followup.send(
+                "❌ Please pass in a valid HEX code! (Secondary color)\n\nExample: `#FFF456` or `FFF456`",
                 ephemeral=True,
             )
 
@@ -827,15 +829,18 @@ class Color(commands.GroupCog, group_name='warnet-color'):
             return await no_permission_alert(interaction)
 
         try:
-            hex_primary = '#' + hex_primary if not hex_primary.startswith('#') else hex_primary
-            valid_color_primary = discord.Color.from_str(hex_primary)
-            hex_secondary = (
-                '#' + hex_secondary if not hex_secondary.startswith('#') else hex_secondary
-            )
-            valid_color_secondary = discord.Color.from_str(hex_secondary)
+            valid_color_primary = hex_to_discord_color(hex_primary)
         except ValueError:
             return await interaction.followup.send(
-                "❌ Please pass in a valid HEX code! (primary) \n\nExample: `#FFF456` or `FFF456`",
+                "❌ Please pass in a valid HEX code! (Primary color)\n\nExample: `#FFF456` or `FFF456`",
+                ephemeral=True,
+            )
+
+        try:
+            valid_color_secondary = hex_to_discord_color(hex_secondary)
+        except ValueError:
+            return await interaction.followup.send(
+                "❌ Please pass in a valid HEX code! (Secondary color)\n\nExample: `#FFF456` or `FFF456`",
                 ephemeral=True,
             )
 

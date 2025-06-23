@@ -111,3 +111,12 @@ async def no_permission_alert(interaction: Interaction) -> None:
     return await interaction.followup.send(
         "❌ You don't have permission to use this command", ephemeral=True
     )
+
+
+def hex_to_discord_color(hex_color: str) -> discord.Color:
+    """
+    Convert a hex color string to a discord.Color object.
+    """
+    hex_color = '#' + hex_color if not hex_color.startswith('#') else hex_color
+    valid_color = discord.Color.from_str(hex_color)
+    return valid_color
