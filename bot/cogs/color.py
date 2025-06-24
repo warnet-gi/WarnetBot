@@ -691,32 +691,30 @@ class Color(commands.GroupCog, group_name='warnet-color'):
             deleted_count = 0
             roles_to_remove = []
 
-            for data in data_list:
-                role = ctx.guild.get_role(data['role_id'])
-                if role:
-                    if len(role.members) == 0:
-                        roles_to_remove.append((role, data['role_id']))
-                        deleted_count += 1
-                else:
-                    # Role doesn't exist anymore, remove from database
-                    async with self.db_pool.acquire() as conn:
+            async with self.db_pool.acquire() as conn:
+                for data in data_list:
+                    role = ctx.guild.get_role(data['role_id'])
+                    if role:
+                        if len(role.members) == 0:
+                            roles_to_remove.append((role, data['role_id']))
+                            deleted_count += 1
+                    else:
+                        # Role doesn't exist anymore, remove from database
                         await conn.execute(
                             "DELETE FROM custom_role WHERE role_id = $1;", data['role_id']
                         )
-                    deleted_count += 1
+                        deleted_count += 1
 
-            # Delete roles that have no members
-            for role, role_id in roles_to_remove:
-                try:
-                    await role.delete(reason="Pruning unused custom roles")
-                    async with self.db_pool.acquire() as conn:
+                for role, role_id in roles_to_remove:
+                    try:
+                        await role.delete(reason="Pruning unused custom roles")
                         await conn.execute("DELETE FROM custom_role WHERE role_id = $1;", role_id)
-                    if role_id in self.custom_role_data:
-                        self.custom_role_data.pop(role_id)
-                    logger.info(f'PRUNED UNUSED ROLE ID: {role_id}')
-                except Exception as e:
-                    logger.error(f'Failed to delete role {role_id}: {e}')
-                    deleted_count -= 1
+                        if role_id in self.custom_role_data:
+                            self.custom_role_data.pop(role_id)
+                        logger.info(f'PRUNED UNUSED ROLE ID: {role_id}')
+                    except Exception as e:
+                        logger.error(f'Failed to delete role {role_id}: {e}')
+                        deleted_count -= 1
 
             self.custom_role_data_list = list(self.custom_role_data.keys())
             self.cache['color-list'] = None
