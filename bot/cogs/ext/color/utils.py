@@ -37,7 +37,7 @@ async def check_role_by_name_or_number(
     return role_target
 
 
-async def move_role_to_bellow_boundary(interaction: Interaction, role: Role) -> None:
+async def move_role_to_under_boundary(interaction: Interaction, role: Role) -> None:
     new_position = interaction.guild.get_role(CustomRoleConfig.UPPER_BOUNDARY_ROLE_ID).position - 1
     try:
         await role.edit(position=new_position)
