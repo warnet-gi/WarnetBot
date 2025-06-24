@@ -1,6 +1,7 @@
 import asyncio
 import io
 from typing import Optional
+from venv import logger
 
 import discord
 from discord import Interaction, Member, Role
@@ -32,6 +33,23 @@ async def check_role_by_name_or_number(
         return None
 
     return role_target
+
+
+async def move_role_to_bellow_boundary(interaction: Interaction, role: Role) -> None:
+    new_position = interaction.guild.get_role(CustomRoleConfig.UPPER_BOUNDARY_ROLE_ID).position - 1
+    try:
+        await role.edit(position=new_position)
+    except discord.Forbidden:
+        logger.error(
+            f"Failed to move role {role.name} to the bottom due to insufficient permissions."
+        )
+    except discord.HTTPException as e:
+        logger.error(f"Failed to move role {role.name} to the bottom due to HTTPException: {e}")
+    except Exception as e:
+        logger.error(
+            f"An unexpected error occurred while moving role {role.name} to the bottom: {e}"
+        )
+    return
 
 
 def get_current_custom_role_on_user(
