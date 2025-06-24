@@ -14,6 +14,7 @@ from bot.cogs.ext.color.utils import (
     generate_image_color_list,
     get_current_custom_role_on_user,
     hex_to_discord_color,
+    move_role_to_under_boundary,
     no_permission_alert,
 )
 from bot.cogs.views.color import AcceptIconAttachment
@@ -116,10 +117,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         self.custom_role_data_list = list(self.custom_role_data.keys())
 
         # Put recent created role under boundary role
-        upper_boundary_role_position = interaction.guild.get_role(
-            CustomRoleConfig.UPPER_BOUNDARY_ROLE_ID
-        ).position
-        await created_role.edit(position=upper_boundary_role_position - 1)
+        await move_role_to_under_boundary(interaction.guild, created_role)
 
         # Use created role immediately
         role_being_used = get_current_custom_role_on_user(self, interaction.guild, role_owner)
@@ -201,10 +199,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         self.custom_role_data_list = list(self.custom_role_data.keys())
 
         # Put recent created role under boundary role
-        upper_boundary_role_position = interaction.guild.get_role(
-            CustomRoleConfig.UPPER_BOUNDARY_ROLE_ID
-        ).position
-        await created_role.edit(position=upper_boundary_role_position - 1)
+        await move_role_to_under_boundary(interaction.guild, created_role)
 
         # Use created role immediately
         role_being_used = get_current_custom_role_on_user(self, interaction.guild, role_owner)
@@ -685,6 +680,47 @@ class Color(commands.GroupCog, group_name='warnet-color'):
 
             await ctx.reply("_Custom roles have been synced_", mention_author=False)
 
+    @commands.command(name='colorprune')
+    async def prune_color(self, ctx: commands.Context) -> None:
+        await ctx.typing()
+        if ctx.author.guild_permissions.manage_roles:
+            async with self.db_pool.acquire() as conn:
+                records = await conn.fetch("SELECT * FROM custom_role ORDER BY created_at ASC;")
+                data_list = [dict(row) for row in records]
+
+            deleted_count = 0
+            roles_to_remove = []
+
+            async with self.db_pool.acquire() as conn:
+                for data in data_list:
+                    role = ctx.guild.get_role(data['role_id'])
+                    if role:
+                        if len(role.members) == 0:
+                            roles_to_remove.append((role, data['role_id']))
+                            deleted_count += 1
+                    else:
+                        # Role doesn't exist anymore, remove from database
+                        await conn.execute(
+                            "DELETE FROM custom_role WHERE role_id = $1;", data['role_id']
+                        )
+                        deleted_count += 1
+
+                for role, role_id in roles_to_remove:
+                    try:
+                        await role.delete(reason="Pruning unused custom roles")
+                        await conn.execute("DELETE FROM custom_role WHERE role_id = $1;", role_id)
+                        if role_id in self.custom_role_data:
+                            self.custom_role_data.pop(role_id)
+                        logger.info(f'PRUNED UNUSED ROLE ID: {role_id}')
+                    except Exception as e:
+                        logger.error(f'Failed to delete role {role_id}: {e}')
+                        deleted_count -= 1
+
+            self.custom_role_data_list = list(self.custom_role_data.keys())
+            self.cache['color-list'] = None
+
+            await ctx.reply(f"_Pruned {deleted_count} unused custom roles_", mention_author=False)
+
     @color_add.command(
         name='unstable_gradient',
         description='(UNSTABLE) Add a color to the color list using gradient color.',
@@ -770,10 +806,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         self.custom_role_data_list = list(self.custom_role_data.keys())
 
         # Put recent created role under boundary role
-        upper_boundary_role_position = interaction.guild.get_role(
-            CustomRoleConfig.UPPER_BOUNDARY_ROLE_ID
-        ).position
-        await created_role.edit(position=upper_boundary_role_position - 1)
+        await move_role_to_under_boundary(interaction.guild, created_role)
 
         # Use created role immediately
         role_being_used = get_current_custom_role_on_user(self, interaction.guild, role_owner)
