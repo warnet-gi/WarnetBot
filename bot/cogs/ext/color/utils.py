@@ -1,7 +1,7 @@
 import asyncio
 import io
+import logging
 from typing import Optional
-from venv import logger
 
 import discord
 from discord import Interaction, Member, Role
@@ -9,6 +9,8 @@ from discord.ext import commands
 from imagetext_py import Canvas, Color, draw_text, FontDB, Paint
 
 from bot.config import CustomRoleConfig
+
+logger = logging.getLogger(__name__)
 
 
 async def check_role_by_name_or_number(
