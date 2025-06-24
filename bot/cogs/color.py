@@ -679,7 +679,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
             self.cache['color-list'] = None
 
             await ctx.reply("_Custom roles have been synced_", mention_author=False)
-    
+
     @commands.command(name='colorprune')
     async def prune_color(self, ctx: commands.Context) -> None:
         await ctx.typing()
@@ -690,7 +690,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
 
             deleted_count = 0
             roles_to_remove = []
-            
+
             for data in data_list:
                 role = ctx.guild.get_role(data['role_id'])
                 if role:
@@ -700,7 +700,9 @@ class Color(commands.GroupCog, group_name='warnet-color'):
                 else:
                     # Role doesn't exist anymore, remove from database
                     async with self.db_pool.acquire() as conn:
-                        await conn.execute("DELETE FROM custom_role WHERE role_id = $1;", data['role_id'])
+                        await conn.execute(
+                            "DELETE FROM custom_role WHERE role_id = $1;", data['role_id']
+                        )
                     deleted_count += 1
 
             # Delete roles that have no members
@@ -941,7 +943,6 @@ class Color(commands.GroupCog, group_name='warnet-color'):
                 return await interaction.followup.send(
                     "❌ You don't have permission to use this command", ephemeral=True
                 )
-    
 
 
 async def setup(bot: WarnetBot) -> None:
