@@ -38,19 +38,22 @@ async def check_role_by_name_or_number(
 
 
 async def move_role_to_under_boundary(interaction: Interaction, role: Role) -> None:
-    new_position = interaction.guild.get_role(CustomRoleConfig.UPPER_BOUNDARY_ROLE_ID).position - 1
+    upper_boundary = interaction.guild.get_role(CustomRoleConfig.UPPER_BOUNDARY_ROLE_ID)
     try:
-        await role.edit(position=new_position)
+        await role.move(above=upper_boundary, reason="Update custom role position")
     except discord.Forbidden:
         logger.error(
             f"Failed to move role {role.name} to the bottom due to insufficient permissions."
         )
+        return await error_move_role(interaction, role)
     except discord.HTTPException as e:
         logger.error(f"Failed to move role {role.name} to the bottom due to HTTPException: {e}")
+        return await error_move_role(interaction, role)
     except Exception as e:
         logger.error(
             f"An unexpected error occurred while moving role {role.name} to the bottom: {e}"
         )
+        return await error_move_role(interaction, role)
     return
 
 
@@ -139,4 +142,11 @@ def hex_to_discord_color(hex_color: str) -> discord.Color:
 async def no_permission_alert(interaction: Interaction) -> None:
     return await interaction.followup.send(
         "❌ You don't have permission to use this command", ephemeral=True
+    )
+
+
+async def error_move_role(interaction: Interaction, role: Role) -> None:
+    return await interaction.followup.send(
+        f"❌ Failed to move the role `{role.name}`. Please contact the server administrator.",
+        ephemeral=True,
     )
