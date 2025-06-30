@@ -1,6 +1,8 @@
+import asyncio
 import io
 import logging
 from datetime import datetime
+from time import sleep
 from typing import Optional
 
 import aiohttp
@@ -117,7 +119,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         self.custom_role_data_list = list(self.custom_role_data.keys())
 
         # Put recent created role under boundary role
-        await move_role_to_under_boundary(interaction.guild, created_role)
+        await move_role_to_under_boundary(interaction, created_role)
 
         # Use created role immediately
         role_being_used = get_current_custom_role_on_user(self, interaction.guild, role_owner)
@@ -199,7 +201,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         self.custom_role_data_list = list(self.custom_role_data.keys())
 
         # Put recent created role under boundary role
-        await move_role_to_under_boundary(interaction.guild, created_role)
+        await move_role_to_under_boundary(interaction, created_role)
 
         # Use created role immediately
         role_being_used = get_current_custom_role_on_user(self, interaction.guild, role_owner)
@@ -788,6 +790,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
                     )
                 data = await resp.json()
                 created_role = interaction.guild.get_role(int(data["id"]))
+                await asyncio.sleep(1)  # Wait for role to be created in the guild
                 if not created_role:
                     return await interaction.followup.send(
                         "❌ Role was created but could not be found in the guild.",
@@ -806,7 +809,7 @@ class Color(commands.GroupCog, group_name='warnet-color'):
         self.custom_role_data_list = list(self.custom_role_data.keys())
 
         # Put recent created role under boundary role
-        await move_role_to_under_boundary(interaction.guild, created_role)
+        await move_role_to_under_boundary(interaction, created_role)
 
         # Use created role immediately
         role_being_used = get_current_custom_role_on_user(self, interaction.guild, role_owner)
