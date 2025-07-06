@@ -117,12 +117,8 @@ class ApiWrapper:
     ) -> ds.GuildScoreObject:
         url = f"/guilds/{guild_id}/members/{user_id}/score"
         payload = {'action': action_type, 'amount': amount}
-        result = None
 
-        try:
-            result = await self.patch(url, payload)
-        except Exception as e:
-            raise e
+        result = await self.patch(url, payload)
 
         score = ds.GuildScoreObject(
             guild_id=result.get('guild_id'),

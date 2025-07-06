@@ -36,7 +36,9 @@ async def give_monthly_booster_exp(bot: WarnetBot) -> None:
         except aiohttp.ClientResponseError as e:
             if e.status == 403:
                 logger.error(f"API key is invalid or expired: {e}")
-                await admin_channel.send(f"403, apikey sudah kadaluwarsa atau tidak valid.")
+                await admin_channel.send(
+                    f"403, apikey sudah kadaluwarsa atau tidak valid.\n {success_count} dari {role.members.count()} member berhasil:\n\n{member_tags}"
+                )
                 break
             else:
                 logger.error(f"Failed to add score for {member.id}: {e}")

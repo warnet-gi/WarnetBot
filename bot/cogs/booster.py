@@ -34,6 +34,31 @@ class Booster(commands.Cog):
     @commands.command(name='boostermonthly')
     async def manual_monthly_booster(self, ctx: commands.Context) -> None:
         await ctx.typing()
+
+        msg = await ctx.send("please react with ✅ to approve this action.")
+        await msg.add_reaction("✅")
+
+        approved = set()
+        owner_ids = set(self.bot.owner_ids)
+
+        def check(reaction, user):
+            return (
+                reaction.message.id == msg.id
+                and str(reaction.emoji) == "✅"
+                and user.id in owner_ids
+            )
+
+        try:
+            while len(approved) != len(owner_ids):
+                _, user = await self.bot.wait_for("reaction_add", timeout=60.0, check=check)
+                approved.add(user.id)
+        except asyncio.TimeoutError:
+            await ctx.send("Timeout! Action cancelled.")
+            return
+
+        logger.info(
+            f'manual monthly exp booster is triggered: {datetime.now(pytz.timezone("Asia/Jakarta")).strftime("%B %Y")}'
+        )
         await give_monthly_booster_exp(self.bot)
 
     @tasks.loop(time=time(hour=0, minute=0, tzinfo=timezone(timedelta(hours=7))))
