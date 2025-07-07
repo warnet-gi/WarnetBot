@@ -137,10 +137,11 @@ class Admin(commands.GroupCog, group_name="admin"):
         await interaction.response.defer()
 
         if interaction.user.guild_permissions.administrator:
+            guild_name = interaction.guild.name
             try:
                 await user.send(
-                    "You have been banned from *WARNET | Hoyoverse Indonesia* due to being a scammer. "
-                    "Please rejoin with this link: https://discord.gg/warnet"
+                    f"You have been banned from *{guild_name}* because you were identified as a scammer. "
+                    "You may rejoin using this link: https://discord.gg/warnet"
                 )
                 await interaction.guild.ban(user, reason="Scammer account", delete_message_days=1)
                 await interaction.guild.unban(user, reason="Scammer account")
