@@ -3,7 +3,7 @@ import re
 from datetime import datetime, timedelta
 from io import StringIO
 from typing import Literal, Optional, Union
-from venv import logger
+import logging
 
 import discord
 from discord import app_commands, Interaction
@@ -12,6 +12,9 @@ from discord.ext import commands, tasks
 from bot.bot import WarnetBot
 from bot.cogs.ext.tcg.utils import send_missing_permission_error_embed
 from bot.config import MESSAGE_LOG_CHANNEL_ID
+
+
+logger = logging.getLogger(__name__)
 
 
 @commands.guild_only()
