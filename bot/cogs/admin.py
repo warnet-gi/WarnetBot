@@ -129,7 +129,7 @@ class Admin(commands.GroupCog, group_name="admin"):
     @app_commands.describe(
         user='User to be banned.',
     )
-    async def give_role_on_vc(
+    async def ban_scammer(
         self,
         interaction: Interaction,
         user: Union[discord.Member, discord.User],
