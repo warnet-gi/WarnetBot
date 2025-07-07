@@ -1,9 +1,9 @@
+import logging
 import os
 import re
 from datetime import datetime, timedelta
 from io import StringIO
 from typing import Literal, Optional, Union
-import logging
 
 import discord
 from discord import app_commands, Interaction
@@ -12,7 +12,6 @@ from discord.ext import commands, tasks
 from bot.bot import WarnetBot
 from bot.cogs.ext.tcg.utils import send_missing_permission_error_embed
 from bot.config import MESSAGE_LOG_CHANNEL_ID
-
 
 logger = logging.getLogger(__name__)
 
@@ -133,7 +132,7 @@ class Admin(commands.GroupCog, group_name="admin"):
     async def give_role_on_vc(
         self,
         interaction: Interaction,
-        user: discord.User,
+        user: Union[discord.Member, discord.User],
     ) -> None:
         await interaction.response.defer()
 
