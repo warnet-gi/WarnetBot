@@ -39,8 +39,8 @@ class Booster(commands.Cog):
             )
 
         try:
-            while len(approved) != len(owner_ids) - 1:
-                _, user = await self.bot.wait_for("reaction_add", timeout=60.0, check=check)
+            while len(approved) != len(owner_ids):
+                _, user = await self.bot.wait_for("reaction_add", timeout=300.0, check=check)
                 approved.add(user.id)
         except asyncio.TimeoutError:
             await ctx.send("Timeout! Action cancelled.")
