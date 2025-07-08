@@ -1,3 +1,4 @@
+import logging
 import os
 import re
 from datetime import datetime, timedelta
@@ -11,6 +12,8 @@ from discord.ext import commands, tasks
 from bot.bot import WarnetBot
 from bot.cogs.ext.tcg.utils import send_missing_permission_error_embed
 from bot.config import MESSAGE_LOG_CHANNEL_ID
+
+logger = logging.getLogger(__name__)
 
 
 @commands.guild_only()
@@ -121,6 +124,47 @@ class Admin(commands.GroupCog, group_name="admin"):
                 )
 
             await ctx.send(embed=embed)
+
+    @app_commands.command(name='scammer', description='Ban scammer account')
+    @app_commands.describe(
+        user='User to be banned.',
+    )
+    async def ban_scammer(
+        self,
+        interaction: Interaction,
+        user: Union[discord.Member, discord.User],
+    ) -> None:
+        await interaction.response.defer()
+
+        if interaction.user.guild_permissions.administrator:
+            guild_name = interaction.guild.name
+            try:
+                await user.send(
+                    f"You have been banned from *{guild_name}* because you were identified as a scammer. "
+                    "You may rejoin using this link: https://discord.gg/warnet"
+                )
+                await interaction.guild.ban(user, reason="Scammer account", delete_message_days=1)
+                await interaction.guild.unban(user, reason="Scammer account")
+            except Exception as e:
+                logger.error(f"Unexpected error while banning {user.name}.\n {e}")
+                return await interaction.followup.send(
+                    content=f"An unexpected error occurred: {e}", ephemeral=True
+                )
+
+            embed = discord.Embed(
+                color=discord.Color.green(),
+                title='✅ User successfully banned',
+                description=f"User {user.mention} has been banned from the server.",
+                timestamp=datetime.now(),
+            )
+            embed.set_footer(
+                text=f'Banned by {interaction.user.name}',
+                icon_url=interaction.user.display_avatar.url,
+            )
+            await interaction.followup.send(embed=embed)
+
+        else:
+            await send_missing_permission_error_embed(interaction)
 
     @app_commands.command(
         name='give-role-on-vc', description='Give a role to all members in a voice channel.'
