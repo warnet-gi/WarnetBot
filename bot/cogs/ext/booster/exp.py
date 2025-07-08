@@ -98,10 +98,10 @@ async def give_monthly_booster_exp(bot: WarnetBot) -> None:
 
     if len(role.members) == success_count:
         channel = bot.get_channel(ANNOUNCEMENT_CHANNEL_ID)
-        # await channel.send(
-        #     f"## Halo {role.mention}!\n\nKami ingin memberi tahu kalian bahwa exp bulan ini sudah dibagikan sebesar **{BOOSTER_MONTHLY_EXP}**.\n"
-        #     f"Terima kasih atas boostnya. Sehat selalu dan sampai jumpa di bulan berikutnya! ❤️"
-        # )
+        await channel.send(
+            f"## Halo {role.mention}!\n\nKami ingin memberi tahu kalian bahwa exp bulan ini sudah dibagikan sebesar **{BOOSTER_MONTHLY_EXP}**.\n"
+            f"Terima kasih atas boostnya. Sehat selalu dan sampai jumpa di bulan berikutnya! ❤️"
+        )
 
     else:
         await admin_channel.send(
