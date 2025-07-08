@@ -3,21 +3,11 @@ import io
 import logging
 from datetime import datetime, time, timedelta, timezone
 
-import aiohttp
-import discord
 import pytz
 from discord.ext import commands, tasks
 
-from bot.bot import TatsuApi, WarnetBot
+from bot.bot import WarnetBot
 from bot.cogs.ext.booster.exp import give_monthly_booster_exp
-from bot.config import (
-    ADMIN_CHANNEL_ID,
-    ANNOUNCEMENT_CHANNEL_ID,
-    BOOSTER_MONTHLY_EXP,
-    BOOSTER_ROLE_ID,
-    GUILD_ID,
-    TATSU_LOG_CHANNEL_ID,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +40,7 @@ class Booster(commands.Cog):
 
         try:
             while len(approved) != len(owner_ids):
-                _, user = await self.bot.wait_for("reaction_add", timeout=60.0, check=check)
+                _, user = await self.bot.wait_for("reaction_add", timeout=300.0, check=check)
                 approved.add(user.id)
         except asyncio.TimeoutError:
             await ctx.send("Timeout! Action cancelled.")
