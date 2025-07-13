@@ -228,7 +228,8 @@ class General(commands.Cog):
 
     @commands.Cog.listener()
     async def on_connect(self) -> None:
-        self._change_presence.start()
+        if not self._change_presence.is_running():
+            self._change_presence.start()
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx: commands.Context, error) -> None:

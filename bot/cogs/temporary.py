@@ -20,7 +20,8 @@ class Temporary(commands.GroupCog, group_name='warnet-temp'):
 
     @commands.Cog.listener()
     async def on_connect(self) -> None:
-        self._check_temprole.start()
+        if not self._check_temprole.is_running():
+            self._check_temprole.start()
 
     @app_commands.command(name='add', description='Adds a temprole to user')
     @app_commands.describe(

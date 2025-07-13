@@ -24,7 +24,8 @@ class Admin(commands.GroupCog, group_name="admin"):
 
     @commands.Cog.listener()
     async def on_connect(self) -> None:
-        self._message_schedule_task.start()
+        if not self._message_schedule_task.is_running():
+            self._message_schedule_task.start()
 
     @commands.command()
     @commands.is_owner()
@@ -145,6 +146,9 @@ class Admin(commands.GroupCog, group_name="admin"):
                 )
                 await interaction.guild.ban(user, reason="Scammer account", delete_message_days=1)
                 await interaction.guild.unban(user, reason="Scammer account")
+                logger.info(
+                    f"Banned user {user.name} ({user.id}) by {interaction.user.name} ({interaction.user.id}) "
+                )
             except Exception as e:
                 logger.error(f"Unexpected error while banning {user.name}.\n {e}")
                 return await interaction.followup.send(
