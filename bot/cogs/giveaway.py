@@ -20,7 +20,8 @@ class Giveaway(commands.GroupCog, group_name='warnet-ga'):
 
     @commands.Cog.listener()
     async def on_connect(self) -> None:
-        self._check_blacklist_ga.start()
+        if not self._check_blacklist_ga.is_running():
+            self._check_blacklist_ga.start()
 
     @app_commands.command(name='blacklist', description='Blacklist a user from giveaway')
     @app_commands.describe(

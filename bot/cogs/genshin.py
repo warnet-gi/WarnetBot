@@ -19,7 +19,8 @@ class Genshin(commands.GroupCog, group_name="genshin"):
 
     @commands.Cog.listener()
     async def on_connect(self) -> None:
-        self._rss.start()
+        if not self._rss.is_running():
+            self._rss.start()
 
     @tasks.loop(minutes=5)
     async def _rss(self) -> None:

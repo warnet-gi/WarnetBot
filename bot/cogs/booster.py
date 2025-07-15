@@ -18,7 +18,8 @@ class Booster(commands.Cog):
 
     @commands.Cog.listener()
     async def on_connect(self) -> None:
-        self._monthly_booster.start()
+        if not self._monthly_booster.is_running():
+            self._monthly_booster.start()
 
     @commands.is_owner()
     @commands.command(name='boostermonthly')
