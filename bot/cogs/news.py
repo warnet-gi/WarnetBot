@@ -57,8 +57,6 @@ class News(commands.GroupCog):
         else:
             new_news = news_data[:start_index]
 
-        print(start_index)
-
         tag_color_map = {
             "Info": discord.Color.blue(),
             "Events": discord.Color.green(),
@@ -70,7 +68,6 @@ class News(commands.GroupCog):
             "398": "Events",
         }
         for item in reversed(new_news):
-            print(item)
             s_chan_ids = item.get("sChanId", [])
             if len(s_chan_ids) > 1:
                 current_tag = "Info"
