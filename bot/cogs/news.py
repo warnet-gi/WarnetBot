@@ -2,6 +2,7 @@ import asyncio
 import datetime
 import json
 import logging
+import os
 
 import discord
 from discord.ext import commands, tasks
@@ -20,6 +21,14 @@ class News(commands.GroupCog):
 
     @commands.Cog.listener()
     async def on_connect(self) -> None:
+        if not os.path.exists(news_config.LAST_ID_GENSHIN_NEWS_PATH):
+            with open(news_config.LAST_ID_GENSHIN_NEWS_PATH, "w", encoding="utf-8") as f:
+                f.write("")
+
+        if not os.path.exists(news_config.LAST_ID_HOYOLAB_NEWS_PATH):
+            with open(news_config.LAST_ID_HOYOLAB_NEWS_PATH, "w", encoding="utf-8") as f:
+                f.write("")
+
         if not self._news_hoyolab.is_running():
             self._news_hoyolab.start()
         if not self._news_genshin.is_running():
@@ -94,7 +103,7 @@ class News(commands.GroupCog):
 
             embed.set_author(
                 name=f"Genshin Impact News - {current_tag}",
-                icon_url="https://genshin.hoyoverse.com/favicon.ico",
+                icon_url="https://cdn.discordapp.com/icons/522681957373575168/84a7500128d64ca60e959799c3e66f21.webp",
             )
             embed.timestamp = datetime.datetime.fromisoformat(item["dtCreateTime"])
 
@@ -118,7 +127,7 @@ class News(commands.GroupCog):
 
         await news.create_feed()
 
-        if not news.was_updated() and last_id != "":
+        if not news.was_updated and last_id != "":
             logger.info("[hoyolab] No new news updates found.")
             return
 
