@@ -66,28 +66,18 @@ class News(commands.GroupCog):
         else:
             new_news = news_data[:start_index]
 
-        tag_color_map = {
-            "Info": discord.Color.blue(),
-            "Events": discord.Color.green(),
-            "Updates": discord.Color.gold(),
-        }
-        chan_id_map = {
-            "396": "Info",
-            "397": "Updates",
-            "398": "Events",
-        }
         for item in reversed(new_news):
             s_chan_ids = item.get("sChanId", [])
             if len(s_chan_ids) > 1:
                 current_tag = "Info"
             else:
-                current_tag = chan_id_map.get(s_chan_ids[0], "Info") if s_chan_ids else "Info"
+                current_tag = news_config.CHAN_ID_MAP.get(s_chan_ids[0], "Info") if s_chan_ids else "Info"
 
             embed = discord.Embed(
                 title=item["sTitle"],
                 description=item["sIntro"],
                 url=f"https://genshin.hoyoverse.com/en/news/detail/{item['iInfoId']}",
-                color=tag_color_map.get(current_tag, discord.Color.default()),
+                color=news_config.TAG_COLOR_MAP(current_tag, discord.Color.default()),
             )
 
             image_url = None
@@ -147,15 +137,10 @@ class News(commands.GroupCog):
             new_news = news_data[:start_index]
 
         for item in reversed(new_news):
-            tag_color_map = {
-                "Info": discord.Color.blue(),
-                "Events": discord.Color.green(),
-                "Notices": discord.Color.gold(),
-            }
             embed = discord.Embed(
                 title=item["title"],
                 url=item["url"],
-                color=tag_color_map.get(item["tags"][0], discord.Color.default()),
+                color=news_config.TAG_COLOR_MAP(item["tags"][0], discord.Color.default()),
             )
             embed.set_image(url=item["image"])
             embed.set_author(
