@@ -77,7 +77,7 @@ class News(commands.GroupCog):
                 title=item["sTitle"],
                 description=item["sIntro"],
                 url=f"https://genshin.hoyoverse.com/en/news/detail/{item['iInfoId']}",
-                color=news_config.TAG_COLOR_MAP(current_tag, discord.Color.default()),
+                color=news_config.TAG_COLOR_MAP.get(current_tag, discord.Color.default()),
             )
 
             image_url = None
@@ -140,7 +140,7 @@ class News(commands.GroupCog):
             embed = discord.Embed(
                 title=item["title"],
                 url=item["url"],
-                color=news_config.TAG_COLOR_MAP(item["tags"][0], discord.Color.default()),
+                color=news_config.TAG_COLOR_MAP.get(item["tags"][0], discord.Color.default()),
             )
             embed.set_image(url=item["image"])
             embed.set_author(
