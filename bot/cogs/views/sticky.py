@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 import discord
 from discord import Interaction
@@ -10,7 +10,7 @@ class StickyPagination(discord.ui.View):
     def __init__(
         self,
         *,
-        timeout: Optional[float] = 180,
+        timeout: float | None = 180,
         PreviousButton: discord.ui.Button = discord.ui.Button(
             emoji=discord.PartialEmoji(name="\U000025c0")
         ),
@@ -38,7 +38,9 @@ class StickyPagination(discord.ui.View):
         self.ctx = None
         self.message = None
 
-    async def construct_pages(self, ctx: commands.Context, list_data: list[dict[str, Any]]) -> None:
+    async def construct_pages(
+        self, ctx: commands.Context, list_data: list[dict[str, Any]]
+    ) -> None:
         N_LIST = 10
 
         total_data = len(list_data)
@@ -51,7 +53,9 @@ class StickyPagination(discord.ui.View):
             for page_num in range(self.total_page_count):
                 page_data_list = [
                     list_data[(page_num * N_LIST) : (page_num * N_LIST) + N_LIST // 2],
-                    list_data[(page_num * N_LIST) + N_LIST // 2 : (page_num + 1) * N_LIST],
+                    list_data[
+                        (page_num * N_LIST) + N_LIST // 2 : (page_num + 1) * N_LIST
+                    ],
                 ]
 
                 embed = discord.Embed(
@@ -62,7 +66,10 @@ class StickyPagination(discord.ui.View):
                 )
 
                 for sticky_data_list in page_data_list:
-                    if sticky_data_list == page_data_list[1] and len(page_data_list[1]) == 0:
+                    if (
+                        sticky_data_list == page_data_list[1]
+                        and len(page_data_list[1]) == 0
+                    ):
                         continue
 
                     field_value = ""
@@ -92,7 +99,9 @@ class StickyPagination(discord.ui.View):
                 timestamp=datetime.now(),
             )
 
-            embed.set_footer(text=f"{self.ctx.author.name}", icon_url=self.ctx.author.avatar.url)
+            embed.set_footer(
+                text=f"{self.ctx.author.name}", icon_url=self.ctx.author.avatar.url
+            )
             self.pages.append(embed)
 
     async def on_timeout(self) -> None:

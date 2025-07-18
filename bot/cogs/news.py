@@ -2,9 +2,10 @@ import asyncio
 import datetime
 import json
 import logging
-import os
+from pathlib import Path
 
 import discord
+from anyio import open_file
 from discord.ext import commands, tasks
 
 from bot.bot import WarnetBot
@@ -21,13 +22,17 @@ class News(commands.GroupCog):
 
     @commands.Cog.listener()
     async def on_connect(self) -> None:
-        if not os.path.exists(news_config.LAST_ID_GENSHIN_NEWS_PATH):
-            with open(news_config.LAST_ID_GENSHIN_NEWS_PATH, "w", encoding="utf-8") as f:
-                f.write("")
+        if not Path(news_config.LAST_ID_GENSHIN_NEWS_PATH).exists():
+            async with await open_file(
+                news_config.LAST_ID_GENSHIN_NEWS_PATH, "w", encoding="utf-8"
+            ) as f:
+                await f.write("")
 
-        if not os.path.exists(news_config.LAST_ID_HOYOLAB_NEWS_PATH):
-            with open(news_config.LAST_ID_HOYOLAB_NEWS_PATH, "w", encoding="utf-8") as f:
-                f.write("")
+        if not Path(news_config.LAST_ID_HOYOLAB_NEWS_PATH).exists():
+            async with await open_file(
+                news_config.LAST_ID_HOYOLAB_NEWS_PATH, "w", encoding="utf-8"
+            ) as f:
+                await f.write("")
 
         if not self._news_hoyolab.is_running():
             self._news_hoyolab.start()
@@ -40,15 +45,21 @@ class News(commands.GroupCog):
 
         try:
             await get_genshin_news()
-        except Exception as e:
-            logger.error(f"[genshin] Failed to fetch Genshin news: {e}")
+        except Exception:
+            logger.exception("[genshin] Exception occurred while fetching Genshin news")
             return
 
-        with open(news_config.LAST_ID_GENSHIN_NEWS_PATH, "r", encoding="utf-8") as f:
-            last_id = f.read().strip()
+        async with await open_file(
+            news_config.LAST_ID_GENSHIN_NEWS_PATH, encoding="utf-8"
+        ) as f:
+            content = await f.read()
+            last_id = content.strip()
 
-        with open(news_config.JSON_GENSHIN_NEWS_PATH, "r", encoding="utf-8") as f:
-            news_data = json.load(f)["data"]["list"]
+        async with await open_file(
+            news_config.JSON_GENSHIN_NEWS_PATH, encoding="utf-8"
+        ) as f:
+            contents = await f.read()
+            news_data = json.loads(contents)["data"]["list"]
 
         last_json_id = str(news_data[0]["iInfoId"])
         if last_json_id == last_id:
@@ -61,33 +72,34 @@ class News(commands.GroupCog):
                 start_index = i
                 break
 
-        if start_index is None:
-            new_news = news_data
-        else:
-            new_news = news_data[:start_index]
+        new_news = news_data if start_index is None else news_data[:start_index]
 
         for item in reversed(new_news):
             s_chan_ids = item.get("sChanId", [])
             if len(s_chan_ids) > 1:
                 current_tag = "Info"
             else:
-                current_tag = news_config.CHAN_ID_MAP.get(s_chan_ids[0], "Info") if s_chan_ids else "Info"
+                current_tag = (
+                    news_config.CHAN_ID_MAP.get(s_chan_ids[0], "Info")
+                    if s_chan_ids
+                    else "Info"
+                )
 
             embed = discord.Embed(
                 title=item["sTitle"],
                 description=item["sIntro"],
                 url=f"https://genshin.hoyoverse.com/en/news/detail/{item['iInfoId']}",
-                color=news_config.TAG_COLOR_MAP.get(current_tag, discord.Color.default()),
+                color=news_config.TAG_COLOR_MAP.get(
+                    current_tag, discord.Color.default()
+                ),
             )
 
             image_url = None
-            try:
-                s_ext = json.loads(item.get("sExt", "{}"))
-                banners = s_ext.get("banner", [])
-                if banners and "url" in banners[0]:
-                    image_url = banners[0]["url"]
-            except Exception as e:
-                logger.error(f"[genshin] Error parsing image URL: {e}")
+            s_ext = json.loads(item.get("sExt", "{}"))
+            banners = s_ext.get("banner", [])
+            if banners and "url" in banners[0]:
+                image_url = banners[0]["url"]
+
             if image_url:
                 embed.set_image(url=image_url)
 
@@ -97,14 +109,16 @@ class News(commands.GroupCog):
             )
             embed.timestamp = datetime.datetime.fromisoformat(item["dtCreateTime"])
 
-            await info_channel.send(embed=embed)
+            await info_channel.send(embed=embed)  # type: ignore union-type
             await asyncio.sleep(1)
 
-        with open(news_config.LAST_ID_GENSHIN_NEWS_PATH, "w", encoding="utf-8") as f:
-            f.write(last_json_id)
+        async with await open_file(
+            news_config.LAST_ID_GENSHIN_NEWS_PATH, "w", encoding="utf-8"
+        ) as f:
+            await f.write(last_json_id)
 
     @_news_genshin.before_loop
-    async def _before_news_genshin(self):
+    async def _before_news_genshin(self) -> None:
         await self.bot.wait_until_ready()
 
     @tasks.loop(time=news_config.TIMES_CHECK_UPDATE)
@@ -112,8 +126,11 @@ class News(commands.GroupCog):
         info_channel = self.bot.get_channel(news_config.INFORMATION_CHANNEL_ID)
         news = hoyolab_news()
 
-        with open(news_config.LAST_ID_HOYOLAB_NEWS_PATH, "r", encoding="utf-8") as f:
-            last_id = f.read().strip()
+        async with await open_file(
+            news_config.LAST_ID_HOYOLAB_NEWS_PATH, encoding="utf-8"
+        ) as f:
+            contents = await f.read()
+            last_id = contents.strip()
 
         await news.create_feed()
 
@@ -121,8 +138,11 @@ class News(commands.GroupCog):
             logger.info("[hoyolab] No new news updates found.")
             return
 
-        with open(news_config.JSON_HOYOLAB_NEWS_PATH, "r", encoding="utf-8") as f:
-            news_data = json.load(f)
+        async with await open_file(
+            news_config.JSON_HOYOLAB_NEWS_PATH, encoding="utf-8"
+        ) as f:
+            contents = await f.read()
+            news_data = json.loads(contents)
             news_data = news_data["items"]
 
         start_index = None
@@ -131,16 +151,15 @@ class News(commands.GroupCog):
                 start_index = i
                 break
 
-        if start_index is None:
-            new_news = news_data
-        else:
-            new_news = news_data[:start_index]
+        new_news = news_data if start_index is None else news_data[:start_index]
 
         for item in reversed(new_news):
             embed = discord.Embed(
                 title=item["title"],
                 url=item["url"],
-                color=news_config.TAG_COLOR_MAP.get(item["tags"][0], discord.Color.default()),
+                color=news_config.TAG_COLOR_MAP.get(
+                    item["tags"][0], discord.Color.default()
+                ),
             )
             embed.set_image(url=item["image"])
             embed.set_author(
@@ -148,18 +167,20 @@ class News(commands.GroupCog):
                 icon_url="https://www.hoyolab.com/favicon.ico",
             )
             embed.timestamp = datetime.datetime.fromisoformat(item["date_published"])
-            await info_channel.send(embed=embed)
+            await info_channel.send(embed=embed)  # type: ignore union-type
 
             await asyncio.sleep(1)
 
-        with open(news_config.LAST_ID_HOYOLAB_NEWS_PATH, "w", encoding="utf-8") as f:
-            f.write(news_data[0]["id"])
+        async with await open_file(
+            news_config.LAST_ID_HOYOLAB_NEWS_PATH, "w", encoding="utf-8"
+        ) as f:
+            await f.write(news_data[0]["id"])
 
         logger.info("[hoyolab] Successfully sent news updates to the channel.")
         return
 
     @_news_hoyolab.before_loop
-    async def _before_news_hoyolab(self):
+    async def _before_news_hoyolab(self) -> None:
         await self.bot.wait_until_ready()
 
 

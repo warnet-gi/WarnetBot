@@ -1,12 +1,10 @@
-import asyncio
 import io
 import logging
-from typing import Optional
 
 import discord
 from discord import Interaction, Member, Role
 from discord.ext import commands
-from imagetext_py import Canvas, Color, draw_text, FontDB, Paint
+from imagetext_py import Canvas, Color, FontDB, Paint, draw_text
 
 from bot.config import CustomRoleConfig
 
@@ -16,11 +14,13 @@ logger = logging.getLogger(__name__)
 async def check_role_by_name_or_number(
     self: commands.Cog,
     interaction: Interaction,
-    name: Optional[str],
-    number: Optional[int],
-) -> Optional[Role]:
+    name: str | None,
+    number: int | None,
+) -> Role | None:
     if name:
-        role_target = discord.utils.find(lambda r: r.name == name, interaction.guild.roles)
+        role_target = discord.utils.find(
+            lambda r: r.name == name, interaction.guild.roles
+        )
     elif number:
         try:
             role_target_id = self.custom_role_data_list[number - 1]
@@ -47,19 +47,21 @@ async def move_role_to_under_boundary(interaction: Interaction, role: Role) -> N
         )
         return await error_move_role(interaction, role)
     except discord.HTTPException as e:
-        logger.error(f"Failed to move role {role.name} to the bottom due to HTTPException: {e}")
+        logger.error(
+            f"Failed to move role {role.name} to the bottom due to HTTPException: {e}"
+        )
         return await error_move_role(interaction, role)
     except Exception as e:
         logger.error(
             f"An unexpected error occurred while moving role {role.name} to the bottom: {e}"
         )
         return await error_move_role(interaction, role)
-    return
+    return None
 
 
 def get_current_custom_role_on_user(
     self: commands.Cog, guild: discord.Guild, member: Member
-) -> Optional[Role]:
+) -> Role | None:
     member_role_id_list = [role.id for role in member.roles]
     res = set(member_role_id_list) & set(self.custom_role_data_list)
 
@@ -72,10 +74,10 @@ def generate_image_color_list(role_list: list[discord.Role]) -> io.BytesIO:
     There are certain rows per column. Each column has 300px wide.
     """
 
-    FontDB.LoadFromPath('Noto', CustomRoleConfig.FONT_NOTO)
-    FontDB.LoadFromPath('Noto-jp', CustomRoleConfig.FONT_NOTO_JP)
-    FontDB.LoadFromPath('Noto-cn', CustomRoleConfig.FONT_NOTO_CN)
-    font = FontDB.Query('Noto Noto-jp Noto-cn')
+    FontDB.LoadFromPath("Noto", CustomRoleConfig.FONT_NOTO)
+    FontDB.LoadFromPath("Noto-jp", CustomRoleConfig.FONT_NOTO_JP)
+    FontDB.LoadFromPath("Noto-cn", CustomRoleConfig.FONT_NOTO_CN)
+    font = FontDB.Query("Noto Noto-jp Noto-cn")
 
     total_data = len(role_list)
     column_px = 300
@@ -105,8 +107,8 @@ def generate_image_color_list(role_list: list[discord.Role]) -> io.BytesIO:
         x_now = (col * column_px) + 10
         y_now = 1
         for role in role_list[col * boundary : (col + 1) * boundary]:
-            name = role.name[:15] + '...' if len(role.name) > 15 else role.name
-            text = f'{number}. {name}'
+            name = role.name[:15] + "..." if len(role.name) > 15 else role.name
+            text = f"{number}. {name}"
             fill_color = Paint.Color(Color(*role.color.to_rgb()))
 
             draw_text(
@@ -125,7 +127,7 @@ def generate_image_color_list(role_list: list[discord.Role]) -> io.BytesIO:
 
     image_bytes = io.BytesIO()
     image = canvas.to_image()
-    image.save(image_bytes, format='PNG')
+    image.save(image_bytes, format="PNG")
 
     return image_bytes
 
@@ -134,7 +136,7 @@ def hex_to_discord_color(hex_color: str) -> discord.Color:
     """
     Convert a hex color string to a discord.Color object.
     """
-    hex_color = '#' + hex_color if not hex_color.startswith('#') else hex_color
+    hex_color = "#" + hex_color if not hex_color.startswith("#") else hex_color
     valid_color = discord.Color.from_str(hex_color)
     return valid_color
 

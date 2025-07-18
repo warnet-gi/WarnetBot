@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 async def give_monthly_booster_exp(bot: WarnetBot) -> None:
     today = date.today()
-    logger.info(f'MONTHLY EXP BOOSTER IS TRIGGERED: {today.strftime("%B %Y")}')
+    logger.info(f"MONTHLY EXP BOOSTER IS TRIGGERED: {today.strftime('%B %Y')}")
 
     try:
         admin_channel = bot.get_channel(ADMIN_CHANNEL_ID)
@@ -29,7 +29,7 @@ async def give_monthly_booster_exp(bot: WarnetBot) -> None:
         guild = bot.get_guild(GUILD_ID)
         role = guild.get_role(BOOSTER_ROLE_ID)
         month = today.strftime("%B")
-        member_tags = member_ids = member_error = ''
+        member_tags = member_ids = member_error = ""
         success_count = error_count = 0
     except Exception as e:
         logger.error(f"Error fetching channels or guild: {e}")
@@ -51,11 +51,10 @@ async def give_monthly_booster_exp(bot: WarnetBot) -> None:
                     f"403, apikey sudah kadaluwarsa atau tidak valid.\n {success_count} dari {len(role.members)} member berhasil:\n\n{member_tags}"
                 )
                 break
-            else:
-                logger.error(f"Failed to add score for {member.id}: {e}")
-                error_count += 1
-                member_error += f"{member.mention}, "
-                continue
+            logger.error(f"Failed to add score for {member.id}: {e}")
+            error_count += 1
+            member_error += f"{member.mention}, "
+            continue
         except Exception as e:
             logger.error(f"Unexpected error for {member.id}: {e}")
             error_count += 1
@@ -77,7 +76,7 @@ async def give_monthly_booster_exp(bot: WarnetBot) -> None:
         )
         await tatsu_log_channel.send(embed=embed)
 
-        buffer = io.BytesIO(member_ids.encode('utf-8'))
+        buffer = io.BytesIO(member_ids.encode("utf-8"))
         file = discord.File(buffer, filename=f"{month}_honorary.txt")
         await admin_channel.send(
             content=(

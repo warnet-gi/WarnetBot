@@ -1,5 +1,4 @@
 import datetime
-from typing import Optional
 
 import discord
 from discord import Interaction
@@ -8,7 +7,7 @@ from bot import config
 
 
 async def send_user_not_registered_error_embed(
-    interaction: Interaction, member1_id: int, member2_id: Optional[int] = None
+    interaction: Interaction, member1_id: int, member2_id: int | None = None
 ) -> None:
     desc_msg: str
     if member2_id:
@@ -18,7 +17,7 @@ async def send_user_not_registered_error_embed(
 
     embed = discord.Embed(
         color=discord.Colour.red(),
-        title='❌ User not registered',
+        title="❌ User not registered",
         description=desc_msg,
         timestamp=datetime.datetime.now(),
     )
@@ -68,9 +67,9 @@ def calculate_elo(rating_winner: float, rating_loser: float) -> float:
 async def change_tcg_title_role(
     interaction: Interaction,
     member: discord.Member,
-    current_tcg_role: Optional[discord.Role],
+    current_tcg_role: discord.Role | None,
     current_elo: float,
-) -> Optional[discord.Role]:
+) -> discord.Role | None:
     target_role = check_for_eligible_tcg_title(interaction, current_elo)
 
     if target_role != current_tcg_role:
@@ -85,14 +84,16 @@ async def change_tcg_title_role(
                 description=f"⭐ {member.mention} telah mendapatkan gelar TCG baru: {target_role.mention}",
                 timestamp=datetime.datetime.now(),
             )
-            await interaction.channel.send(content=f"{member.mention}", embed=notify_embed)
+            await interaction.channel.send(
+                content=f"{member.mention}", embed=notify_embed
+            )
 
     return target_role
 
 
 def check_for_eligible_tcg_title(
     interaction: Interaction, elo_rating: float
-) -> Optional[discord.Role]:
+) -> discord.Role | None:
     """
     return current tcg title role id and previous role id based on total ELO rating.
 
@@ -102,16 +103,16 @@ def check_for_eligible_tcg_title(
     * Immortal Duelist = 1700
     """
     TCG_TITLE_ROLE_LIST = [
-        interaction.guild.get_role(role_id) for role_id in config.TCGConfig.TCG_TITLE_ROLE_ID
+        interaction.guild.get_role(role_id)
+        for role_id in config.TCGConfig.TCG_TITLE_ROLE_ID
     ]
 
     if elo_rating < 1550:
         return None
-    elif elo_rating < 1600:
+    if elo_rating < 1600:
         return TCG_TITLE_ROLE_LIST[0]
-    elif elo_rating < 1650:
+    if elo_rating < 1650:
         return TCG_TITLE_ROLE_LIST[1]
-    elif elo_rating < 1700:
+    if elo_rating < 1700:
         return TCG_TITLE_ROLE_LIST[2]
-    else:
-        return TCG_TITLE_ROLE_LIST[3]
+    return TCG_TITLE_ROLE_LIST[3]

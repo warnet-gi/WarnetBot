@@ -1,14 +1,16 @@
 import logging
-import os
 import time
+from pathlib import Path
 
 import aiohttp
 import asyncpg
 import discord
 from discord.ext.commands import Bot
 
+import bot.module.tatsu.data_structures as ds
 from bot import __version__, config
 from bot.module.tatsu.wrapper import ApiWrapper
+from bot.types import CantNoneError
 
 logger = logging.getLogger(__name__)
 BOT_PREFIX = config.BOT_PREFIX
@@ -27,12 +29,12 @@ class WarnetBot(Bot):
             help_command=None,
             log_handler=None,
         )
-        self.session: aiohttp.ClientSession = None
+        self.session: aiohttp.ClientSession
         self.version = __version__
 
     async def on_ready(self) -> None:
         print("The bot is online!")
-        print("Logged in as {}".format(self.user))
+        print(f"Logged in as {self.user}")
         print("------------------")
 
     async def setup_hook(self) -> None:
@@ -40,40 +42,53 @@ class WarnetBot(Bot):
             self.session = aiohttp.ClientSession()
 
         self.bot_app_info = await self.application_info()
-        self.owner_ids = {m.id for m in self.bot_app_info.team.members}
+        if self.bot_app_info.team is not None:
+            self.owner_ids = {m.id for m in self.bot_app_info.team.members}
+        else:
+            self.owner_ids = {self.bot_app_info.owner.id}
 
         await self.load_cogs()
 
     async def load_cogs(self) -> None:
-        for filename in os.listdir('./bot/cogs'):
-            if filename.endswith('.py'):
-                await self.load_extension('bot.cogs.{}'.format(filename[:-3]))
+        cogs_path = Path("./bot/cogs")
+        for file in cogs_path.iterdir():
+            if file.is_file() and file.suffix == ".py":
+                await self.load_extension(f"bot.cogs.{file.stem}")
 
-        logger.info('ALL COGS HAVE BEEN LOADED SUCCESSFULLY')
+        logger.info("ALL COGS HAVE BEEN LOADED SUCCESSFULLY")
 
     async def close(self) -> None:
         await self.session.close()
         await super().close()
 
-    async def start(self, debug: bool = False) -> None:
+    async def start(
+        self, token: str, *, reconnect: bool = True, debug: bool = False
+    ) -> None:
         self.start_time = time.time()
         self.debug = debug
 
         if self.debug:
-            self.db_pool = await asyncpg.create_pool(
+            print("Running in debug mode")
+            db_pool = await asyncpg.create_pool(
                 host=config.LOCAL_DB_HOST,
                 user=config.LOCAL_DB_USERNAME,
                 database=config.LOCAL_DB_NAME,
                 password=config.LOCAL_DB_PASSWORD,
                 port=config.LOCAL_DB_PORT,
             )
-
-            return await super().start(config.DEV_BOT_TOKEN, reconnect=True)
+            if db_pool is None:
+                err = "Database pool cannot be None"
+                raise CantNoneError(err)
+            self.db_pool = db_pool
 
         else:
-            self.db_pool = await asyncpg.create_pool(dsn=config.HOSTED_DB_URI)
+            db_pool = await asyncpg.create_pool(dsn=config.HOSTED_DB_URI)
+            if db_pool is None:
+                err = "Database pool cannot be None"
+                raise CantNoneError(err)
+            self.db_pool = db_pool
 
-            return await super().start(config.BOT_TOKEN, reconnect=True)
+        return await super().start(token, reconnect=reconnect)
 
     def get_db_pool(self) -> asyncpg.Pool:
         return self.db_pool
@@ -82,5 +97,5 @@ class WarnetBot(Bot):
 class TatsuApi:
     API = ApiWrapper(config.TATSU_TOKEN)
 
-    async def add_score(self, member_id: int, amount: int):
+    async def add_score(self, member_id: int, amount: int) -> ds.GuildScoreObject:
         return await self.API.add_score(config.GUILD_ID, member_id, amount)

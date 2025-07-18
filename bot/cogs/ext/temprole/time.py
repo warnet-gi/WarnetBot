@@ -2,11 +2,11 @@ import re
 
 
 def parse_time_string(time_string: str) -> int:
-    time_units = {'d': 86400, 'h': 3600, 'm': 60, 's': 1}
-    pattern = re.compile(r'(\d+d|\d+h|\d+m|\d+s)')
+    time_units = {"d": 86400, "h": 3600, "m": 60, "s": 1}
+    pattern = re.compile(r"(\d+d|\d+h|\d+m|\d+s)")
     matches = pattern.findall(time_string)
 
-    if len(''.join(matches)) != len(time_string):
+    if len("".join(matches)) != len(time_string):
         raise ValueError("Invalid time format")
 
     total_seconds = 0

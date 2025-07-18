@@ -1,5 +1,4 @@
 import asyncio
-import io
 import logging
 from datetime import datetime, time, timedelta, timezone
 
@@ -22,7 +21,7 @@ class Booster(commands.Cog):
             self._monthly_booster.start()
 
     @commands.is_owner()
-    @commands.command(name='boostermonthly')
+    @commands.command(name="boostermonthly")
     async def manual_monthly_booster(self, ctx: commands.Context) -> None:
         await ctx.typing()
 
@@ -41,20 +40,22 @@ class Booster(commands.Cog):
 
         try:
             while len(approved) != len(owner_ids):
-                _, user = await self.bot.wait_for("reaction_add", timeout=300.0, check=check)
+                _, user = await self.bot.wait_for(
+                    "reaction_add", timeout=300.0, check=check
+                )
                 approved.add(user.id)
         except asyncio.TimeoutError:
             await ctx.send("Timeout! Action cancelled.")
             return
 
         logger.info(
-            f'manual monthly exp booster is triggered: {datetime.now(pytz.timezone("Asia/Jakarta")).strftime("%B %Y")}'
+            f"manual monthly exp booster is triggered: {datetime.now(pytz.timezone('Asia/Jakarta')).strftime('%B %Y')}"
         )
         await give_monthly_booster_exp(self.bot)
 
     @tasks.loop(time=time(hour=0, minute=0, tzinfo=timezone(timedelta(hours=7))))
     async def _monthly_booster(self) -> None:
-        date = datetime.now(pytz.timezone('Asia/Jakarta'))
+        date = datetime.now(pytz.timezone("Asia/Jakarta"))
         if date.day == 1:
             await give_monthly_booster_exp(self.bot)
 

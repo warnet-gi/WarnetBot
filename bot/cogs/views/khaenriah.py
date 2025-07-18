@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any
 
 import discord
 from discord import Interaction
@@ -9,7 +9,7 @@ class BuronanPagination(discord.ui.View):
     def __init__(
         self,
         *,
-        timeout: Optional[float] = 180,
+        timeout: float | None = 180,
         PreviousButton: discord.ui.Button = discord.ui.Button(
             emoji=discord.PartialEmoji(name="\U000025c0")
         ),
@@ -56,17 +56,18 @@ class BuronanPagination(discord.ui.View):
                         (page_num * N_MEMBERS) : (page_num * N_MEMBERS) + N_MEMBERS // 2
                     ],
                     buronan_list_data[
-                        (page_num * N_MEMBERS) + N_MEMBERS // 2 : (page_num + 1) * N_MEMBERS
+                        (page_num * N_MEMBERS) + N_MEMBERS // 2 : (page_num + 1)
+                        * N_MEMBERS
                     ],
                 ]
 
                 embed = discord.Embed(
                     color=discord.Color.dark_theme(),
-                    title='DAFTAR BURONAN KHAENRIAH',
-                    description=f'**Berikut daftar buronan dengan level warning nya di server {ctx.guild.name}**',
+                    title="DAFTAR BURONAN KHAENRIAH",
+                    description=f"**Berikut daftar buronan dengan level warning nya di server {ctx.guild.name}**",
                 )
                 embed.set_thumbnail(
-                    url='https://media.discordapp.net/attachments/918150951204945950/1081450017065275454/skull.png'
+                    url="https://media.discordapp.net/attachments/918150951204945950/1081450017065275454/skull.png"
                 )
 
                 for member_data_list in page_member_data_list:
@@ -76,17 +77,17 @@ class BuronanPagination(discord.ui.View):
                     ):
                         continue
 
-                    field_value = ''
+                    field_value = ""
                     field_name = (
-                        'Warning Level  |  Member'
+                        "Warning Level  |  Member"
                         if member_data_list == page_member_data_list[0]
-                        else '|'
+                        else "|"
                     )
                     for member_data in member_data_list:
-                        member = ctx.guild.get_member(member_data['discord_id'])
+                        member = ctx.guild.get_member(member_data["discord_id"])
                         # Prevent none object if user leaves the guild but they still in the list
                         if not member:
-                            member = await ctx.bot.fetch_user(member_data['discord_id'])
+                            member = await ctx.bot.fetch_user(member_data["discord_id"])
 
                         row_string = f"`{member_data['warn_level']:>2}` {discord.utils.escape_markdown(text=member.name)}\n"
                         field_value += row_string
@@ -99,20 +100,22 @@ class BuronanPagination(discord.ui.View):
         else:
             embed = discord.Embed(
                 color=discord.Color.dark_theme(),
-                title='DAFTAR BURONAN KHAENRIAH',
-                description=f'**Berikut daftar buronan dengan level warning di server {ctx.guild.name}**',
+                title="DAFTAR BURONAN KHAENRIAH",
+                description=f"**Berikut daftar buronan dengan level warning di server {ctx.guild.name}**",
             )
             embed.set_thumbnail(
-                url='https://media.discordapp.net/attachments/918150951204945950/1081450017065275454/skull.png'
+                url="https://media.discordapp.net/attachments/918150951204945950/1081450017065275454/skull.png"
             )
             embed.add_field(
-                name='Warning Level  |  Member',
-                value='**NO MEMBER IN THIS LIST YET**',
+                name="Warning Level  |  Member",
+                value="**NO MEMBER IN THIS LIST YET**",
             )
             self.pages.append(embed)
 
         for embed in self.pages:
-            embed.set_footer(text=f'{len(buronan_list_data)} members has been listed in this list.')
+            embed.set_footer(
+                text=f"{len(buronan_list_data)} members has been listed in this list."
+            )
 
     async def on_timeout(self) -> None:
         for child in self.children:
@@ -141,7 +144,9 @@ class BuronanPagination(discord.ui.View):
         self.add_item(self.NextButton)
 
         self.message = await ctx.send(
-            embed=self.pages[self.initial_page_number], view=self, ephemeral=self.ephemeral
+            embed=self.pages[self.initial_page_number],
+            view=self,
+            ephemeral=self.ephemeral,
         )
 
     async def next(self) -> None:

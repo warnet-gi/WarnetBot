@@ -1,12 +1,11 @@
-import asyncio
-import unittest
-from unittest.mock import AsyncMock, MagicMock, Mock, PropertyMock
+import unittest  # noqa: INP001
+from unittest.mock import AsyncMock, MagicMock, PropertyMock
 
 from bot.cogs.general import General
 
 
 class GeneralTests(unittest.IsolatedAsyncioTestCase):
-    async def test_ping(self):
+    async def test_ping(self) -> None:
         mock_latency = PropertyMock(return_value=100)
 
         mock_warnet_bot = MagicMock()
@@ -19,7 +18,7 @@ class GeneralTests(unittest.IsolatedAsyncioTestCase):
 
         mock_context.send.assert_called_once()
 
-    async def test_nobar(self):
+    async def test_nobar(self) -> None:
         mock_warnet_bot = MagicMock()
 
         mock_role = MagicMock()
@@ -40,8 +39,8 @@ class GeneralTests(unittest.IsolatedAsyncioTestCase):
 
         mock_guild.get_role.assert_called_once_with(1093508844551942144)
         mock_channel.send.assert_called_once_with(
-            f"Tata cara menjadi **HOST NOBAR** di server MOCK_GUILD_NAME:\n"
-            f"1. Silahkan ajukan tiket **Kontak Admin dan Mod** di <#1066618888462278657>.\n"
-            f"2. Tentukan **Judul Film**, **Tanggal**, dan **Jam** nobar. Minimal __satu hari sebelum nobar__, agar dapat diumumkan kepada role **MOCK_ROLE_NAME** terlebih dahulu.\n"
-            f"3. Pada saat waktu nobar, Admin/Mod akan memberikan kamu akses agar dapat stream pada channel <#1092630886127783957>."
+            "Tata cara menjadi **HOST NOBAR** di server MOCK_GUILD_NAME:\n"
+            "1. Silahkan ajukan tiket **Kontak Admin dan Mod** di <#1066618888462278657>.\n"
+            "2. Tentukan **Judul Film**, **Tanggal**, dan **Jam** nobar. Minimal __satu hari sebelum nobar__, agar dapat diumumkan kepada role **MOCK_ROLE_NAME** terlebih dahulu.\n"
+            "3. Pada saat waktu nobar, Admin/Mod akan memberikan kamu akses agar dapat stream pada channel <#1092630886127783957>."
         )
