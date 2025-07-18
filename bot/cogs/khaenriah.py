@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 import discord
 from discord.ext import commands
@@ -6,6 +6,7 @@ from discord.ext import commands
 from bot import config
 from bot.bot import WarnetBot
 from bot.cogs.views.khaenriah import BuronanPagination
+from bot.helper import no_guild_alert_ctx, no_permission_alert_ctx
 
 
 @commands.guild_only()
@@ -38,86 +39,26 @@ class Khaenriah(commands.Cog):
         *,
         reason: str | None,
     ) -> None:
-        if ctx.author.guild_permissions.administrator or ctx.author.get_role(
+        if not ctx.guild:
+            return await no_guild_alert_ctx(ctx)
+
+        if not ctx.author.guild_permissions.administrator and not ctx.author.get_role(  # type: ignore union-type
             self.KURATOR_TEYVAT_ROLE_ID
         ):
-            async with self.db_pool.acquire() as conn:
-                data = await conn.fetchrow(
-                    "SELECT * FROM buronan_khaenriah WHERE discord_id=$1", member.id
+            return await no_permission_alert_ctx(ctx)
+
+        async with self.db_pool.acquire() as conn:
+            data = await conn.fetchrow(
+                "SELECT * FROM buronan_khaenriah WHERE discord_id=$1", member.id
+            )
+
+            current_warn_level = 0
+            if not data:
+                await conn.execute(
+                    "INSERT INTO buronan_khaenriah (discord_id) VALUES ($1)",
+                    member.id,
                 )
-
-                current_warn_level = 0
-                if not data:
-                    await conn.execute(
-                        "INSERT INTO buronan_khaenriah (discord_id) VALUES ($1)",
-                        member.id,
-                    )
-                else:
-                    current_warn_level = data["warn_level"]
-                    if current_warn_level < self.BURONAN_MAX_LEVEL:
-                        await conn.execute(
-                            "UPDATE buronan_khaenriah SET warn_level=warn_level+1 WHERE discord_id=$1",
-                            member.id,
-                        )
-                        current_warn_level += 1
-                    else:
-                        return await ctx.send(
-                            content=f"**{member.name}** has reached MAX warning level (Level {self.BURONAN_MAX_LEVEL}). Can't add more level.",
-                        )
-
-            embed = discord.Embed(
-                color=discord.Color.dark_theme(),
-                title="⚠️ Khaenriah Warning",
-                description=f"User {member.mention} has been given a Khaenriah Warning!",
-                timestamp=datetime.now(),
-            )
-            embed.set_thumbnail(
-                url="https://media.discordapp.net/attachments/918150951204945950/1081450017065275454/skull.png"
-            )
-            embed.add_field(
-                name="Current Warn Level",
-                value=f"`{current_warn_level}`"
-                + ("" if current_warn_level < self.BURONAN_MAX_LEVEL else " (MAX)"),
-                inline=False,
-            )
-            embed.add_field(
-                name="Consequence",
-                value=self._get_consequence(current_warn_level),
-                inline=False,
-            )
-            embed.add_field(name="Reason", value=reason, inline=False)
-            embed.set_footer(
-                text=f"Warned by {ctx.author.name}",
-                icon_url=ctx.author.display_avatar.url,
-            )
-
-            warn_log_channel = ctx.guild.get_channel(config.WARN_LOG_CHANNEL_ID)
-
-            await ctx.send(embed=embed)
-            await warn_log_channel.send(embed=embed)
-
-    @buronan.command(name="increase", aliases=["inc"])
-    async def buronan_increase(
-        self, ctx: commands.Context, member: discord.Member | discord.User
-    ) -> None:
-        if ctx.author.guild_permissions.administrator or ctx.author.get_role(
-            self.KURATOR_TEYVAT_ROLE_ID
-        ):
-            async with self.db_pool.acquire() as conn:
-                data = await conn.fetchrow(
-                    "SELECT * FROM buronan_khaenriah WHERE discord_id=$1", member.id
-                )
-
-                if not data:
-                    return await ctx.send(
-                        content=f"**{member.name}** never got a warning before. Can't increase warn level."
-                    )
-
-                if ctx.author == member:
-                    return await ctx.send(
-                        content="You are unable to self-increase your warn level."
-                    )
-
+            else:
                 current_warn_level = data["warn_level"]
                 if current_warn_level < self.BURONAN_MAX_LEVEL:
                     await conn.execute(
@@ -126,84 +67,169 @@ class Khaenriah(commands.Cog):
                     )
                     current_warn_level += 1
                 else:
-                    return await ctx.send(
+                    await ctx.send(
                         content=f"**{member.name}** has reached MAX warning level (Level {self.BURONAN_MAX_LEVEL}). Can't add more level.",
                     )
+                    return None
 
-            warn_log_channel = ctx.guild.get_channel(config.WARN_LOG_CHANNEL_ID)
-            desc = f"**{member.name}** warn level has been increased manually from `{data['warn_level']}` to `{current_warn_level}`"
-            embed = discord.Embed(
-                title="KHAENRIAH WARN LEVEL IS INCREASED",
-                description=desc,
-                timestamp=datetime.now(),
-                color=discord.Color.dark_theme(),
-            )
-            embed.set_thumbnail(
-                url="https://media.discordapp.net/attachments/918150951204945950/1081450017065275454/skull.png"
-            )
-            embed.set_footer(
-                text=f"Executed by {ctx.author.name}",
-                icon_url=ctx.author.display_avatar.url,
+        embed = discord.Embed(
+            color=discord.Color.dark_theme(),
+            title="⚠️ Khaenriah Warning",
+            description=f"User {member.mention} has been given a Khaenriah Warning!",
+            timestamp=datetime.now(tz=UTC),
+        )
+        embed.set_thumbnail(
+            url="https://media.discordapp.net/attachments/918150951204945950/1081450017065275454/skull.png"
+        )
+        embed.add_field(
+            name="Current Warn Level",
+            value=f"`{current_warn_level}`"
+            + ("" if current_warn_level < self.BURONAN_MAX_LEVEL else " (MAX)"),
+            inline=False,
+        )
+        embed.add_field(
+            name="Consequence",
+            value=self._get_consequence(current_warn_level),
+            inline=False,
+        )
+        embed.add_field(name="Reason", value=reason, inline=False)
+        embed.set_footer(
+            text=f"Warned by {ctx.author.name}",
+            icon_url=ctx.author.display_avatar.url,
+        )
+
+        warn_log_channel = ctx.guild.get_channel(config.WARN_LOG_CHANNEL_ID)
+
+        await ctx.send(embed=embed)
+        await warn_log_channel.send(embed=embed)  # type: ignore union-type
+        return None
+
+    @buronan.command(name="increase", aliases=["inc"])
+    async def buronan_increase(
+        self, ctx: commands.Context, member: discord.Member | discord.User
+    ) -> None:
+        if not ctx.guild:
+            return await no_guild_alert_ctx(ctx)
+
+        if not ctx.author.guild_permissions.administrator and not ctx.author.get_role(  # type: ignore union-type
+            self.KURATOR_TEYVAT_ROLE_ID
+        ):
+            return await no_permission_alert_ctx(ctx)
+
+        async with self.db_pool.acquire() as conn:
+            data = await conn.fetchrow(
+                "SELECT * FROM buronan_khaenriah WHERE discord_id=$1", member.id
             )
 
-            await ctx.send(embed=embed)
-            await warn_log_channel.send(embed=embed)
+            if not data:
+                await ctx.send(
+                    content=f"**{member.name}** never got a warning before. Can't increase warn level."
+                )
+                return None
+
+            if ctx.author == member:
+                await ctx.send(
+                    content="You are unable to self-increase your warn level."
+                )
+                return None
+
+            current_warn_level = data["warn_level"]
+            if current_warn_level < self.BURONAN_MAX_LEVEL:
+                await conn.execute(
+                    "UPDATE buronan_khaenriah SET warn_level=warn_level+1 WHERE discord_id=$1",
+                    member.id,
+                )
+                current_warn_level += 1
+            else:
+                await ctx.send(
+                    content=f"**{member.name}** has reached MAX warning level (Level {self.BURONAN_MAX_LEVEL}). Can't add more level.",
+                )
+                return None
+
+        warn_log_channel = ctx.guild.get_channel(config.WARN_LOG_CHANNEL_ID)
+        desc = f"**{member.name}** warn level has been increased manually from `{data['warn_level']}` to `{current_warn_level}`"
+        embed = discord.Embed(
+            title="KHAENRIAH WARN LEVEL IS INCREASED",
+            description=desc,
+            timestamp=datetime.now(tz=UTC),
+            color=discord.Color.dark_theme(),
+        )
+        embed.set_thumbnail(
+            url="https://media.discordapp.net/attachments/918150951204945950/1081450017065275454/skull.png"
+        )
+        embed.set_footer(
+            text=f"Executed by {ctx.author.name}",
+            icon_url=ctx.author.display_avatar.url,
+        )
+
+        await warn_log_channel.send(embed=embed)  # type: ignore union-type
+        await ctx.send(embed=embed)
+        return None
 
     @buronan.command(name="decrease", aliases=["dec"])
     async def buronan_decrease(
         self, ctx: commands.Context, member: discord.Member | discord.User
     ) -> None:
-        if ctx.author.guild_permissions.administrator or ctx.author.get_role(
+        if not ctx.guild:
+            return await no_guild_alert_ctx(ctx)
+
+        if not ctx.author.guild_permissions.administrator and not ctx.author.get_role(  # type: ignore union-type
             self.KURATOR_TEYVAT_ROLE_ID
         ):
-            async with self.db_pool.acquire() as conn:
-                data = await conn.fetchrow(
-                    "SELECT * FROM buronan_khaenriah WHERE discord_id=$1", member.id
+            return await no_permission_alert_ctx(ctx)
+
+        async with self.db_pool.acquire() as conn:
+            data = await conn.fetchrow(
+                "SELECT * FROM buronan_khaenriah WHERE discord_id=$1", member.id
+            )
+
+            if not data:
+                await ctx.send(
+                    content=f"**{member.name}** never got a warning before. Can't decrease warn level."
                 )
+                return None
 
-                if not data:
-                    return await ctx.send(
-                        content=f"**{member.name}** never got a warning before. Can't decrease warn level."
-                    )
+            if ctx.author == member:
+                await ctx.send(
+                    content="You are unable to self-decrease your warn level."
+                )
+                return None
 
-                if ctx.author == member:
-                    return await ctx.send(
-                        content="You are unable to self-decrease your warn level."
-                    )
+            current_warn_level = data["warn_level"]
+            if current_warn_level > 0:
+                await conn.execute(
+                    "UPDATE buronan_khaenriah SET warn_level=warn_level-1 WHERE discord_id=$1",
+                    member.id,
+                )
+                current_warn_level -= 1
+            else:
+                await conn.execute(
+                    "DELETE FROM buronan_khaenriah WHERE discord_id=$1", member.id
+                )
+                await ctx.send(
+                    content=f"**{member.name}** has been removed from database.",
+                )
+                return None
 
-                current_warn_level = data["warn_level"]
-                if current_warn_level > 0:
-                    await conn.execute(
-                        "UPDATE buronan_khaenriah SET warn_level=warn_level-1 WHERE discord_id=$1",
-                        member.id,
-                    )
-                    current_warn_level -= 1
-                else:
-                    await conn.execute(
-                        "DELETE FROM buronan_khaenriah WHERE discord_id=$1", member.id
-                    )
-                    return await ctx.send(
-                        content=f"**{member.name}** has been removed from database.",
-                    )
+        warn_log_channel = ctx.guild.get_channel(config.WARN_LOG_CHANNEL_ID)
+        desc = f"**{member.name}** warn level has been decreased manually from `{data['warn_level']}` to `{current_warn_level}`"
+        embed = discord.Embed(
+            title="KHAENRIAH WARN LEVEL IS DECREASED",
+            description=desc,
+            timestamp=datetime.now(tz=UTC),
+            color=discord.Color.dark_theme(),
+        )
+        embed.set_thumbnail(
+            url="https://media.discordapp.net/attachments/918150951204945950/1081450017065275454/skull.png"
+        )
+        embed.set_footer(
+            text=f"Executed by {ctx.author.name}",
+            icon_url=ctx.author.display_avatar.url,
+        )
 
-            warn_log_channel = ctx.guild.get_channel(config.WARN_LOG_CHANNEL_ID)
-            desc = f"**{member.name}** warn level has been decreased manually from `{data['warn_level']}` to `{current_warn_level}`"
-            embed = discord.Embed(
-                title="KHAENRIAH WARN LEVEL IS DECREASED",
-                description=desc,
-                timestamp=datetime.now(),
-                color=discord.Color.dark_theme(),
-            )
-            embed.set_thumbnail(
-                url="https://media.discordapp.net/attachments/918150951204945950/1081450017065275454/skull.png"
-            )
-            embed.set_footer(
-                text=f"Executed by {ctx.author.name}",
-                icon_url=ctx.author.display_avatar.url,
-            )
-
-            await ctx.send(embed=embed)
-            await warn_log_channel.send(embed=embed)
+        await warn_log_channel.send(embed=embed)  # type: ignore union-type
+        await ctx.send(embed=embed)
+        return None
 
     @buronan.command(name="list")
     async def buronan_list(self, ctx: commands.Context) -> None:
