@@ -25,10 +25,15 @@ ignore = [
     # ignore all pydocstyle
     "D",
 
-    "T201", # enable print
+    # ignore all TODO
+    "TD",
+
+    "T201",    # enable print
     "PLR0911", # allow many return
-    "ERA001", # allow commented out code
-    "BLE001", # allow blind except
+    "ERA001",  # allow commented out code
+    "BLE001",  # allow blind except
+    "PLR0913", # allow many argument
+    "FBT001",  # make cogs easy to read
 
     # conflict with formatter https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
     "W191",
@@ -49,6 +54,7 @@ ignore = [
 [tool.pyright]
 include = ["bot"]
 ignore = ["tests"]
+reportAttributeAccessIssue = "none" # discord.py design conflict with this
 
 [tool.taskipy.tasks]
 start = "python -m bot"

@@ -96,6 +96,10 @@ class Sticky(commands.GroupCog, group_name="sticky"):
             )
 
         target = interaction.guild.get_channel_or_thread(channel.id)
+        if target is None:
+            logger.error("Channel not found", extra={"channel_id": channel.id})
+            return None
+
         instance_name = "thread" if isinstance(target, discord.Thread) else "channel"
         if res:
             return await self._send_interaction(
@@ -106,7 +110,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
             )
 
         message = "\n".join(message.split("\\n"))
-        msg = await target.send(message) # type: ignore union-type
+        msg = await target.send(message)
         if not delay_time:
             delay_time = 2  # default value
 
@@ -167,6 +171,10 @@ class Sticky(commands.GroupCog, group_name="sticky"):
             )
 
         target = interaction.guild.get_channel_or_thread(channel.id)
+        if target is None:
+            logger.error("Channel not found", extra={"channel_id": channel.id})
+            return None
+
         instance_name = "thread" if isinstance(target, discord.Thread) else "channel"
         if not data:
             return await self._send_interaction(
@@ -184,9 +192,8 @@ class Sticky(commands.GroupCog, group_name="sticky"):
             message = "\n".join(message.split("\\n"))
             sticky_data = await sticky_msg.edit(content=message)
         except discord.errors.NotFound:
-            sticky_channel = interaction.guild.get_channel_or_thread(channel.id)
             message = "\n".join(message.split("\\n"))
-            sticky_data = await sticky_channel.send(message)  # type: ignore union-type
+            sticky_data = await target.send(message)
 
         async with self.db_pool.acquire() as conn:
             await conn.execute(
@@ -233,6 +240,10 @@ class Sticky(commands.GroupCog, group_name="sticky"):
             )
 
         target = interaction.guild.get_channel_or_thread(channel.id)
+        if target is None:
+            logger.error("Channel not found", extra={"channel_id": channel.id})
+            return None
+
         instance_name = "thread" if isinstance(target, discord.Thread) else "channel"
         if not data:
             return await self._send_interaction(
@@ -285,6 +296,10 @@ class Sticky(commands.GroupCog, group_name="sticky"):
             )
 
         target = interaction.guild.get_channel_or_thread(channel.id)
+        if target is None:
+            logger.error("Channel not found", extra={"channel_id": channel.id})
+            return None
+
         instance_name = "thread" if isinstance(target, discord.Thread) else "channel"
         if not data:
             return await self._send_interaction(
@@ -303,8 +318,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                 description=f"Sticky message telah terpasang pada {instance_name} {channel.mention}",
             )
         except discord.errors.NotFound:
-            target = interaction.guild.get_channel_or_thread(channel.id)
-            msg = await target.send(data["message"])  # type: ignore union-type
+            msg = await target.send(data["message"])
 
             async with self.db_pool.acquire() as conn:
                 await conn.execute(
@@ -335,7 +349,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
     async def purge_sticky_message(
         self,
         interaction: Interaction,
-        invalid_channel_only: bool,  # noqa: FBT001
+        invalid_channel_only: bool,
     ) -> None:
         await interaction.response.defer()
         if not interaction.permissions.manage_channels:
@@ -353,7 +367,13 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                     channel = interaction.guild.get_channel_or_thread(
                         sticky["channel_id"]
                     )
-                    message = await channel.fetch_message(sticky["message_id"])  # type: ignore union-type
+                    if channel is None:
+                        logger.error(
+                            "Channel not found",
+                            extra={"channel_id": sticky["channel_id"]},
+                        )
+                        return None
+                    message = await channel.fetch_message(sticky["message_id"])
                     if not invalid_channel_only:
                         await message.delete()
                 except AttributeError:  # This is happened if channel is None

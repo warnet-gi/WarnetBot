@@ -1,7 +1,9 @@
 import io
+import logging
 import random
 import time
-from datetime import datetime, timedelta
+from csv import Error
+from datetime import UTC, datetime, timedelta
 
 import discord
 import pytz
@@ -9,6 +11,9 @@ from discord import Interaction, app_commands
 from discord.ext import commands, tasks
 
 from bot.bot import WarnetBot
+from bot.helper import no_guild_alert, value_is_none
+
+logger = logging.getLogger(__name__)
 
 
 class General(commands.Cog):
@@ -23,9 +28,13 @@ class General(commands.Cog):
 
     @commands.hybrid_command(description="Shows basic information about the bot.")
     async def about(self, ctx: commands.Context) -> None:
+        if self.bot.user is None:
+            await value_is_none(value="self.bot.user", ctx=ctx)
+            return
+
         saweria_url = "https://saweria.co/warnetGI"
 
-        uptime = str(timedelta(seconds=int(round(time.time() - self.bot.start_time))))
+        uptime = str(timedelta(seconds=round(time.time() - self.bot.start_time)))
 
         embed = discord.Embed(color=0x4E24D6)
         embed.set_author(
@@ -59,6 +68,10 @@ class General(commands.Cog):
 
     @commands.hybrid_command(description="Shows all commands that available to use.")
     async def help(self, ctx: commands.Context) -> None:
+        if self.bot.user is None:
+            await value_is_none(value="self.bot.user", ctx=ctx)
+            return
+
         embed = discord.Embed(
             color=ctx.author.color,
             title="📔 WarnetBot Wiki",
@@ -98,7 +111,10 @@ class General(commands.Cog):
         id_only="Only return the discord ID without newline.",
     )
     async def role_members(
-        self, ctx: commands.Context, role: discord.Role, id_only: bool | None
+        self,
+        ctx: commands.Context,
+        role: discord.Role,
+        id_only: bool | None,
     ) -> None:
         await ctx.typing()
         content = f"**{len(role.members)}** member(s) with **{role.name}** role\n"
@@ -115,7 +131,8 @@ class General(commands.Cog):
             content += "No member associated with this role"
         content += "```"
 
-        if len(content) > 2000:
+        max_size_file = 2000
+        if len(content) > max_size_file:
             buffer = io.BytesIO(members_content.encode("utf-8"))
             await ctx.reply(
                 content=f"**{len(role.members)}** member(s) with **{role.name}** role",
@@ -154,8 +171,11 @@ class General(commands.Cog):
         year: app_commands.Range[int, 1970] | None,
         hour: app_commands.Range[int, 0, 23] | None,
         minute: app_commands.Range[int, 0, 59] | None,
-        idn_timezone: app_commands.Choice[int] = 7,
+        idn_timezone: app_commands.Choice[int] | None,
     ) -> None:
+        if idn_timezone is None:
+            idn_timezone = app_commands.Choice(name="WIB (GMT+7)", value=7)
+
         idn_tz_code = {
             7: pytz.timezone("Asia/Jakarta"),
             8: pytz.timezone("Asia/Shanghai"),
@@ -168,21 +188,22 @@ class General(commands.Cog):
         )
 
         current_time = datetime.now(tz=pytz.utc).astimezone(idn_tz)
-        day = current_time.day if not day else day
-        month = current_time.month if not month else month
-        year = current_time.year if not year else year
+        day = day if day else current_time.day
+        month = month if month else current_time.month
+        year = year if year else current_time.year
         hour = current_time.hour if hour is None else hour
         minute = current_time.minute if minute is None else minute
 
         try:
             idn_dt = idn_tz.localize(
-                datetime(year, month, day, hour=hour, minute=minute)
+                datetime(year, month, day, hour=hour, minute=minute, tzinfo=UTC)
             )
         except ValueError:
-            return await interaction.response.send_message(
+            await interaction.response.send_message(
                 content="Waktu dan tanggal yang dimasukkan ada yang salah. Silakan periksa kembali.",
                 ephemeral=True,
             )
+            return
 
         unix = int(idn_dt.timestamp())
         content = (
@@ -197,19 +218,30 @@ class General(commands.Cog):
         )
 
         await interaction.response.send_message(content=content)
+        return
 
     @commands.command()
     async def nobar(self, ctx: commands.Context) -> None:
-        NOBAR_CHANNEL_ID = 1092630886127783957
-        OPEN_TICKET_CHANNEL_ID = 1066618888462278657
+        if not ctx.guild:
+            return await no_guild_alert(ctx=ctx)
+
+        nobar_channel_id = 1092630886127783957
+        open_ticket_channel_id = 1066618888462278657
         nobar_role = ctx.guild.get_role(1093508844551942144)
+        if nobar_role is None:
+            logger.error(
+                "Role not found",
+                extra={"role_id": 1093508844551942144},
+            )
+            return None
 
         await ctx.channel.send(
             f"Tata cara menjadi **HOST NOBAR** di server {ctx.guild.name}:\n"
-            f"1. Silahkan ajukan tiket **Kontak Admin dan Mod** di <#{OPEN_TICKET_CHANNEL_ID}>.\n"
+            f"1. Silahkan ajukan tiket **Kontak Admin dan Mod** di <#{open_ticket_channel_id}>.\n"
             f"2. Tentukan **Judul Film**, **Tanggal**, dan **Jam** nobar. Minimal __satu hari sebelum nobar__, agar dapat diumumkan kepada role **{nobar_role.name}** terlebih dahulu.\n"
-            f"3. Pada saat waktu nobar, Admin/Mod akan memberikan kamu akses agar dapat stream pada channel <#{NOBAR_CHANNEL_ID}>."
+            f"3. Pada saat waktu nobar, Admin/Mod akan memberikan kamu akses agar dapat stream pada channel <#{nobar_channel_id}>."
         )
+        return None
 
     @commands.hybrid_command(
         name="calendar",
@@ -239,7 +271,7 @@ class General(commands.Cog):
             self._change_presence.start()
 
     @commands.Cog.listener()
-    async def on_command_error(self, ctx: commands.Context, error) -> None:
+    async def on_command_error(self, ctx: commands.Context, error: Error) -> None:
         if hasattr(ctx.command, "on_error"):
             return
 
@@ -277,8 +309,8 @@ class General(commands.Cog):
         ]
 
         await self.bot.change_presence(
-            status=random.choice(discord_status),
-            activity=random.choice(activity_status),
+            status=random.choice(discord_status),  # noqa: S311
+            activity=random.choice(activity_status),  # noqa: S311
         )
 
 

@@ -12,6 +12,7 @@ from bot.bot import WarnetBot
 from bot.cogs.ext.news.genshin import get_genshin_news
 from bot.cogs.ext.news.hoyolab import hoyolab_news
 from bot.config import news as news_config
+from bot.types import CantNoneError
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +20,12 @@ logger = logging.getLogger(__name__)
 class News(commands.GroupCog):
     def __init__(self, bot: WarnetBot) -> None:
         self.bot = bot
+
+        info_channel = bot.get_channel(news_config.INFORMATION_CHANNEL_ID)
+        if info_channel is None:
+            err = "info_channel"
+            raise CantNoneError(err)
+        self.info_channel = info_channel
 
     @commands.Cog.listener()
     async def on_connect(self) -> None:
@@ -41,8 +48,6 @@ class News(commands.GroupCog):
 
     @tasks.loop(time=news_config.TIMES_CHECK_UPDATE)
     async def _news_genshin(self) -> None:
-        info_channel = self.bot.get_channel(news_config.INFORMATION_CHANNEL_ID)
-
         try:
             await get_genshin_news()
         except Exception:
@@ -109,7 +114,7 @@ class News(commands.GroupCog):
             )
             embed.timestamp = datetime.datetime.fromisoformat(item["dtCreateTime"])
 
-            await info_channel.send(embed=embed)  # type: ignore union-type
+            await self.info_channel.send(embed=embed)
             await asyncio.sleep(1)
 
         async with await open_file(
@@ -123,7 +128,6 @@ class News(commands.GroupCog):
 
     @tasks.loop(time=news_config.TIMES_CHECK_UPDATE)
     async def _news_hoyolab(self) -> None:
-        info_channel = self.bot.get_channel(news_config.INFORMATION_CHANNEL_ID)
         news = hoyolab_news()
 
         async with await open_file(
@@ -167,7 +171,7 @@ class News(commands.GroupCog):
                 icon_url="https://www.hoyolab.com/favicon.ico",
             )
             embed.timestamp = datetime.datetime.fromisoformat(item["date_published"])
-            await info_channel.send(embed=embed)  # type: ignore union-type
+            await self.info_channel.send(embed=embed)
 
             await asyncio.sleep(1)
 

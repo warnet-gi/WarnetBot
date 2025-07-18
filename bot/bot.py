@@ -77,14 +77,14 @@ class WarnetBot(Bot):
                 port=config.LOCAL_DB_PORT,
             )
             if db_pool is None:
-                err = "Database pool cannot be None"
+                err = "Database pool"
                 raise CantNoneError(err)
             self.db_pool = db_pool
 
         else:
             db_pool = await asyncpg.create_pool(dsn=config.HOSTED_DB_URI)
             if db_pool is None:
-                err = "Database pool cannot be None"
+                err = "Database pool"
                 raise CantNoneError(err)
             self.db_pool = db_pool
 

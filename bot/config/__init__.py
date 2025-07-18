@@ -15,6 +15,8 @@ TATSU_TOKEN: str = os.getenv("TATSU_API_KEY", "")
 GUILD_ID: int = int(os.getenv("GUILD_ID", "0"))
 DEV_GUILD_ID: int = int(os.getenv("DEV_GUILD_ID", "0"))
 
+LOG_DIR = "bot/data/log/"
+
 LOCAL_DB_HOST: str = os.getenv("LOCAL_DB_HOST", "")
 LOCAL_DB_NAME: str = os.getenv("LOCAL_DB_NAME", "")
 LOCAL_DB_USERNAME: str = os.getenv("LOCAL_DB_USERNAME", "")

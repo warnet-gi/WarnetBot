@@ -1,3 +1,4 @@
+import logging
 from datetime import UTC, datetime
 
 import discord
@@ -6,7 +7,9 @@ from discord.ext import commands
 from bot import config
 from bot.bot import WarnetBot
 from bot.cogs.views.khaenriah import BuronanPagination
-from bot.helper import no_guild_alert_ctx, no_permission_alert_ctx
+from bot.helper import no_guild_alert, no_permission_alert
+
+logger = logging.getLogger(__name__)
 
 
 @commands.guild_only()
@@ -40,12 +43,12 @@ class Khaenriah(commands.Cog):
         reason: str | None,
     ) -> None:
         if not ctx.guild:
-            return await no_guild_alert_ctx(ctx)
+            return await no_guild_alert(ctx=ctx)
 
-        if not ctx.author.guild_permissions.administrator and not ctx.author.get_role(  # type: ignore union-type
+        if not ctx.author.guild_permissions.administrator and not ctx.author.get_role(
             self.KURATOR_TEYVAT_ROLE_ID
         ):
-            return await no_permission_alert_ctx(ctx)
+            return await no_permission_alert(ctx=ctx)
 
         async with self.db_pool.acquire() as conn:
             data = await conn.fetchrow(
@@ -99,9 +102,15 @@ class Khaenriah(commands.Cog):
         )
 
         warn_log_channel = ctx.guild.get_channel(config.WARN_LOG_CHANNEL_ID)
+        if warn_log_channel is None:
+            logger.error(
+                "Channel not found",
+                extra={"channel_id": config.WARN_LOG_CHANNEL_ID},
+            )
+            return None
 
         await ctx.send(embed=embed)
-        await warn_log_channel.send(embed=embed)  # type: ignore union-type
+        await warn_log_channel.send(embed=embed)
         return None
 
     @buronan.command(name="increase", aliases=["inc"])
@@ -109,12 +118,12 @@ class Khaenriah(commands.Cog):
         self, ctx: commands.Context, member: discord.Member | discord.User
     ) -> None:
         if not ctx.guild:
-            return await no_guild_alert_ctx(ctx)
+            return await no_guild_alert(ctx=ctx)
 
-        if not ctx.author.guild_permissions.administrator and not ctx.author.get_role(  # type: ignore union-type
+        if not ctx.author.guild_permissions.administrator and not ctx.author.get_role(
             self.KURATOR_TEYVAT_ROLE_ID
         ):
-            return await no_permission_alert_ctx(ctx)
+            return await no_permission_alert(ctx=ctx)
 
         async with self.db_pool.acquire() as conn:
             data = await conn.fetchrow(
@@ -147,6 +156,13 @@ class Khaenriah(commands.Cog):
                 return None
 
         warn_log_channel = ctx.guild.get_channel(config.WARN_LOG_CHANNEL_ID)
+        if warn_log_channel is None:
+            logger.error(
+                "Channel not found",
+                extra={"channel_id": config.WARN_LOG_CHANNEL_ID},
+            )
+            return None
+
         desc = f"**{member.name}** warn level has been increased manually from `{data['warn_level']}` to `{current_warn_level}`"
         embed = discord.Embed(
             title="KHAENRIAH WARN LEVEL IS INCREASED",
@@ -162,7 +178,7 @@ class Khaenriah(commands.Cog):
             icon_url=ctx.author.display_avatar.url,
         )
 
-        await warn_log_channel.send(embed=embed)  # type: ignore union-type
+        await warn_log_channel.send(embed=embed)
         await ctx.send(embed=embed)
         return None
 
@@ -171,12 +187,12 @@ class Khaenriah(commands.Cog):
         self, ctx: commands.Context, member: discord.Member | discord.User
     ) -> None:
         if not ctx.guild:
-            return await no_guild_alert_ctx(ctx)
+            return await no_guild_alert(ctx=ctx)
 
-        if not ctx.author.guild_permissions.administrator and not ctx.author.get_role(  # type: ignore union-type
+        if not ctx.author.guild_permissions.administrator and not ctx.author.get_role(
             self.KURATOR_TEYVAT_ROLE_ID
         ):
-            return await no_permission_alert_ctx(ctx)
+            return await no_permission_alert(ctx=ctx)
 
         async with self.db_pool.acquire() as conn:
             data = await conn.fetchrow(
@@ -212,6 +228,14 @@ class Khaenriah(commands.Cog):
                 return None
 
         warn_log_channel = ctx.guild.get_channel(config.WARN_LOG_CHANNEL_ID)
+        warn_log_channel = ctx.guild.get_channel(config.WARN_LOG_CHANNEL_ID)
+        if warn_log_channel is None:
+            logger.error(
+                "Channel not found",
+                extra={"channel_id": config.WARN_LOG_CHANNEL_ID},
+            )
+            return None
+
         desc = f"**{member.name}** warn level has been decreased manually from `{data['warn_level']}` to `{current_warn_level}`"
         embed = discord.Embed(
             title="KHAENRIAH WARN LEVEL IS DECREASED",
@@ -227,7 +251,7 @@ class Khaenriah(commands.Cog):
             icon_url=ctx.author.display_avatar.url,
         )
 
-        await warn_log_channel.send(embed=embed)  # type: ignore union-type
+        await warn_log_channel.send(embed=embed)
         await ctx.send(embed=embed)
         return None
 

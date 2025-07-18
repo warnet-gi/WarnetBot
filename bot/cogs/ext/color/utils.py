@@ -2,7 +2,7 @@ import io
 import logging
 
 import discord
-from discord import Interaction, Member, Role
+from discord import Interaction, Member, Role, User
 from discord.ext import commands
 from imagetext_py import Canvas, Color, FontDB, Paint, draw_text
 
@@ -60,7 +60,7 @@ async def move_role_to_under_boundary(interaction: Interaction, role: Role) -> N
 
 
 def get_current_custom_role_on_user(
-    self: commands.Cog, guild: discord.Guild, member: Member
+    self: commands.Cog, guild: discord.Guild, member: User | Member
 ) -> Role | None:
     member_role_id_list = [role.id for role in member.roles]
     res = set(member_role_id_list) & set(self.custom_role_data_list)
