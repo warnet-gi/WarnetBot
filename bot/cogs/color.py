@@ -980,7 +980,7 @@ class Color(commands.GroupCog, group_name="warnet-color"):
         hex_primary="The primary HEX color value of the new color role.",
         hex_secondary="The secondary HEX color value of the new color role.",
     )
-    async def edit_hex_gradient_color(
+    async def edit_hex_gradient_color(  # noqa: C901, FIX002 # TODO: improve this
         self,
         interaction: Interaction,
         role_id_or_name: str,

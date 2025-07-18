@@ -40,6 +40,7 @@ async def no_channel_alert(
         )
     return None
 
+
 async def value_is_none(
     value: str,
     interaction: Interaction | None = None,

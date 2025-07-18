@@ -1,15 +1,12 @@
-import io
 import logging
-import os
-from pathlib import Path
 import re
 from datetime import UTC, datetime, timedelta
-from io import BytesIO, StringIO
+from io import BytesIO
+from pathlib import Path
 from typing import Literal
 
-import aiofiles
-from anyio import open_file
 import discord
+from anyio import open_file
 from discord import Interaction, app_commands
 from discord.ext import commands, tasks
 
@@ -297,7 +294,7 @@ class Admin(commands.GroupCog, group_name="admin"):
         attachment="File to be attached on message.",
         spoiler="Set whether the attachment need to be spoilered or not.",
     )
-    async def send_message(  # noqa: C901, FIX002 # TODO: Improve this
+    async def send_message(  # noqa: C901, FIX002, PLR0912 # TODO: Improve this
         self,
         interaction: discord.Interaction,
         message: str | None,
