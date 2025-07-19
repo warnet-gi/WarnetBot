@@ -1,16 +1,14 @@
 import asyncio
-import datetime
 import json
 import logging
 from pathlib import Path
 
 import discord
-import pytz
 from anyio import open_file
 from discord.ext import commands, tasks
 
 from bot.bot import WarnetBot
-from bot.cogs.ext.news.hoyolab import hoyolab_news
+from bot.cogs.ext.news.hoyolab import HoyolabNews, hoyolab_news
 from bot.config import news as news_config
 
 logger = logging.getLogger(__name__)
@@ -22,9 +20,11 @@ class News(commands.GroupCog):
 
     @commands.Cog.listener()
     async def on_connect(self) -> None:
-        if not os.path.exists(news_config.LAST_ID_HOYOLAB_NEWS_PATH):
-            with open(news_config.LAST_ID_HOYOLAB_NEWS_PATH, "w", encoding="utf-8") as f:
-                f.write("")
+        if not Path(news_config.LAST_ID_HOYOLAB_NEWS_PATH).exists():
+            async with await open_file(
+                news_config.LAST_ID_HOYOLAB_NEWS_PATH, "w", encoding="utf-8"
+            ) as f:
+                await f.write("")
 
         if not self._news_hoyolab.is_running():
             self._news_hoyolab.start()
