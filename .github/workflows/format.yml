@@ -1,4 +1,4 @@
-name: Code style black
+name: Ruff code format
 
 on:
   push:
@@ -12,13 +12,12 @@ jobs:
   format:
     name: black
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Check
-        uses: psf/black@stable
+        uses: astral-sh/ruff-action@v3
         with:
-          options: "--check --verbose"
-        continue-on-error: true
+          args: "format --check --diff"
