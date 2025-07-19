@@ -5,9 +5,9 @@ import logging
 from pathlib import Path
 
 import discord
+import pytz
 from anyio import open_file
 from discord.ext import commands, tasks
-import pytz
 
 from bot.bot import WarnetBot
 from bot.cogs.ext.news.genshin import GenshinNews, GenshinNewsSext, get_genshin_news
