@@ -7,7 +7,8 @@ def parse_time_string(time_string: str) -> int:
     matches = pattern.findall(time_string)
 
     if len("".join(matches)) != len(time_string):
-        raise ValueError("Invalid time format")
+        err = "Invalid time format"
+        raise ValueError(err)
 
     total_seconds = 0
     for match in matches:

@@ -41,7 +41,7 @@ class TCG(commands.GroupCog, group_name="warnet-tcg"):
     async def tcg_register_member(
         self, interaction: Interaction, member: discord.Member | discord.User
     ) -> None:
-        await register_member(self, interaction, member)
+        await register_member(self.db_pool, interaction, member)
 
     @app_commands.command(
         name="unregister-member",
@@ -51,7 +51,7 @@ class TCG(commands.GroupCog, group_name="warnet-tcg"):
     async def tcg_unregister_member(
         self, interaction: Interaction, member: discord.Member | discord.User
     ) -> None:
-        await unregister_member(self, interaction, member)
+        await unregister_member(self.db_pool, interaction, member)
 
     @app_commands.command(
         name="member-stats",
@@ -69,20 +69,20 @@ class TCG(commands.GroupCog, group_name="warnet-tcg"):
         name="leaderboard", description="ELO leaderboard for WARNET TCG."
     )
     async def tcg_leaderboard(self, interaction: Interaction) -> None:
-        await leaderboard(self, interaction)
+        await leaderboard(self.db_pool, interaction)
 
     @app_commands.command(name="reset-stats", description="Reset a member TCG stats.")
     @app_commands.describe(member="Member that you want to reset their stats.")
     async def tcg_reset_member_stats(
         self, interaction: Interaction, member: discord.Member | discord.User
     ) -> None:
-        await reset_member_stats(self, interaction, member)
+        await reset_member_stats(self.db_pool, interaction, member)
 
     @app_commands.command(
         name="reset-all-stats", description="Reset all member TCG stats."
     )
     async def tcg_reset_all_member_stats(self, interaction: Interaction) -> None:
-        await reset_all_member_stats(self, interaction)
+        await reset_all_member_stats(self.db_pool, interaction)
 
     @app_commands.command(
         name="set-match-result", description="Set the TCG match result between players."
@@ -96,7 +96,9 @@ class TCG(commands.GroupCog, group_name="warnet-tcg"):
         winner: discord.Member | discord.User,
         loser: discord.Member | discord.User,
     ) -> None:
-        await set_match_result(self, interaction, winner, loser)
+        await set_match_result(
+            self.db_pool, self.match_history, interaction, winner, loser
+        )
 
     @app_commands.command(
         name="set-member-stats", description="Set tcg stats for a member manually."
@@ -116,7 +118,7 @@ class TCG(commands.GroupCog, group_name="warnet-tcg"):
         elo_rating: app_commands.Range[float, 0] | None,
     ) -> None:
         await set_member_stats(
-            self, interaction, member, win_count, loss_count, elo_rating
+            self.db_pool, interaction, member, win_count, loss_count, elo_rating
         )
 
     @app_commands.command(
@@ -129,7 +131,9 @@ class TCG(commands.GroupCog, group_name="warnet-tcg"):
     async def tcg_undo_match_result(
         self, interaction: Interaction, member: discord.Member | discord.User
     ) -> None:
-        await undo_match_result(self, interaction, member)
+        await undo_match_result(
+            self.bot, self.db_pool, self.match_history, interaction, member
+        )
 
     @app_commands.command(
         name="rules", description="Return TCG WARNET OPEN ruleset document link."

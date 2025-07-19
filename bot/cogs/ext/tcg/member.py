@@ -1,6 +1,7 @@
 import datetime
 
 import discord
+from asyncpg import Pool
 from discord import Interaction
 from discord.ext import commands
 
@@ -28,14 +29,14 @@ async def register(self: commands.Cog, interaction: Interaction) -> None:
                 color=discord.Colour.green(),
                 title="✅ Registered successfully",
                 description="Sekarang kamu sudah terdaftar di database TCG WARNET dan rating ELO milikmu sudah diatur menjadi 1500 by default.",
-                timestamp=datetime.datetime.now(),
+                timestamp=datetime.datetime.now(tz=datetime.UTC),
             )
         else:
             embed = discord.Embed(
                 color=discord.Colour.red(),
                 title="❌ You are already registered",
                 description="Akun kamu sudah terdaftar. Tidak perlu mendaftar lagi.",
-                timestamp=datetime.datetime.now(),
+                timestamp=datetime.datetime.now(tz=datetime.UTC),
             )
 
     await interaction.followup.send(embed=embed, ephemeral=True)
@@ -52,7 +53,7 @@ async def member_stats(
         await send_user_is_not_in_guild_error_embed(interaction, member)
         return
 
-    user = interaction.user if not member else member
+    user = member if member else interaction.user
     async with self.db_pool.acquire() as conn:
         res = await conn.fetchval(
             "SELECT discord_id FROM tcg_leaderboard WHERE discord_id = $1;", user.id
@@ -78,7 +79,7 @@ async def member_stats(
             embed = discord.Embed(
                 color=user.color,
                 title=f"{user.name}'s TCG Stats",
-                timestamp=datetime.datetime.now(),
+                timestamp=datetime.datetime.now(tz=datetime.UTC),
             )
             embed.set_thumbnail(url=user.display_avatar.url)
             embed.add_field(name="Total Win", value=f"🏆 {win_count}", inline=False)
@@ -94,10 +95,10 @@ async def member_stats(
             await interaction.followup.send(embed=embed)
 
 
-async def leaderboard(self, interaction: Interaction) -> None:
+async def leaderboard(db_pool: Pool, interaction: Interaction) -> None:
     await interaction.response.defer()
 
-    async with self.db_pool.acquire() as conn:
+    async with db_pool.acquire() as conn:
         records = await conn.fetch(
             "SELECT * FROM tcg_leaderboard WHERE win_count + loss_count > 0 ORDER BY elo DESC;"
         )

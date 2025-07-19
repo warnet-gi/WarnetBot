@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 import discord
@@ -11,50 +11,49 @@ class StickyPagination(discord.ui.View):
         self,
         *,
         timeout: float | None = 180,
-        PreviousButton: discord.ui.Button = discord.ui.Button(
-            emoji=discord.PartialEmoji(name="\U000025c0")
-        ),
-        NextButton: discord.ui.Button = discord.ui.Button(
-            emoji=discord.PartialEmoji(name="\U000025b6")
-        ),
-        PageCounterStyle: discord.ButtonStyle = discord.ButtonStyle.grey,
+        previousbutton: discord.ui.Button | None = None,
+        nextbutton: discord.ui.Button | None = None,
+        pagecounterstyle: discord.ButtonStyle = discord.ButtonStyle.grey,
         initial_page_number: int = 0,
         ephemeral: bool = False,
         list_data: list[dict[str, Any]],
     ) -> None:
         super().__init__(timeout=timeout)
 
-        self.PreviousButton = PreviousButton
-        self.NextButton = NextButton
-        self.PageCounterStyle = PageCounterStyle
+        if not nextbutton:
+            nextbutton = discord.ui.Button(
+                emoji=discord.PartialEmoji(name="\U000025b6")
+            )
+
+        if not previousbutton:
+            previousbutton = discord.ui.Button(
+                emoji=discord.PartialEmoji(name="\U000025c0")
+            )
+
+        self.PreviousButton = previousbutton
+        self.NextButton = nextbutton
+        self.PageCounterStyle = pagecounterstyle
         self.initial_page_number = initial_page_number
         self.ephemeral = ephemeral
         self.list_data = list_data
 
         self.pages: list[discord.Embed] = []
-        self.page_counter: discord.ui.Button = None
-        self.current_page = None
-        self.total_page_count = None
-        self.ctx = None
-        self.message = None
 
-    async def construct_pages(
-        self, ctx: commands.Context, list_data: list[dict[str, Any]]
-    ) -> None:
-        N_LIST = 10
+    async def construct_pages(self, list_data: list[dict[str, Any]]) -> None:  # noqa: PLR0912, FIX002 #TODO: Improve this
+        n_list = 10
 
         total_data = len(list_data)
-        if total_data % N_LIST:
-            self.total_page_count = total_data // N_LIST + 1
+        if total_data % n_list:
+            self.total_page_count = total_data // n_list + 1
         else:
-            self.total_page_count = total_data // N_LIST
+            self.total_page_count = total_data // n_list
 
         if self.total_page_count:
             for page_num in range(self.total_page_count):
                 page_data_list = [
-                    list_data[(page_num * N_LIST) : (page_num * N_LIST) + N_LIST // 2],
+                    list_data[(page_num * n_list) : (page_num * n_list) + n_list // 2],
                     list_data[
-                        (page_num * N_LIST) + N_LIST // 2 : (page_num + 1) * N_LIST
+                        (page_num * n_list) + n_list // 2 : (page_num + 1) * n_list
                     ],
                 ]
 
@@ -62,7 +61,7 @@ class StickyPagination(discord.ui.View):
                     color=discord.Color.gold(),
                     title="WARNET STICKY MESSAGE",
                     description="**Sticky message yang terdapat pada server WARNET**",
-                    timestamp=datetime.now(),
+                    timestamp=datetime.now(tz=UTC),
                 )
 
                 for sticky_data_list in page_data_list:
@@ -86,9 +85,11 @@ class StickyPagination(discord.ui.View):
 
                     embed.add_field(name=field_name, value=field_value)
 
-                embed.set_footer(
-                    text=f"{self.ctx.author.name}", icon_url=self.ctx.author.avatar.url
-                )
+                if not self.ctx.author.avatar:
+                    icon_url = None
+                else:
+                    icon_url = self.ctx.author.avatar.url
+                embed.set_footer(text=f"{self.ctx.author.name}", icon_url=icon_url)
                 self.pages.append(embed)
 
         else:
@@ -96,12 +97,13 @@ class StickyPagination(discord.ui.View):
                 color=discord.Color.gold(),
                 title="WARNET STICKY MESSAGE",
                 description="**NO STICKY MESSAGE IN THIS SERVER**",
-                timestamp=datetime.now(),
+                timestamp=datetime.now(tz=UTC),
             )
-
-            embed.set_footer(
-                text=f"{self.ctx.author.name}", icon_url=self.ctx.author.avatar.url
-            )
+            if not self.ctx.author.avatar:
+                icon_url = None
+            else:
+                icon_url = self.ctx.author.avatar.url
+            embed.set_footer(text=f"{self.ctx.author.name}", icon_url=icon_url)
             self.pages.append(embed)
 
     async def on_timeout(self) -> None:
@@ -114,7 +116,7 @@ class StickyPagination(discord.ui.View):
             ctx = await commands.Context.from_interaction(ctx)
         self.ctx = ctx
 
-        await self.construct_pages(self.ctx, self.list_data)
+        await self.construct_pages(self.list_data)
         self.current_page = self.initial_page_number
         self.page_counter = discord.ui.Button(
             label=f"{self.initial_page_number + 1}/{self.total_page_count}",
@@ -160,9 +162,11 @@ class StickyPagination(discord.ui.View):
                 description="You can't control this pagination because you did not execute it.",
                 color=discord.Color.red(),
             )
-            return await interaction.response.send_message(embed=embed, ephemeral=True)
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            return
         await self.next()
         await interaction.response.defer()
+        return
 
     async def previous_button_callback(self, interaction: Interaction) -> None:
         if interaction.user != self.ctx.author:
@@ -170,6 +174,8 @@ class StickyPagination(discord.ui.View):
                 description="You can't control this pagination because you did not execute it.",
                 color=discord.Color.red(),
             )
-            return await interaction.response.send_message(embed=embed, ephemeral=True)
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            return
         await self.previous()
         await interaction.response.defer()
+        return

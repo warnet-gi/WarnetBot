@@ -7,6 +7,7 @@ from discord.ext import commands
 from imagetext_py import Canvas, Color, FontDB, Paint, draw_text
 
 from bot.config import CustomRoleConfig
+from bot.helper import no_guild_alert, value_is_none
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +18,10 @@ async def check_role_by_name_or_number(
     name: str | None,
     number: int | None,
 ) -> Role | None:
+    if not interaction.guild:
+        return await no_guild_alert(interaction=interaction)
+
+    role_target = None
     if name:
         role_target = discord.utils.find(
             lambda r: r.name == name, interaction.guild.roles
@@ -38,22 +43,34 @@ async def check_role_by_name_or_number(
 
 
 async def move_role_to_under_boundary(interaction: Interaction, role: Role) -> None:
+    if not interaction.guild:
+        return await no_guild_alert(interaction=interaction)
+
     upper_boundary = interaction.guild.get_role(CustomRoleConfig.UPPER_BOUNDARY_ROLE_ID)
+    if not upper_boundary:
+        return await value_is_none(
+            value=f"upper_boundary {CustomRoleConfig.UPPER_BOUNDARY_ROLE_ID}",
+            interaction=interaction,
+        )
+
     try:
         await role.move(above=upper_boundary, reason="Update custom role position")
     except discord.Forbidden:
-        logger.error(
-            f"Failed to move role {role.name} to the bottom due to insufficient permissions."
+        logger.exception(
+            "Failed to move role to the bottom due to insufficient permissions.",
+            extra={"role_id": role.id},
         )
         return await error_move_role(interaction, role)
-    except discord.HTTPException as e:
-        logger.error(
-            f"Failed to move role {role.name} to the bottom due to HTTPException: {e}"
+    except discord.HTTPException:
+        logger.exception(
+            "Failed to move role to the bottom due to HTTPException",
+            extra={"role_id": role.id},
         )
         return await error_move_role(interaction, role)
-    except Exception as e:
-        logger.error(
-            f"An unexpected error occurred while moving role {role.name} to the bottom: {e}"
+    except Exception:
+        logger.exception(
+            "An unexpected error occurred while moving role to the bottom",
+            extra={"role_id": role.id},
         )
         return await error_move_role(interaction, role)
     return None
@@ -65,7 +82,7 @@ def get_current_custom_role_on_user(
     member_role_id_list = [role.id for role in member.roles]
     res = set(member_role_id_list) & set(self.custom_role_data_list)
 
-    return guild.get_role(list(res)[0]) if res else None
+    return guild.get_role(next(iter(res))) if res else None
 
 
 def generate_image_color_list(role_list: list[discord.Role]) -> io.BytesIO:
@@ -81,33 +98,38 @@ def generate_image_color_list(role_list: list[discord.Role]) -> io.BytesIO:
 
     total_data = len(role_list)
     column_px = 300
-    if total_data <= 15:
+    if total_data <= 15 * 1:
         boundary = 5  # max item per column
         row_px = 200
-    elif total_data <= 30:
+    elif total_data <= 15 * 2:
         boundary = 10
         row_px = 400
-    elif total_data <= 45:
+    elif total_data <= 15 * 3:
         boundary = 15
         row_px = 600
-    elif total_data <= 60:
+    elif total_data <= 15 * 4:
         boundary = 20
         row_px = 800
     else:
         boundary = 25
         row_px = 1000
 
-    background_color = (0, 0, 0, 0)  # RGBA format with alpha set to 0 for transparency
+    background_color = Color(
+        0, 0, 0, 0
+    )  # RGBA format with alpha set to 0 for transparency
     column_need = total_data // boundary + (1 if total_data % boundary else 0)
     width, height = column_px * column_need, row_px
     canvas = Canvas(width, height, background_color)
 
     number = 1
+    max_role_len = 15
     for col in range(column_need):
         x_now = (col * column_px) + 10
         y_now = 1
         for role in role_list[col * boundary : (col + 1) * boundary]:
-            name = role.name[:15] + "..." if len(role.name) > 15 else role.name
+            name = (
+                role.name[:15] + "..." if len(role.name) > max_role_len else role.name
+            )
             text = f"{number}. {name}"
             fill_color = Paint.Color(Color(*role.color.to_rgb()))
 
@@ -137,8 +159,7 @@ def hex_to_discord_color(hex_color: str) -> discord.Color:
     Convert a hex color string to a discord.Color object.
     """
     hex_color = "#" + hex_color if not hex_color.startswith("#") else hex_color
-    valid_color = discord.Color.from_str(hex_color)
-    return valid_color
+    return discord.Color.from_str(hex_color)
 
 
 async def no_permission_alert(interaction: Interaction) -> None:

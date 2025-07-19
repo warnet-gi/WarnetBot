@@ -3,14 +3,14 @@ from io import BytesIO
 import discord
 from discord import Interaction
 
-from bot.cogs.ext.color.utils import no_permission_alert
+from bot.helper import no_permission_alert
 
 
 class AcceptIconAttachment(discord.ui.View):
-    def __init__(self, role, bytes):
+    def __init__(self, role: discord.Role, _bytes: BytesIO) -> None:
         super().__init__(timeout=3600)
-        self.role: discord.Role = role
-        self.bytes: BytesIO = bytes
+        self.role = role
+        self.bytes = _bytes
 
     @discord.ui.button(label="Accept", style=discord.ButtonStyle.success, emoji="✅")
     async def add_role_icon(
@@ -18,7 +18,10 @@ class AcceptIconAttachment(discord.ui.View):
     ) -> None:
         await interaction.response.defer(ephemeral=True)
         if not interaction.user.guild_permissions.manage_roles:
-            return await no_permission_alert(interaction)
+            return await no_permission_alert(interaction=interaction)
+
+        if not interaction.message:
+            return None
 
         try:
             edited_role = await self.role.edit(
@@ -48,3 +51,5 @@ class AcceptIconAttachment(discord.ui.View):
 
             self.stop()
             await interaction.followup.send(embed=embed)
+            return None
+        return None

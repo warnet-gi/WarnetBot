@@ -5,6 +5,7 @@ from discord import Interaction
 from discord.ext import commands
 
 from bot import config
+from bot.helper import no_guild_alert
 
 
 class LeaderboardPagination(discord.ui.View):
@@ -12,44 +13,49 @@ class LeaderboardPagination(discord.ui.View):
         self,
         *,
         timeout: float | None = 180,
-        PreviousButton: discord.ui.Button = discord.ui.Button(
-            emoji=discord.PartialEmoji(name="\U000025c0")
-        ),
-        NextButton: discord.ui.Button = discord.ui.Button(
-            emoji=discord.PartialEmoji(name="\U000025b6")
-        ),
-        PageCounterStyle: discord.ButtonStyle = discord.ButtonStyle.grey,
+        previousbutton: discord.ui.Button | None = None,
+        nextbutton: discord.ui.Button | None = None,
+        pagecounterstyle: discord.ButtonStyle = discord.ButtonStyle.grey,
         initial_page_number: int = 0,
         ephemeral: bool = False,
         leaderboard_data: list[dict[str, Any]],
     ) -> None:
         super().__init__(timeout=timeout)
 
-        self.PreviousButton = PreviousButton
-        self.NextButton = NextButton
-        self.PageCounterStyle = PageCounterStyle
+        if not nextbutton:
+            nextbutton = discord.ui.Button(
+                emoji=discord.PartialEmoji(name="\U000025b6")
+            )
+
+        if not previousbutton:
+            previousbutton = discord.ui.Button(
+                emoji=discord.PartialEmoji(name="\U000025c0")
+            )
+
+        self.PreviousButton = previousbutton
+        self.NextButton = nextbutton
+        self.PageCounterStyle = pagecounterstyle
         self.initial_page_number = initial_page_number
         self.ephemeral = ephemeral
         self.leaderboard_data = leaderboard_data
 
         self.pages: list[discord.Embed] = []
-        self.page_counter: discord.ui.Button = None
-        self.current_page = None
-        self.total_page_count = None
-        self.ctx = None
-        self.message = None
 
-    async def construct_pages(
+    async def construct_pages(  # noqa: C901, PLR0912, PLR0915, FIX002 #TODO: improve this
         self, ctx: commands.Context, leaderboard_data: list[dict[str, Any]]
     ) -> None:
         # Pick only N members per embed
-        N_MEMBERS = 20
+        n_members = 20
+
+        if not ctx.guild:
+            await no_guild_alert(ctx=ctx)
+            return
 
         total_data = len(leaderboard_data)
-        if total_data % N_MEMBERS:
-            self.total_page_count = total_data // N_MEMBERS + 1
+        if total_data % n_members:
+            self.total_page_count = total_data // n_members + 1
         else:
-            self.total_page_count = total_data // N_MEMBERS
+            self.total_page_count = total_data // n_members
 
         title_emoji = config.TCGConfig.TCG_TITLE_EMOJI
         rank_count = 1
@@ -59,11 +65,11 @@ class LeaderboardPagination(discord.ui.View):
             for page_num in range(self.total_page_count):
                 page_member_data_list = [
                     leaderboard_data[
-                        (page_num * N_MEMBERS) : (page_num * N_MEMBERS) + N_MEMBERS // 2
+                        (page_num * n_members) : (page_num * n_members) + n_members // 2
                     ],
                     leaderboard_data[
-                        (page_num * N_MEMBERS) + N_MEMBERS // 2 : (page_num + 1)
-                        * N_MEMBERS
+                        (page_num * n_members) + n_members // 2 : (page_num + 1)
+                        * n_members
                     ],
                 ]
 
@@ -95,7 +101,7 @@ class LeaderboardPagination(discord.ui.View):
                         if not member:
                             member = await ctx.bot.fetch_user(member_data["discord_id"])
 
-                        if len(member.name) > 10:
+                        if len(member.name) > n_members / 2:
                             member_name = member.name[:7] + "..."
                         else:
                             member_name = member.name
@@ -114,9 +120,13 @@ class LeaderboardPagination(discord.ui.View):
                         rank_count += 1
 
                     embed.add_field(name=field_name, value=field_value)
+                    if not self.ctx.author.avatar:
+                        icon_url = None
+                    else:
+                        icon_url = self.ctx.author.avatar.url
                     embed.set_footer(
                         text=f"{self.ctx.author.name}",
-                        icon_url=self.ctx.author.avatar.url,
+                        icon_url=icon_url,
                     )
                 self.pages.append(embed)
 
@@ -134,9 +144,11 @@ class LeaderboardPagination(discord.ui.View):
                 name="Rank  |  Player  |  W/L  |  ELO",
                 value="**NO PLAYER IN THIS LEADERBOARD YET**",
             )
-            embed.set_footer(
-                text=f"{self.ctx.author.name}", icon_url=self.ctx.author.avatar.url
-            )
+            if not self.ctx.author.avatar:
+                icon_url = None
+            else:
+                icon_url = self.ctx.author.avatar.url
+            embed.set_footer(text=f"{self.ctx.author.name}", icon_url=icon_url)
             self.pages.append(embed)
 
         for embed in self.pages:
@@ -206,9 +218,11 @@ class LeaderboardPagination(discord.ui.View):
                 description="You cannot control this pagination because you did not execute it.",
                 color=discord.Color.red(),
             )
-            return await interaction.response.send_message(embed=embed, ephemeral=True)
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            return
         await self.next()
         await interaction.response.defer()
+        return
 
     async def previous_button_callback(self, interaction: Interaction) -> None:
         if interaction.user != self.ctx.author:
@@ -216,6 +230,8 @@ class LeaderboardPagination(discord.ui.View):
                 description="You cannot control this pagination because you did not execute it.",
                 color=discord.Color.red(),
             )
-            return await interaction.response.send_message(embed=embed, ephemeral=True)
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            return
         await self.previous()
         await interaction.response.defer()
+        return

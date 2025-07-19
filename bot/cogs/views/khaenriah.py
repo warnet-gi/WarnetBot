@@ -4,60 +4,67 @@ import discord
 from discord import Interaction
 from discord.ext import commands
 
+from bot.helper import no_guild_alert
+
 
 class BuronanPagination(discord.ui.View):
     def __init__(
         self,
         *,
         timeout: float | None = 180,
-        PreviousButton: discord.ui.Button = discord.ui.Button(
-            emoji=discord.PartialEmoji(name="\U000025c0")
-        ),
-        NextButton: discord.ui.Button = discord.ui.Button(
-            emoji=discord.PartialEmoji(name="\U000025b6")
-        ),
-        PageCounterStyle: discord.ButtonStyle = discord.ButtonStyle.grey,
+        previousbutton: discord.ui.Button | None = None,
+        nextbutton: discord.ui.Button | None = None,
+        pagecounterstyle: discord.ButtonStyle = discord.ButtonStyle.grey,
         initial_page_number: int = 0,
         ephemeral: bool = False,
         buronan_list_data: list[dict[str, Any]],
     ) -> None:
         super().__init__(timeout=timeout)
 
-        self.PreviousButton = PreviousButton
-        self.NextButton = NextButton
-        self.PageCounterStyle = PageCounterStyle
+        if not nextbutton:
+            nextbutton = discord.ui.Button(
+                emoji=discord.PartialEmoji(name="\U000025b6")
+            )
+
+        if not previousbutton:
+            previousbutton = discord.ui.Button(
+                emoji=discord.PartialEmoji(name="\U000025c0")
+            )
+
+        self.PreviousButton = previousbutton
+        self.NextButton = nextbutton
+        self.PageCounterStyle = pagecounterstyle
         self.initial_page_number = initial_page_number
         self.ephemeral = ephemeral
         self.buronan_list_data = buronan_list_data
 
         self.pages: list[discord.Embed] = []
-        self.page_counter: discord.ui.Button = None
-        self.current_page = None
-        self.total_page_count = None
-        self.ctx = None
-        self.message = None
 
     async def construct_pages(
         self, ctx: commands.Context, buronan_list_data: list[dict[str, Any]]
     ) -> None:
         # Pick only N members per embed
-        N_MEMBERS = 10
+        n_members = 10
+
+        if not ctx.guild:
+            await no_guild_alert(ctx=ctx)
+            return
 
         total_data = len(buronan_list_data)
-        if total_data % N_MEMBERS:
-            self.total_page_count = total_data // N_MEMBERS + 1
+        if total_data % n_members:
+            self.total_page_count = total_data // n_members + 1
         else:
-            self.total_page_count = total_data // N_MEMBERS
+            self.total_page_count = total_data // n_members
 
         if self.total_page_count:
             for page_num in range(self.total_page_count):
                 page_member_data_list = [
                     buronan_list_data[
-                        (page_num * N_MEMBERS) : (page_num * N_MEMBERS) + N_MEMBERS // 2
+                        (page_num * n_members) : (page_num * n_members) + n_members // 2
                     ],
                     buronan_list_data[
-                        (page_num * N_MEMBERS) + N_MEMBERS // 2 : (page_num + 1)
-                        * N_MEMBERS
+                        (page_num * n_members) + n_members // 2 : (page_num + 1)
+                        * n_members
                     ],
                 ]
 
@@ -173,9 +180,11 @@ class BuronanPagination(discord.ui.View):
                 description="You cannot control this pagination because you did not execute it.",
                 color=discord.Color.red(),
             )
-            return await interaction.response.send_message(embed=embed, ephemeral=True)
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            return
         await self.next()
         await interaction.response.defer()
+        return
 
     async def previous_button_callback(self, interaction: Interaction) -> None:
         if interaction.user != self.ctx.author:
@@ -183,6 +192,8 @@ class BuronanPagination(discord.ui.View):
                 description="You cannot control this pagination because you did not execute it.",
                 color=discord.Color.red(),
             )
-            return await interaction.response.send_message(embed=embed, ephemeral=True)
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            return
         await self.previous()
         await interaction.response.defer()
+        return
