@@ -28,20 +28,14 @@ Before creating your pull request, make sure you already **read the whole guidel
 4. Find the **Token** section, then create a token.
 5. Copy the generated token and copy paste it to `BOT_TOKEN` in the `.env` file.
 6. You can use our provided `.env.example` in the root directory, just rename it to `.env`.
-7. Create a python virtual environment by running `uv venv` in the terminal to our project directory (there will be a `.venv/` folder in the root directory).
-8. Execute this command to activate virtual environment:
-
-- **Linux** and **macOS**: `source .venv/bin/activate`
-- **Windows**: `.venv\Scripts\activate`
-
-10. Install dependencies using `uv sync`.
-11. Next we will create our database by executing the `db.sql` script in the `bot/data` (run this either using pgAdmin or psql).
-12. Ensure to set the `BOT_DEBUG=1` in the `.env` file for debugging mode. Set to `BOT_DEBUG=0` for Production only.
-13. Start the bot by running `uv run task start`.
+7. Install dependencies using `uv sync`.
+8. Next we will create our database by executing the `db.sql` script in the `bot/data` (run this either using pgAdmin or psql).
+9. Ensure to set the `BOT_DEBUG=1` in the `.env` file for debugging mode. Set to `BOT_DEBUG=0` for Production only.
+10. Start the bot by running `uv run task start`.
 
 ## Common Problems
 
-- Got **Invalid literal for int() with base 10: 'YOUR_GUILD_ID'** after running `poetry run task start`
+- Got **Invalid literal for int() with base 10: 'YOUR_GUILD_ID'** after running `uv run task start`
   - Define the `GUILD_ID` value in `.env` file with your Discord Server ID.
 
 ## Sending Pull Request(s)
@@ -50,8 +44,8 @@ Before sending a pull request, **ensure to stage all the commit inside a new bra
 
 Run the linting and type check first to make sure your code follow our rules by:
 
-- Running `format` by executing `ruff format`.
-- Running `linting` by executing `ruff check`.
-- RUnning `type check` by executing `pyright`.
+- Running `format` by executing `uv run ruff format`.
+- Running `linting` by executing `uv run ruff check`.
+- RUnning `type check` by executing `uv run pyright`.
 
 As we want to have standardize commit messages, please follow this [commit message convention guide](https://www.conventionalcommits.org/en/v1.0.0/#summary) and [50/72 commit message rule format](https://initialcommit.com/blog/git-commit-messages-best-practices).
