@@ -10,7 +10,6 @@ from discord.ext.commands import Bot
 import bot.module.tatsu.data_structures as ds
 from bot import __version__, config
 from bot.module.tatsu.wrapper import ApiWrapper
-from bot.types import CantNoneError
 
 logger = logging.getLogger(__name__)
 BOT_PREFIX = config.BOT_PREFIX
@@ -29,7 +28,7 @@ class WarnetBot(Bot):
             help_command=None,
             log_handler=None,
         )
-        self.session: aiohttp.ClientSession
+        self.session: aiohttp.ClientSession = None
         self.version = __version__
 
     async def on_ready(self) -> None:
@@ -52,7 +51,7 @@ class WarnetBot(Bot):
     async def load_cogs(self) -> None:
         cogs_path = Path("./bot/cogs")
         for file in cogs_path.iterdir():
-            if file.is_file() and file.suffix == ".py":
+            if file.is_file() and file.suffix == ".py" and file.name != "__init__.py":
                 await self.load_extension(f"bot.cogs.{file.stem}")
 
         logger.info("ALL COGS HAVE BEEN LOADED SUCCESSFULLY")
@@ -77,15 +76,15 @@ class WarnetBot(Bot):
                 port=config.LOCAL_DB_PORT,
             )
             if db_pool is None:
-                err = "Database pool"
-                raise CantNoneError(err)
+                err = "Database pool is none"
+                raise ValueError(err)
             self.db_pool = db_pool
 
         else:
             db_pool = await asyncpg.create_pool(dsn=config.HOSTED_DB_URI)
             if db_pool is None:
-                err = "Database pool"
-                raise CantNoneError(err)
+                err = "Database pool is none"
+                raise ValueError(err)
             self.db_pool = db_pool
 
         return await super().start(token, reconnect=reconnect)

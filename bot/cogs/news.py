@@ -9,10 +9,9 @@ from anyio import open_file
 from discord.ext import commands, tasks
 
 from bot.bot import WarnetBot
-from bot.cogs.ext.news.genshin import get_genshin_news
+from bot.cogs.ext.news.genshin import GenshinNews, get_genshin_news
 from bot.cogs.ext.news.hoyolab import hoyolab_news
 from bot.config import news as news_config
-from bot.types import CantNoneError
 
 logger = logging.getLogger(__name__)
 
@@ -20,12 +19,6 @@ logger = logging.getLogger(__name__)
 class News(commands.GroupCog):
     def __init__(self, bot: WarnetBot) -> None:
         self.bot = bot
-
-        info_channel = bot.get_channel(news_config.INFORMATION_CHANNEL_ID)
-        if info_channel is None:
-            err = "info_channel"
-            raise CantNoneError(err)
-        self.info_channel = info_channel
 
     @commands.Cog.listener()
     async def on_connect(self) -> None:
@@ -48,6 +41,14 @@ class News(commands.GroupCog):
 
     @tasks.loop(time=news_config.TIMES_CHECK_UPDATE)
     async def _news_genshin(self) -> None:
+        info_channel = self.bot.get_channel(news_config.INFORMATION_CHANNEL_ID)
+        if info_channel is None:
+            logger.error(
+                "info channel is none",
+                extra={"channel_id": news_config.INFORMATION_CHANNEL_ID},
+            )
+            return
+
         try:
             await get_genshin_news()
         except Exception:
@@ -64,16 +65,17 @@ class News(commands.GroupCog):
             news_config.JSON_GENSHIN_NEWS_PATH, encoding="utf-8"
         ) as f:
             contents = await f.read()
-            news_data = json.loads(contents)["data"]["list"]
+            json_content: GenshinNews = json.loads(contents)
+            news_data = json_content.data.list
 
-        last_json_id = str(news_data[0]["iInfoId"])
+        last_json_id = str(news_data[0].i_info_id)
         if last_json_id == last_id:
             logger.info("[genshin] No new news updates found.")
             return
 
         start_index = None
         for i, item in enumerate(news_data):
-            if str(item["iInfoId"]) == last_id:
+            if str(item.i_info_id) == last_id:
                 start_index = i
                 break
 
@@ -91,9 +93,9 @@ class News(commands.GroupCog):
                 )
 
             embed = discord.Embed(
-                title=item["sTitle"],
-                description=item["sIntro"],
-                url=f"https://genshin.hoyoverse.com/en/news/detail/{item['iInfoId']}",
+                title=item.s_title,
+                description=item.s_intro,
+                url=f"https://genshin.hoyoverse.com/en/news/detail/{item.i_info_id}",
                 color=news_config.TAG_COLOR_MAP.get(
                     current_tag, discord.Color.default()
                 ),
@@ -112,9 +114,9 @@ class News(commands.GroupCog):
                 name=f"Genshin Impact News - {current_tag}",
                 icon_url="https://cdn.discordapp.com/icons/522681957373575168/84a7500128d64ca60e959799c3e66f21.webp",
             )
-            embed.timestamp = datetime.datetime.fromisoformat(item["dtCreateTime"])
+            embed.timestamp = item.dt_create_time
 
-            await self.info_channel.send(embed=embed)
+            await info_channel.send(embed=embed)
             await asyncio.sleep(1)
 
         async with await open_file(
@@ -129,6 +131,13 @@ class News(commands.GroupCog):
     @tasks.loop(time=news_config.TIMES_CHECK_UPDATE)
     async def _news_hoyolab(self) -> None:
         news = hoyolab_news()
+        info_channel = self.bot.get_channel(news_config.INFORMATION_CHANNEL_ID)
+        if info_channel is None:
+            logger.error(
+                "info channel is none",
+                extra={"channel_id": news_config.INFORMATION_CHANNEL_ID},
+            )
+            return
 
         async with await open_file(
             news_config.LAST_ID_HOYOLAB_NEWS_PATH, encoding="utf-8"
@@ -171,7 +180,7 @@ class News(commands.GroupCog):
                 icon_url="https://www.hoyolab.com/favicon.ico",
             )
             embed.timestamp = datetime.datetime.fromisoformat(item["date_published"])
-            await self.info_channel.send(embed=embed)
+            await info_channel.send(embed=embed)
 
             await asyncio.sleep(1)
 
