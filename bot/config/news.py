@@ -16,7 +16,7 @@ LAST_ID_HOYOLAB_NEWS_PATH = "bot/data/news/hoyolab.txt"
 TIMES_CHECK_UPDATE = [
     datetime.time(hour=h, minute=m, tzinfo=datetime.UTC)
     for h in range(24)
-    for m in range(2, 60, 10)
+    for m in range(7, 60, 10)
 ]
 
 TAG_COLOR_MAP = {
@@ -26,7 +26,7 @@ TAG_COLOR_MAP = {
     "Notices": discord.Color.gold(),
 }
 CHAN_ID_MAP = {
-    "396": "Info",
-    "397": "Updates",
-    "398": "Events",
+    396: "Info",
+    397: "Updates",
+    398: "Events",
 }

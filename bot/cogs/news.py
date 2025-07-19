@@ -7,10 +7,11 @@ from pathlib import Path
 import discord
 from anyio import open_file
 from discord.ext import commands, tasks
+import pytz
 
 from bot.bot import WarnetBot
-from bot.cogs.ext.news.genshin import GenshinNews, get_genshin_news
-from bot.cogs.ext.news.hoyolab import hoyolab_news
+from bot.cogs.ext.news.genshin import GenshinNews, GenshinNewsSext, get_genshin_news
+from bot.cogs.ext.news.hoyolab import HoyolabNews, hoyolab_news
 from bot.config import news as news_config
 
 logger = logging.getLogger(__name__)
@@ -66,23 +67,23 @@ class News(commands.GroupCog):
         ) as f:
             contents = await f.read()
             json_content: GenshinNews = json.loads(contents)
-            news_data = json_content.data.list
+            news_data = json_content["data"]["list"]
 
-        last_json_id = str(news_data[0].i_info_id)
+        last_json_id = str(news_data[0]["iInfoId"])
         if last_json_id == last_id:
             logger.info("[genshin] No new news updates found.")
             return
 
         start_index = None
         for i, item in enumerate(news_data):
-            if str(item.i_info_id) == last_id:
+            if str(item["iInfoId"]) == last_id:
                 start_index = i
                 break
 
         new_news = news_data if start_index is None else news_data[:start_index]
 
         for item in reversed(new_news):
-            s_chan_ids = item.get("sChanId", [])
+            s_chan_ids = item["sChanId"]
             if len(s_chan_ids) > 1:
                 current_tag = "Info"
             else:
@@ -93,28 +94,26 @@ class News(commands.GroupCog):
                 )
 
             embed = discord.Embed(
-                title=item.s_title,
-                description=item.s_intro,
-                url=f"https://genshin.hoyoverse.com/en/news/detail/{item.i_info_id}",
+                title=item["sTitle"],
+                description=item["sIntro"],
+                url=f"https://genshin.hoyoverse.com/en/news/detail/{item['iInfoId']}",
                 color=news_config.TAG_COLOR_MAP.get(
                     current_tag, discord.Color.default()
                 ),
             )
 
             image_url = None
-            s_ext = json.loads(item.get("sExt", "{}"))
-            banners = s_ext.get("banner", [])
-            if banners and "url" in banners[0]:
-                image_url = banners[0]["url"]
-
-            if image_url:
-                embed.set_image(url=image_url)
+            s_ext: GenshinNewsSext = json.loads(item["sExt"])
+            image_url = s_ext["banner"][0]["url"]
+            embed.set_image(url=image_url)
 
             embed.set_author(
                 name=f"Genshin Impact News - {current_tag}",
                 icon_url="https://cdn.discordapp.com/icons/522681957373575168/84a7500128d64ca60e959799c3e66f21.webp",
             )
-            embed.timestamp = item.dt_create_time
+            embed.timestamp = datetime.datetime.strptime(
+                item["dtStartTime"], "%Y-%m-%d %H:%M:%S"
+            ).replace(tzinfo=pytz.timezone("Asia/Shanghai"))
 
             await info_channel.send(embed=embed)
             await asyncio.sleep(1)
@@ -155,8 +154,8 @@ class News(commands.GroupCog):
             news_config.JSON_HOYOLAB_NEWS_PATH, encoding="utf-8"
         ) as f:
             contents = await f.read()
-            news_data = json.loads(contents)
-            news_data = news_data["items"]
+            news_json: HoyolabNews = json.loads(contents)
+            news_data = news_json["items"]
 
         start_index = None
         for i, item in enumerate(news_data):
@@ -171,7 +170,7 @@ class News(commands.GroupCog):
                 title=item["title"],
                 url=item["url"],
                 color=news_config.TAG_COLOR_MAP.get(
-                    item["tags"][0], discord.Color.default()
+                    item["tags"][0].value, discord.Color.default()
                 ),
             )
             embed.set_image(url=item["image"])
@@ -179,7 +178,7 @@ class News(commands.GroupCog):
                 name=f"Hoyolab - {item['tags'][0]}",
                 icon_url="https://www.hoyolab.com/favicon.ico",
             )
-            embed.timestamp = datetime.datetime.fromisoformat(item["date_published"])
+            embed.timestamp = item["date_published"]
             await info_channel.send(embed=embed)
 
             await asyncio.sleep(1)
@@ -187,7 +186,7 @@ class News(commands.GroupCog):
         async with await open_file(
             news_config.LAST_ID_HOYOLAB_NEWS_PATH, "w", encoding="utf-8"
         ) as f:
-            await f.write(news_data[0]["id"])
+            await f.write(str(news_data[0]["id"]))
 
         logger.info("[hoyolab] Successfully sent news updates to the channel.")
         return
