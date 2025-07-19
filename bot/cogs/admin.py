@@ -204,7 +204,7 @@ class Admin(commands.GroupCog, group_name="admin"):
     ) -> None:
         await interaction.response.defer()
 
-        if not interaction.user.guild_permissions.administrator:
+        if not interaction.user.guild_permissions.manage_roles:
             return await no_permission_alert(interaction=interaction)
 
         cnt = 0
