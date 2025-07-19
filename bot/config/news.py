@@ -22,11 +22,5 @@ TIMES_CHECK_UPDATE = [
 TAG_COLOR_MAP = {
     "Info": discord.Color.blue(),
     "Events": discord.Color.green(),
-    "Updates": discord.Color.gold(),
     "Notices": discord.Color.gold(),
-}
-CHAN_ID_MAP = {
-    "396": "Info",
-    "397": "Updates",
-    "398": "Events",
 }
