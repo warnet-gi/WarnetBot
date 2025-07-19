@@ -1,4 +1,4 @@
-import unittest  # noqa: INP001
+import unittest
 from unittest.mock import AsyncMock, MagicMock, PropertyMock
 
 from bot.cogs.general import General
