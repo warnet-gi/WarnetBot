@@ -100,6 +100,9 @@ class News(commands.GroupCog):
                 color=news_config.TAG_COLOR_MAP.get(
                     current_tag, discord.Color.default()
                 ),
+                timestamp=datetime.datetime.strptime(
+                    item["dtStartTime"], "%Y-%m-%d %H:%M:%S"
+                ).replace(tzinfo=pytz.timezone("Asia/Shanghai")),
             )
 
             image_url = None
@@ -111,9 +114,6 @@ class News(commands.GroupCog):
                 name=f"Genshin Impact News - {current_tag}",
                 icon_url="https://cdn.discordapp.com/icons/522681957373575168/84a7500128d64ca60e959799c3e66f21.webp",
             )
-            embed.timestamp = datetime.datetime.strptime(
-                item["dtStartTime"], "%Y-%m-%d %H:%M:%S"
-            ).replace(tzinfo=pytz.timezone("Asia/Shanghai"))
 
             await info_channel.send(embed=embed)
             await asyncio.sleep(1)
@@ -172,13 +172,13 @@ class News(commands.GroupCog):
                 color=news_config.TAG_COLOR_MAP.get(
                     item["tags"][0].value, discord.Color.default()
                 ),
+                timestamp=item["date_published"],
             )
             embed.set_image(url=item["image"])
             embed.set_author(
                 name=f"Hoyolab - {item['tags'][0]}",
                 icon_url="https://www.hoyolab.com/favicon.ico",
             )
-            embed.timestamp = item["date_published"]
             await info_channel.send(embed=embed)
 
             await asyncio.sleep(1)

@@ -48,8 +48,8 @@ class Giveaway(commands.GroupCog, group_name="warnet-ga"):
             )
 
         winner_list: list[discord.Member] = []
-        winners.split(",")
-        for winner in winners:
+        winners_list = winners.split(",")
+        for winner in winners_list:
             if (user := interaction.guild.get_member(int(winner))) is None:
                 return await interaction.followup.send(
                     f"User {winner} not found", ephemeral=True
