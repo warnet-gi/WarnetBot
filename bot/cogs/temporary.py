@@ -42,11 +42,7 @@ class Temporary(commands.GroupCog, group_name="warnet-temp"):
                 "Cannot add blacklist giveaway role!!", ephemeral=True
             )
 
-        if (
-            interaction.guild
-            and isinstance(interaction.user, discord.Member)
-            and not interaction.user.guild_permissions.manage_roles
-        ):
+        if interaction.guild and not interaction.user.guild_permissions.manage_roles:
             return await interaction.followup.send(
                 "You do not have permission to manage roles", ephemeral=True
             )
