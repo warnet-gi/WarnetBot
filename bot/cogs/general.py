@@ -2,7 +2,6 @@ import io
 import logging
 import random
 import time
-from csv import Error
 from datetime import UTC, datetime, timedelta
 
 import discord
@@ -271,7 +270,7 @@ class General(commands.Cog):
             self._change_presence.start()
 
     @commands.Cog.listener()
-    async def on_command_error(self, ctx: commands.Context, error: Error) -> None:
+    async def on_command_error(self, ctx: commands.Context, error) -> None:  # noqa: ANN001 'error' does not have a type annotation
         if hasattr(ctx.command, "on_error"):
             return
 
