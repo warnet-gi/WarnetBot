@@ -34,22 +34,25 @@ class AcceptIconAttachment(discord.ui.View):
                 ephemeral=True,
             )
 
-        if edited_role:
-            embed = discord.Embed(
-                title="Role Icon Updated",
-                description=f"Role {edited_role.mention} icon has been updated.",
-                color=discord.Color.green(),
-            )
-            embed.set_footer(
-                text=f"Accepted by {interaction.user.name}",
-                icon_url=interaction.user.display_avatar.url,
+        if not edited_role:
+            return await interaction.followup.send(
+                "Role Not Found.",
+                ephemeral=True,
             )
 
-            button.label = "Accepted"
-            button.disabled = True
-            await interaction.message.edit(view=self)
+        embed = discord.Embed(
+            title="Role Icon Updated",
+            description=f"Role {edited_role.mention} icon has been updated.",
+            color=discord.Color.green(),
+        )
+        embed.set_footer(
+            text=f"Accepted by {interaction.user.name}",
+            icon_url=interaction.user.display_avatar.url,
+        )
 
-            self.stop()
-            await interaction.followup.send(embed=embed)
-            return None
-        return None
+        button.label = "Accepted"
+        button.disabled = True
+        await interaction.message.edit(view=self)
+
+        self.stop()
+        return await interaction.followup.send(embed=embed)

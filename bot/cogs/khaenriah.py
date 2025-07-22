@@ -43,12 +43,14 @@ class Khaenriah(commands.Cog):
         reason: str | None,
     ) -> None:
         if not ctx.guild:
-            return await no_guild_alert(ctx=ctx)
+            await no_guild_alert(ctx=ctx)
+            return
 
         if not ctx.author.guild_permissions.administrator and not ctx.author.get_role(
             self.KURATOR_TEYVAT_ROLE_ID
         ):
-            return await no_permission_alert(ctx=ctx)
+            await no_permission_alert(ctx=ctx)
+            return
 
         async with self.db_pool.acquire() as conn:
             data = await conn.fetchrow(
@@ -73,7 +75,7 @@ class Khaenriah(commands.Cog):
                     await ctx.send(
                         content=f"**{member.name}** has reached MAX warning level (Level {self.BURONAN_MAX_LEVEL}). Can't add more level.",
                     )
-                    return None
+                    return
 
         embed = discord.Embed(
             color=discord.Color.dark_theme(),
@@ -107,23 +109,25 @@ class Khaenriah(commands.Cog):
                 "Channel not found",
                 extra={"channel_id": config.WARN_LOG_CHANNEL_ID},
             )
-            return None
+            return
 
         await ctx.send(embed=embed)
         await warn_log_channel.send(embed=embed)
-        return None
+        return
 
     @buronan.command(name="increase", aliases=["inc"])
     async def buronan_increase(
         self, ctx: commands.Context, member: discord.Member | discord.User
     ) -> None:
         if not ctx.guild:
-            return await no_guild_alert(ctx=ctx)
+            await no_guild_alert(ctx=ctx)
+            return
 
         if not ctx.author.guild_permissions.administrator and not ctx.author.get_role(
             self.KURATOR_TEYVAT_ROLE_ID
         ):
-            return await no_permission_alert(ctx=ctx)
+            await no_permission_alert(ctx=ctx)
+            return
 
         async with self.db_pool.acquire() as conn:
             data = await conn.fetchrow(
@@ -134,13 +138,13 @@ class Khaenriah(commands.Cog):
                 await ctx.send(
                     content=f"**{member.name}** never got a warning before. Can't increase warn level."
                 )
-                return None
+                return
 
             if ctx.author == member:
                 await ctx.send(
                     content="You are unable to self-increase your warn level."
                 )
-                return None
+                return
 
             current_warn_level = data["warn_level"]
             if current_warn_level < self.BURONAN_MAX_LEVEL:
@@ -153,7 +157,7 @@ class Khaenriah(commands.Cog):
                 await ctx.send(
                     content=f"**{member.name}** has reached MAX warning level (Level {self.BURONAN_MAX_LEVEL}). Can't add more level.",
                 )
-                return None
+                return
 
         warn_log_channel = ctx.guild.get_channel(config.WARN_LOG_CHANNEL_ID)
         if warn_log_channel is None:
@@ -161,7 +165,7 @@ class Khaenriah(commands.Cog):
                 "Channel not found",
                 extra={"channel_id": config.WARN_LOG_CHANNEL_ID},
             )
-            return None
+            return
 
         desc = f"**{member.name}** warn level has been increased manually from `{data['warn_level']}` to `{current_warn_level}`"
         embed = discord.Embed(
@@ -180,19 +184,21 @@ class Khaenriah(commands.Cog):
 
         await warn_log_channel.send(embed=embed)
         await ctx.send(embed=embed)
-        return None
+        return
 
     @buronan.command(name="decrease", aliases=["dec"])
     async def buronan_decrease(
         self, ctx: commands.Context, member: discord.Member | discord.User
     ) -> None:
         if not ctx.guild:
-            return await no_guild_alert(ctx=ctx)
+            await no_guild_alert(ctx=ctx)
+            return
 
         if not ctx.author.guild_permissions.administrator and not ctx.author.get_role(
             self.KURATOR_TEYVAT_ROLE_ID
         ):
-            return await no_permission_alert(ctx=ctx)
+            await no_permission_alert(ctx=ctx)
+            return
 
         async with self.db_pool.acquire() as conn:
             data = await conn.fetchrow(
@@ -203,13 +209,13 @@ class Khaenriah(commands.Cog):
                 await ctx.send(
                     content=f"**{member.name}** never got a warning before. Can't decrease warn level."
                 )
-                return None
+                return
 
             if ctx.author == member:
                 await ctx.send(
                     content="You are unable to self-decrease your warn level."
                 )
-                return None
+                return
 
             current_warn_level = data["warn_level"]
             if current_warn_level > 0:
@@ -225,7 +231,7 @@ class Khaenriah(commands.Cog):
                 await ctx.send(
                     content=f"**{member.name}** has been removed from database.",
                 )
-                return None
+                return
 
         warn_log_channel = ctx.guild.get_channel(config.WARN_LOG_CHANNEL_ID)
         warn_log_channel = ctx.guild.get_channel(config.WARN_LOG_CHANNEL_ID)
@@ -234,7 +240,7 @@ class Khaenriah(commands.Cog):
                 "Channel not found",
                 extra={"channel_id": config.WARN_LOG_CHANNEL_ID},
             )
-            return None
+            return
 
         desc = f"**{member.name}** warn level has been decreased manually from `{data['warn_level']}` to `{current_warn_level}`"
         embed = discord.Embed(
@@ -253,7 +259,7 @@ class Khaenriah(commands.Cog):
 
         await warn_log_channel.send(embed=embed)
         await ctx.send(embed=embed)
-        return None
+        return
 
     @buronan.command(name="list")
     async def buronan_list(self, ctx: commands.Context) -> None:

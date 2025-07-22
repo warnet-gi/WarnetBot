@@ -162,12 +162,6 @@ def hex_to_discord_color(hex_color: str) -> discord.Color:
     return discord.Color.from_str(hex_color)
 
 
-async def no_permission_alert(interaction: Interaction) -> None:
-    return await interaction.followup.send(
-        "❌ You don't have permission to use this command", ephemeral=True
-    )
-
-
 async def error_move_role(interaction: Interaction, role: Role) -> None:
     return await interaction.followup.send(
         f"❌ Failed to move the role `{role.name}`. Please contact the server administrator.",

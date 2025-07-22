@@ -58,3 +58,4 @@ reportAttributeAccessIssue = "none" # discord.py design conflict with this
 
 [tool.taskipy.tasks]
 start = "python -m bot"
+check = "ruff check && ruff format --check && pyright"

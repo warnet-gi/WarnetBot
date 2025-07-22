@@ -16,11 +16,10 @@ from bot.cogs.ext.color.utils import (
     get_current_custom_role_on_user,
     hex_to_discord_color,
     move_role_to_under_boundary,
-    no_permission_alert,
 )
 from bot.cogs.views.color import AcceptIconAttachment
 from bot.config import CustomRoleConfig
-from bot.helper import no_guild_alert, value_is_none
+from bot.helper import no_guild_alert, no_permission_alert, value_is_none
 
 logger = logging.getLogger(__name__)
 
@@ -311,40 +310,36 @@ class Color(commands.GroupCog, group_name="warnet-color"):
         )
         if role_target:
             if (
-                interaction.user.guild_permissions.manage_roles
-                or interaction.user.id == self.custom_role_data[role_target.id]
+                not interaction.user.guild_permissions.manage_roles
+                and interaction.user.id != self.custom_role_data[role_target.id]
             ):
-                if not new_name:
-                    new_name = role_target.name
-                edited_role = await role_target.edit(name=new_name, color=valid_color)
+                return await no_permission_alert(interaction)
 
-                if edited_role is None:
-                    return await value_is_none(
-                        value="The role", interaction=interaction
-                    )
+            if not new_name:
+                new_name = role_target.name
+            edited_role = await role_target.edit(name=new_name, color=valid_color)
 
-                self.cache["color-list"] = None
+            if edited_role is None:
+                return await value_is_none(value="The role", interaction=interaction)
 
-                embed = discord.Embed(
-                    title="Custom role edited!",
-                    timestamp=datetime.now(tz=UTC),
-                    color=edited_role.color,
-                )
-                embed.add_field(
-                    name="New custom role settings:",
-                    value=(
-                        f"- **Name:** {edited_role.name}\n"
-                        f"- **R:** {edited_role.color.r}\n"
-                        f"- **G:** {edited_role.color.g}\n"
-                        f"- **B:** {edited_role.color.b}\n"
-                        f"- **HEX:** {edited_role.color!s}\n"
-                    ),
-                )
-                return await interaction.followup.send(embed=embed)
+            self.cache["color-list"] = None
 
-            return await interaction.followup.send(
-                "❌ You don't have permission to use this command", ephemeral=True
+            embed = discord.Embed(
+                title="Custom role edited!",
+                timestamp=datetime.now(tz=UTC),
+                color=edited_role.color,
             )
+            embed.add_field(
+                name="New custom role settings:",
+                value=(
+                    f"- **Name:** {edited_role.name}\n"
+                    f"- **R:** {edited_role.color.r}\n"
+                    f"- **G:** {edited_role.color.g}\n"
+                    f"- **B:** {edited_role.color.b}\n"
+                    f"- **HEX:** {edited_role.color!s}\n"
+                ),
+            )
+            return await interaction.followup.send(embed=embed)
         return None
 
     @color_edit.command(
@@ -392,40 +387,36 @@ class Color(commands.GroupCog, group_name="warnet-color"):
         )
         if role_target:
             if (
-                interaction.user.guild_permissions.manage_roles
-                or interaction.user.id == self.custom_role_data[role_target.id]
+                not interaction.user.guild_permissions.manage_roles
+                and interaction.user.id != self.custom_role_data[role_target.id]
             ):
-                if not new_name:
-                    new_name = role_target.name
+                return await no_permission_alert(interaction)
 
-                edited_role = await role_target.edit(name=new_name, color=valid_color)
-                if edited_role is None:
-                    return await value_is_none(
-                        value="The role", interaction=interaction
-                    )
+            if not new_name:
+                new_name = role_target.name
 
-                self.cache["color-list"] = None
+            edited_role = await role_target.edit(name=new_name, color=valid_color)
+            if edited_role is None:
+                return await value_is_none(value="The role", interaction=interaction)
 
-                embed = discord.Embed(
-                    title="Custom role edited!",
-                    timestamp=datetime.now(tz=UTC),
-                    color=edited_role.color,
-                )
-                embed.add_field(
-                    name="New custom role settings:",
-                    value=(
-                        f"- **Name:** {edited_role.name}\n"
-                        f"- **R:** {edited_role.color.r}\n"
-                        f"- **G:** {edited_role.color.g}\n"
-                        f"- **B:** {edited_role.color.b}\n"
-                        f"- **HEX:** {edited_role.color!s}\n"
-                    ),
-                )
-                return await interaction.followup.send(embed=embed)
+            self.cache["color-list"] = None
 
-            return await interaction.followup.send(
-                "❌ You don't have permission to use this command", ephemeral=True
+            embed = discord.Embed(
+                title="Custom role edited!",
+                timestamp=datetime.now(tz=UTC),
+                color=edited_role.color,
             )
+            embed.add_field(
+                name="New custom role settings:",
+                value=(
+                    f"- **Name:** {edited_role.name}\n"
+                    f"- **R:** {edited_role.color.r}\n"
+                    f"- **G:** {edited_role.color.g}\n"
+                    f"- **B:** {edited_role.color.b}\n"
+                    f"- **HEX:** {edited_role.color!s}\n"
+                ),
+            )
+            return await interaction.followup.send(embed=embed)
         return None
 
     @app_commands.command(
@@ -1027,63 +1018,61 @@ class Color(commands.GroupCog, group_name="warnet-color"):
         )
         if role_target:
             if (
-                interaction.user.guild_permissions.manage_roles
-                or interaction.user.id == self.custom_role_data[role_target.id]
+                not interaction.user.guild_permissions.manage_roles
+                and interaction.user.id != self.custom_role_data[role_target.id]
             ):
-                if not new_name:
-                    new_name = role_target.name
-                url = f"https://discord.com/api/v9/guilds/{interaction.guild.id}/roles/{role_target.id}"
-                headers = {
-                    "Authorization": f"Bot {self.bot.http.token}",
-                    "Content-Type": "application/json",
-                    "X-Audit-Log-Reason": "Member Request",
-                }
-                payload = {
-                    "name": new_name,
-                    "color": valid_color_primary.value,
-                    "colors": {
-                        "primary_color": valid_color_primary.value,
-                        "secondary_color": valid_color_secondary.value,
-                    },
-                }
-                async with (
-                    aiohttp.ClientSession() as session,
-                    session.patch(url, json=payload, headers=headers) as resp,
-                ):
-                    if resp.status != http.HTTPStatus.OK:
-                        return await interaction.followup.send(
-                            f"❌ Failed to edit gradient role. Discord API returned status {resp.status}.",
-                            ephemeral=True,
-                        )
-                    data = await resp.json()
-                    edited_role = (
-                        interaction.guild.get_role(int(data["id"]))
-                        if "id" in data
-                        else role_target
+                return await no_permission_alert(interaction)
+
+            if not new_name:
+                new_name = role_target.name
+            url = f"https://discord.com/api/v9/guilds/{interaction.guild.id}/roles/{role_target.id}"
+            headers = {
+                "Authorization": f"Bot {self.bot.http.token}",
+                "Content-Type": "application/json",
+                "X-Audit-Log-Reason": "Member Request",
+            }
+            payload = {
+                "name": new_name,
+                "color": valid_color_primary.value,
+                "colors": {
+                    "primary_color": valid_color_primary.value,
+                    "secondary_color": valid_color_secondary.value,
+                },
+            }
+            async with (
+                aiohttp.ClientSession() as session,
+                session.patch(url, json=payload, headers=headers) as resp,
+            ):
+                if resp.status != http.HTTPStatus.OK:
+                    return await interaction.followup.send(
+                        f"❌ Failed to edit gradient role. Discord API returned status {resp.status}.",
+                        ephemeral=True,
                     )
-                    if edited_role is None:
-                        return await value_is_none("The role", interaction=interaction)
-
-                self.cache["color-list"] = None
-
-                embed = discord.Embed(
-                    title="Custom role edited!",
-                    timestamp=datetime.now(tz=UTC),
-                    color=edited_role.color,
+                data = await resp.json()
+                edited_role = (
+                    interaction.guild.get_role(int(data["id"]))
+                    if "id" in data
+                    else role_target
                 )
-                embed.add_field(
-                    name="New custom role settings:",
-                    value=(
-                        f"- **Name:** {edited_role.name}\n"
-                        f"- **Hex Primary:** {valid_color_primary}\n"
-                        f"- **Hex Secondary:** {valid_color_secondary}\n"
-                    ),
-                )
-                return await interaction.followup.send(embed=embed)
+                if edited_role is None:
+                    return await value_is_none("The role", interaction=interaction)
 
-            return await interaction.followup.send(
-                "❌ You don't have permission to use this command", ephemeral=True
+            self.cache["color-list"] = None
+
+            embed = discord.Embed(
+                title="Custom role edited!",
+                timestamp=datetime.now(tz=UTC),
+                color=edited_role.color,
             )
+            embed.add_field(
+                name="New custom role settings:",
+                value=(
+                    f"- **Name:** {edited_role.name}\n"
+                    f"- **Hex Primary:** {valid_color_primary}\n"
+                    f"- **Hex Secondary:** {valid_color_secondary}\n"
+                ),
+            )
+            return await interaction.followup.send(embed=embed)
         return None
 
 
