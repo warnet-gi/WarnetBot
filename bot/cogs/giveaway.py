@@ -78,24 +78,24 @@ class Giveaway(commands.GroupCog, group_name='warnet-ga'):
 
             for winner in winner_list:
                 await winner.add_roles(blacklist_role)
+                # winner has streak
                 if winner.id in streak_user:
                     await conn.execute(
                         '''
                         UPDATE blacklist_ga 
-                        SET end_time = $2, status_user = $3, cooldown_time = $4
+                        SET end_time = $2, cooldown_time = $3, status_user = 0, has_role = TRUE
                         WHERE user_id = $1
                         ''',
                         winner.id,
                         end_time_streak,
-                        0,
                         end_time_streak,
                     )
+                # new winner
                 else:
                     await conn.execute(
-                        'INSERT INTO blacklist_ga (user_id, end_time, status_user, cooldown_time) VALUES ($1, $2, $3, $4)',
+                        'INSERT INTO blacklist_ga (user_id, end_time, cooldown_time, status_user) VALUES ($1, $2, $3, 1)',
                         winner.id,
                         end_time_no_streak,
-                        1,
                         end_time_streak,
                     )
                 logger.info(
@@ -104,18 +104,19 @@ class Giveaway(commands.GroupCog, group_name='warnet-ga'):
 
             for ghost in ghost_list:
                 await ghost.add_roles(blacklist_role)
+                # ghost has streak
                 if ghost.id in streak_user:
                     await conn.execute(
-                        'UPDATE blacklist_ga SET end_time = $2 WHERE user_id = $1',
+                        'UPDATE blacklist_ga SET end_time = $2, has_role = TRUE WHERE user_id = $1',
                         ghost.id,
                         end_time_ghosting,
                     )
+                # new ghost
                 else:
                     await conn.execute(
-                        'INSERT INTO blacklist_ga (user_id, end_time, status_user) VALUES ($1, $2, $3)',
+                        'INSERT INTO blacklist_ga (user_id, end_time, status_user) VALUES ($1, $2, 0)',
                         ghost.id,
                         end_time_ghosting,
-                        0,
                     )
                 logger.info(
                     f'Added role {blacklist_role.id} to user {ghost.id} for {ghosting_day} days'
@@ -143,6 +144,7 @@ class Giveaway(commands.GroupCog, group_name='warnet-ga'):
         now = datetime.now(timezone.utc)
 
         async with self.db_pool.acquire() as conn:
+            # remove role from user who has blacklist period has ended
             user_want_remove = await conn.fetch(
                 'SELECT user_id FROM blacklist_ga WHERE end_time <= $1 AND has_role = TRUE',
                 now,
@@ -151,13 +153,14 @@ class Giveaway(commands.GroupCog, group_name='warnet-ga'):
                 if user := guild.get_member(int(user['user_id'])):
                     await user.remove_roles(blacklist_role)
                     await conn.execute(
-                        'UPDATE blacklist_ga SET has_role = FALSE WHERE user_id = $1',
+                        'UPDATE blacklist_ga SET has_role = FALSE, end_time = NULL WHERE user_id = $1',
                         user.id,
                     )
                     logger.info(f'Removed role {blacklist_role.id} from user {user.id} (rm role)')
 
+            # delete user who has cooldown period has ended or null (ghost) and has no role
             user_want_delete = await conn.fetch(
-                'SELECT user_id FROM blacklist_ga WHERE has_role = FALSE AND status_user = 0 OR cooldown_time <= $1',
+                'SELECT user_id FROM blacklist_ga WHERE has_role = FALSE AND (cooldown_time <= $1 OR cooldown_time = NULL)',
                 now,
             )
             for user in user_want_delete:
