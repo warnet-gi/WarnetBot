@@ -67,7 +67,8 @@ class WarnetBot(Bot):
         self.debug = debug
 
         if self.debug:
-            print("Running in debug mode")
+            logger.debug("Running in debug mode")
+
             db_pool = await asyncpg.create_pool(
                 host=config.LOCAL_DB_HOST,
                 user=config.LOCAL_DB_USERNAME,

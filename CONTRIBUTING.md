@@ -44,8 +44,12 @@ Before sending a pull request, **ensure to stage all the commit inside a new bra
 
 Run the linting and type check first to make sure your code follow our rules by:
 
+- Running `uv run task check`.
+
+or running each command manually:
+
 - Running `format` by executing `uv run ruff format`.
 - Running `linting` by executing `uv run ruff check`.
-- RUnning `type check` by executing `uv run pyright`.
+- Running `type check` by executing `uv run pyright`.
 
 As we want to have standardize commit messages, please follow this [commit message convention guide](https://www.conventionalcommits.org/en/v1.0.0/#summary) and [50/72 commit message rule format](https://initialcommit.com/blog/git-commit-messages-best-practices).
