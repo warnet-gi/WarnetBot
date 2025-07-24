@@ -5,10 +5,13 @@ from bot.bot import WarnetBot
 from bot.config.logger import setup_logger
 
 
-def main():
+def main() -> None:
     bot = WarnetBot()
     try:
-        asyncio.run(bot.start(debug=config.BOT_DEBUG))
+        token = config.BOT_TOKEN if not config.BOT_DEBUG else config.DEV_BOT_TOKEN
+        if config.BOT_DEBUG:
+            bot.debug = True
+        asyncio.run(bot.start(debug=bot.debug, token=token))
     except KeyboardInterrupt:
         print("Logging Out...")
 

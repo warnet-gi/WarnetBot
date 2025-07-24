@@ -7,10 +7,10 @@ from pytz import timezone
 
 
 class DebugConsoleHandler(logging.StreamHandler):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(stream=sys.stdout)
 
-    def emit(self, record):
+    def emit(self, record: logging.LogRecord) -> None:
         if record.levelno != logging.DEBUG:
             return
         if record.name.startswith("discord"):
@@ -18,9 +18,11 @@ class DebugConsoleHandler(logging.StreamHandler):
         super().emit(record)
 
 
-def setup_logger():
+def setup_logger() -> None:
     formatter = logging.Formatter(
-        '[{asctime}] [{levelname:<8}] {name}: {message}', datefmt="%Y-%m-%d %H:%M:%S", style='{'
+        "[{asctime}] [{levelname:<8}] {name}: {message}",
+        datefmt="%Y-%m-%d %H:%M:%S",
+        style="{",
     )
 
     console_handler = DebugConsoleHandler()
@@ -37,7 +39,9 @@ def setup_logger():
     file_handler.setFormatter(formatter)
     file_handler.setLevel(logging.INFO)
 
-    logging.Formatter.converter = lambda *args: datetime.now(timezone('Asia/Jakarta')).timetuple()
+    logging.Formatter.converter = lambda *args: datetime.now(  # noqa: ARG005
+        timezone("Asia/Jakarta")
+    ).timetuple()
 
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG)

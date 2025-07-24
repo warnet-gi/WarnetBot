@@ -1,7 +1,7 @@
 import datetime
-from typing import Optional, Union
 
 import discord
+from asyncpg import Pool
 from discord import Interaction
 from discord.ext import commands
 
@@ -22,19 +22,21 @@ async def register(self: commands.Cog, interaction: Interaction) -> None:
             "SELECT discord_id FROM tcg_leaderboard WHERE discord_id = $1;", author_id
         )
         if not res:
-            await conn.execute("INSERT INTO tcg_leaderboard(discord_id) VALUES ($1);", author_id)
+            await conn.execute(
+                "INSERT INTO tcg_leaderboard(discord_id) VALUES ($1);", author_id
+            )
             embed = discord.Embed(
                 color=discord.Colour.green(),
-                title='✅ Registered successfully',
-                description=f"Sekarang kamu sudah terdaftar di database TCG WARNET dan rating ELO milikmu sudah diatur menjadi 1500 by default.",
-                timestamp=datetime.datetime.now(),
+                title="✅ Registered successfully",
+                description="Sekarang kamu sudah terdaftar di database TCG WARNET dan rating ELO milikmu sudah diatur menjadi 1500 by default.",
+                timestamp=datetime.datetime.now(tz=datetime.UTC),
             )
         else:
             embed = discord.Embed(
                 color=discord.Colour.red(),
-                title='❌ You are already registered',
+                title="❌ You are already registered",
                 description="Akun kamu sudah terdaftar. Tidak perlu mendaftar lagi.",
-                timestamp=datetime.datetime.now(),
+                timestamp=datetime.datetime.now(tz=datetime.UTC),
             )
 
     await interaction.followup.send(embed=embed, ephemeral=True)
@@ -43,7 +45,7 @@ async def register(self: commands.Cog, interaction: Interaction) -> None:
 async def member_stats(
     self: commands.Cog,
     interaction: Interaction,
-    member: Optional[Union[discord.Member, discord.User]],
+    member: discord.Member | discord.User | None,
 ) -> None:
     await interaction.response.defer()
 
@@ -51,7 +53,7 @@ async def member_stats(
         await send_user_is_not_in_guild_error_embed(interaction, member)
         return
 
-    user = interaction.user if not member else member
+    user = member if member else interaction.user
     async with self.db_pool.acquire() as conn:
         res = await conn.fetchval(
             "SELECT discord_id FROM tcg_leaderboard WHERE discord_id = $1;", user.id
@@ -65,25 +67,27 @@ async def member_stats(
             )
             data = dict(records[0])
 
-            win_count = data['win_count']
-            loss_count = data['loss_count']
-            elo = data['elo']
-            user_tcg_title_role = user.get_role(data['title']) if data['title'] else None
+            win_count = data["win_count"]
+            loss_count = data["loss_count"]
+            elo = data["elo"]
+            user_tcg_title_role = (
+                user.get_role(data["title"]) if data["title"] else None
+            )
             match_played = win_count + loss_count
             win_rate = 0 if match_played == 0 else (win_count / match_played) * 100
 
             embed = discord.Embed(
                 color=user.color,
                 title=f"{user.name}'s TCG Stats",
-                timestamp=datetime.datetime.now(),
+                timestamp=datetime.datetime.now(tz=datetime.UTC),
             )
             embed.set_thumbnail(url=user.display_avatar.url)
-            embed.add_field(name=f"Total Win", value=f"🏆 {win_count}", inline=False)
-            embed.add_field(name=f"Total Loss", value=f"❌ {loss_count}", inline=False)
-            embed.add_field(name=f"Win Rate", value=f"⚖️ {win_rate:.2f}%", inline=False)
-            embed.add_field(name=f"Elo Rating", value=f"⭐ {elo:.1f}", inline=False)
+            embed.add_field(name="Total Win", value=f"🏆 {win_count}", inline=False)
+            embed.add_field(name="Total Loss", value=f"❌ {loss_count}", inline=False)
+            embed.add_field(name="Win Rate", value=f"⚖️ {win_rate:.2f}%", inline=False)
+            embed.add_field(name="Elo Rating", value=f"⭐ {elo:.1f}", inline=False)
             embed.add_field(
-                name=f"TCG Title",
+                name="TCG Title",
                 value=f"🎖️ {'No TCG title' if not user_tcg_title_role else user_tcg_title_role.mention}",
                 inline=False,
             )
@@ -91,10 +95,10 @@ async def member_stats(
             await interaction.followup.send(embed=embed)
 
 
-async def leaderboard(self, interaction: Interaction) -> None:
+async def leaderboard(db_pool: Pool, interaction: Interaction) -> None:
     await interaction.response.defer()
 
-    async with self.db_pool.acquire() as conn:
+    async with db_pool.acquire() as conn:
         records = await conn.fetch(
             "SELECT * FROM tcg_leaderboard WHERE win_count + loss_count > 0 ORDER BY elo DESC;"
         )
