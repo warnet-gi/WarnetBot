@@ -153,18 +153,27 @@ class Admin(commands.GroupCog, group_name="admin"):
             return await no_permission_alert(interaction=interaction)
 
         guild_name = interaction.guild.name
+        err_msg = None
         try:
             await user.send(
                 f"You have been banned from *{guild_name}* because you were identified as a scammer. "
                 "You may rejoin using this link: https://discord.gg/warnet"
             )
+        except Exception:
+            err_msg = "Failed to send DM to the user. They may have DMs disabled."
+
+        try:
             await interaction.guild.ban(
                 user, reason="Scammer account", delete_message_days=1
             )
             await interaction.guild.unban(user, reason="Scammer account")
             logger.info(
                 "Banned scammer",
-                extra={"banned_id": user.id, "admin_id": interaction.user.id},
+                extra={
+                    "banned_id": user.id,
+                    "admin_id": interaction.user.id,
+                    "error_msg": err_msg,
+                },
             )
         except Exception as e:
             logger.exception(
@@ -174,17 +183,17 @@ class Admin(commands.GroupCog, group_name="admin"):
                 content=f"An unexpected error occurred: {e}", ephemeral=True
             )
 
-        embed = discord.Embed(
-            color=discord.Color.green(),
-            title="✅ User successfully banned",
-            description=f"User {user.mention} has been banned from the server.",
-            timestamp=datetime.now(tz=UTC),
-        )
-        embed.set_footer(
-            text=f"Banned by {interaction.user.name}",
-            icon_url=interaction.user.display_avatar.url,
-        )
-        await interaction.followup.send(embed=embed)
+            embed = discord.Embed(
+                color=discord.Color.green(),
+                title="✅ User successfully banned",
+                description=f"User {user.mention} has been banned from the server. [{err_msg}]",
+                timestamp=datetime.now(tz=UTC),
+            )
+            embed.set_footer(
+                text=f"Banned by {interaction.user.name}",
+                icon_url=interaction.user.display_avatar.url,
+            )
+            await interaction.followup.send(embed=embed)
 
         return None
 
