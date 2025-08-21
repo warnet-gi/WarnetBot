@@ -161,7 +161,7 @@ class Admin(commands.GroupCog, group_name="admin"):
                 f"You have been banned from *{guild_name}* because you were identified as a scammer. "
                 "You may rejoin using this link: https://discord.gg/warnet"
             )
-        except Exception:
+        except Exception:  # noqa: BLE001
             err_msg = "Failed to send DM to the user. They may have DMs disabled."
 
         await interaction.guild.ban(

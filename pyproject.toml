@@ -34,8 +34,6 @@ ignore = [
 
     "T201",    # enable print
     "PLR0911", # allow many return
-    "ERA001",  # allow commented out code
-    "BLE001",  # allow blind except
     "PLR0913", # allow many argument
     "FBT001",  # make cogs easy to read
 
