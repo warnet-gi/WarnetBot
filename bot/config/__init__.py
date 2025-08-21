@@ -32,7 +32,7 @@ HOSTED_DB_USERNAME: str = os.getenv("HOSTED_DB_USERNAME", "")
 HOSTED_DB_PASSWORD: str = os.getenv("HOSTED_DB_PASSWORD", "")
 HOSTED_DB_PORT: int = int(os.getenv("HOSTED_DB_PORT", "0"))
 
-BOT_PREFIX = ["wart!"] if config.BOT_DEBUG else  ["war!", "War!", "WAR!"]
+BOT_PREFIX = ["wart!"] if config.BOT_DEBUG else ["war!", "War!", "WAR!"]
 
 # These are administrator role on Warnet guild
 ADMINISTRATOR_ROLE_ID = {"admin": "761650159833841674", "mod": "761662280541798421"}
@@ -60,7 +60,9 @@ class CustomRoleConfig:
     FONT_SIZE = 30
 
     BOOSTER_ROLE_ID = 768874803712753727
-    BOOSTER_LOG_CHANNEL_ID = 774322083319775262 if config.BOT_DEBUG else 1008600026337005569
+    BOOSTER_LOG_CHANNEL_ID = (
+        774322083319775262 if config.BOT_DEBUG else 1008600026337005569
+    )
 
 
 class TCGConfig:
