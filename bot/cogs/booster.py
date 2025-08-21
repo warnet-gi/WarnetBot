@@ -20,8 +20,8 @@ class Booster(commands.Cog):
         if not self._monthly_booster.is_running():
             self._monthly_booster.start()
 
-    @commands.is_owner()
     @commands.command(name="boostermonthly")
+    @commands.is_owner()
     async def manual_monthly_booster(self, ctx: commands.Context) -> None:
         await ctx.typing()
 

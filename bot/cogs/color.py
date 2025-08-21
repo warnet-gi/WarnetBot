@@ -19,7 +19,7 @@ from bot.cogs.ext.color.utils import (
 )
 from bot.cogs.views.color import AcceptIconAttachment
 from bot.config import CustomRoleConfig
-from bot.helper import no_guild_alert, no_permission_alert, value_is_none
+from bot.helper import app_guard, ctx_guard, no_permission_alert, value_is_none
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +38,14 @@ class Color(commands.GroupCog, group_name="warnet-color"):
     color_edit = app_commands.Group(
         name="edit", description="Sub command to handle role editing."
     )
+
+    async def cog_command_error(self, ctx: commands.Context, error: Exception) -> None:
+        logger.exception("An unexpected error occurred in Admin cog", exc_info=error)
+        await ctx.reply(
+            "An unexpected error occurred. Please try again later.",
+            delete_after=5,
+            ephemeral=True,
+        )
 
     @commands.Cog.listener()
     async def on_connect(self) -> None:
@@ -92,6 +100,7 @@ class Color(commands.GroupCog, group_name="warnet-color"):
         name="The name of the color role you want to create.",
         hex="The HEX color value of the new color role.",
     )
+    @app_guard(premium=True)
     async def add_hex_color(
         self,
         interaction: Interaction,
@@ -101,13 +110,7 @@ class Color(commands.GroupCog, group_name="warnet-color"):
         await interaction.response.defer()
 
         if not interaction.guild:
-            return await no_guild_alert(interaction=interaction)
-
-        if (
-            not interaction.user.premium_since
-            and not interaction.user.guild_permissions.manage_roles
-        ):
-            return await no_permission_alert(interaction)
+            return None
 
         if len(self.custom_role_data_list) == CustomRoleConfig.CUSTOM_ROLE_LIMIT:
             return await interaction.followup.send(
@@ -185,6 +188,7 @@ class Color(commands.GroupCog, group_name="warnet-color"):
         g="The green value of the color. (0-255)",
         b="The blue value of the color. (0-255)",
     )
+    @app_guard(premium=True)
     async def add_rgb_color(
         self,
         interaction: Interaction,
@@ -195,13 +199,7 @@ class Color(commands.GroupCog, group_name="warnet-color"):
     ) -> None:
         await interaction.response.defer()
         if not interaction.guild:
-            return await no_guild_alert(interaction=interaction)
-
-        if (
-            not interaction.user.premium_since
-            and not interaction.user.guild_permissions.manage_roles
-        ):
-            return await no_permission_alert(interaction)
+            return None
 
         if len(self.custom_role_data_list) == CustomRoleConfig.CUSTOM_ROLE_LIMIT:
             return await interaction.followup.send(
@@ -275,6 +273,7 @@ class Color(commands.GroupCog, group_name="warnet-color"):
         new_name="The new name of the color role.",
         hex="The HEX color value of the new color.",
     )
+    @app_guard(premium=True)
     async def edit_hex_color(
         self,
         interaction: Interaction,
@@ -283,12 +282,6 @@ class Color(commands.GroupCog, group_name="warnet-color"):
         hex: str,  # noqa: A002
     ) -> None:
         await interaction.response.defer()
-
-        if (
-            not interaction.user.premium_since
-            and not interaction.user.guild_permissions.manage_roles
-        ):
-            return await no_permission_alert(interaction)
 
         try:
             valid_color = hex_to_discord_color(hex)
@@ -352,6 +345,7 @@ class Color(commands.GroupCog, group_name="warnet-color"):
         g="The green value of the color. (0-255)",
         b="The blue value of the color. (0-255)",
     )
+    @app_guard(premium=True)
     async def edit_rgb_color(
         self,
         interaction: Interaction,
@@ -362,11 +356,6 @@ class Color(commands.GroupCog, group_name="warnet-color"):
         b: int,
     ) -> None:
         await interaction.response.defer()
-        if (
-            not interaction.user.premium_since
-            and not interaction.user.guild_permissions.manage_roles
-        ):
-            return await no_permission_alert(interaction)
 
         try:
             valid_color = discord.Color.from_rgb(r, g, b)
@@ -425,6 +414,7 @@ class Color(commands.GroupCog, group_name="warnet-color"):
     @app_commands.describe(
         role_id_or_name="The name or number of the color role you want to edit.",
     )
+    @app_guard(premium=True)
     async def set_color(
         self,
         interaction: Interaction,
@@ -432,13 +422,7 @@ class Color(commands.GroupCog, group_name="warnet-color"):
     ) -> None:
         await interaction.response.defer()
         if interaction.guild is None:
-            return await no_guild_alert(interaction=interaction)
-
-        if (
-            not interaction.user.premium_since
-            and not interaction.user.guild_permissions.manage_roles
-        ):
-            return await no_permission_alert(interaction)
+            return None
 
         if role_id_or_name.isdigit():
             name = None
@@ -471,6 +455,7 @@ class Color(commands.GroupCog, group_name="warnet-color"):
         role="The role you want to attach the icon.",
         icon="The icon you want to attach to the role. Must be a PNG or JPEG(JPG included) file (Maximum 256 KB).",
     )
+    @app_guard(premium=True)
     async def set_icon(
         self, interaction: Interaction, role: discord.Role, icon: discord.Attachment
     ) -> None:
@@ -522,17 +507,12 @@ class Color(commands.GroupCog, group_name="warnet-color"):
         return None
 
     @app_commands.command(name="remove", description="Remove your current custom role.")
+    @app_guard(premium=True)
     async def remove_color(self, interaction: Interaction) -> None:
         await interaction.response.defer()
 
         if interaction.guild is None:
-            return await no_guild_alert(interaction=interaction)
-
-        if (
-            not interaction.user.premium_since
-            and not interaction.user.guild_permissions.manage_roles
-        ):
-            return await no_permission_alert(interaction)
+            return None
 
         member = interaction.user
         if role_being_used := get_current_custom_role_on_user(
@@ -554,17 +534,12 @@ class Color(commands.GroupCog, group_name="warnet-color"):
     @app_commands.command(
         name="list", description="Show the color list of this server."
     )
+    @app_guard(premium=True)
     async def list_color(self, interaction: Interaction) -> None:
         await interaction.response.defer()
 
         if interaction.guild is None:
-            return await no_guild_alert(interaction=interaction)
-
-        if (
-            not interaction.user.premium_since
-            and not interaction.user.guild_permissions.manage_roles
-        ):
-            return await no_permission_alert(interaction)
+            return None
 
         role_list = [
             role
@@ -582,8 +557,7 @@ class Color(commands.GroupCog, group_name="warnet-color"):
         embed = discord.Embed(color=discord.Color.dark_embed())
         embed.set_image(url=f"attachment://{filename}")
 
-        await interaction.followup.send(embed=embed, file=file)
-        return None
+        return await interaction.followup.send(embed=embed, file=file)
 
     @app_commands.command(
         name="info", description="Show the basic info of a custom role."
@@ -591,6 +565,7 @@ class Color(commands.GroupCog, group_name="warnet-color"):
     @app_commands.describe(
         role_id_or_name="The name or number of the color role you want to edit.",
     )
+    @app_guard(premium=True)
     async def info_color(
         self,
         interaction: Interaction,
@@ -599,13 +574,7 @@ class Color(commands.GroupCog, group_name="warnet-color"):
         await interaction.response.defer()
 
         if interaction.guild is None:
-            return await no_guild_alert(interaction=interaction)
-
-        if (
-            not interaction.user.premium_since
-            and not interaction.user.guild_permissions.manage_roles
-        ):
-            return await no_permission_alert(interaction)
+            return None
 
         if role_id_or_name.isdigit():
             name = None
@@ -647,6 +616,7 @@ class Color(commands.GroupCog, group_name="warnet-color"):
     @app_commands.describe(
         role_id_or_name="The name or number of the color role you want to edit.",
     )
+    @app_guard(premium=True)
     async def delete_color(
         self,
         interaction: Interaction,
@@ -695,6 +665,7 @@ class Color(commands.GroupCog, group_name="warnet-color"):
     @app_commands.command(
         name="help", description="Show the list of available commands."
     )
+    @app_guard(premium=True)
     async def help_color(self, interaction: Interaction) -> None:
         await interaction.response.defer()
         if (
@@ -754,85 +725,83 @@ class Color(commands.GroupCog, group_name="warnet-color"):
         return await interaction.followup.send(embed=embed)
 
     @commands.command(name="colorsync")
+    @ctx_guard(manage_role=True)
     async def sync_color(self, ctx: commands.Context) -> None:
         await ctx.typing()
 
         if ctx.guild is None:
-            await no_guild_alert(ctx=ctx)
             return
 
-        if ctx.author.guild_permissions.manage_roles:
-            async with self.db_pool.acquire() as conn:
-                records = await conn.fetch(
-                    "SELECT * FROM custom_role ORDER BY created_at ASC;"
-                )
-                data_list = [dict(row) for row in records]
+        async with self.db_pool.acquire() as conn:
+            records = await conn.fetch(
+                "SELECT * FROM custom_role ORDER BY created_at ASC;"
+            )
+            data_list = [dict(row) for row in records]
 
-            self.custom_role_data = {}
-            for data in data_list:
-                if ctx.guild.get_role(data["role_id"]):
-                    self.custom_role_data[data["role_id"]] = data["owner_discord_id"]
-            self.custom_role_data_list = list(self.custom_role_data.keys())
-            logger.info("ROLE LIST HAS BEEN SYNCED SUCCESSFULLY")
+        self.custom_role_data = {}
+        for data in data_list:
+            if ctx.guild.get_role(data["role_id"]):
+                self.custom_role_data[data["role_id"]] = data["owner_discord_id"]
+        self.custom_role_data_list = list(self.custom_role_data.keys())
+        logger.info("ROLE LIST HAS BEEN SYNCED SUCCESSFULLY")
 
-            self.cache["color-list"] = None
+        self.cache["color-list"] = None
 
-            await ctx.reply("_Custom roles have been synced_", mention_author=False)
+        await ctx.reply("_Custom roles have been synced_", mention_author=False)
 
     @commands.command(name="colorprune")
+    @ctx_guard(manage_role=True)
     async def prune_color(self, ctx: commands.Context) -> None:
         await ctx.typing()
 
         if ctx.guild is None:
-            await no_guild_alert(ctx=ctx)
             return
 
-        if ctx.author.guild_permissions.manage_roles:
-            async with self.db_pool.acquire() as conn:
-                records = await conn.fetch(
-                    "SELECT * FROM custom_role ORDER BY created_at ASC;"
-                )
-                data_list = [dict(row) for row in records]
-
-            deleted_count = 0
-            roles_to_remove = []
-
-            async with self.db_pool.acquire() as conn:
-                for data in data_list:
-                    role = ctx.guild.get_role(data["role_id"])
-                    if role:
-                        if len(role.members) == 0:
-                            roles_to_remove.append((role, data["role_id"]))
-                            deleted_count += 1
-                    else:
-                        # Role doesn't exist anymore, remove from database
-                        await conn.execute(
-                            "DELETE FROM custom_role WHERE role_id = $1;",
-                            data["role_id"],
-                        )
-                        deleted_count += 1
-
-                for role, role_id in roles_to_remove:
-                    try:
-                        await role.delete(reason="Pruning unused custom roles")
-                        await conn.execute(
-                            "DELETE FROM custom_role WHERE role_id = $1;", role_id
-                        )
-                        if role_id in self.custom_role_data:
-                            self.custom_role_data.pop(role_id)
-                        logger.info("PRUNED UNUSED ROLE", extra={"role_id": role_id})
-                    except Exception:
-                        logger.exception(
-                            "Failed to delete role", extra={"role_id": role_id}
-                        )
-                        deleted_count -= 1
-
-            self.custom_role_data_list = list(self.custom_role_data.keys())
-            self.cache["color-list"] = None
-
-            await ctx.reply(
-                f"_Pruned {deleted_count} unused custom roles_", mention_author=False
+        async with self.db_pool.acquire() as conn:
+            records = await conn.fetch(
+                "SELECT * FROM custom_role ORDER BY created_at ASC;"
             )
+            data_list = [dict(row) for row in records]
+
+        deleted_count = 0
+        roles_to_remove = []
+
+        async with self.db_pool.acquire() as conn:
+            for data in data_list:
+                role = ctx.guild.get_role(data["role_id"])
+                if role:
+                    if len(role.members) == 0:
+                        roles_to_remove.append((role, data["role_id"]))
+                        deleted_count += 1
+                else:
+                    # Role doesn't exist anymore, remove from database
+                    await conn.execute(
+                        "DELETE FROM custom_role WHERE role_id = $1;",
+                        data["role_id"],
+                    )
+                    deleted_count += 1
+
+            for role, role_id in roles_to_remove:
+                try:
+                    await role.delete(reason="Pruning unused custom roles")
+                    await conn.execute(
+                        "DELETE FROM custom_role WHERE role_id = $1;", role_id
+                    )
+                    if role_id in self.custom_role_data:
+                        self.custom_role_data.pop(role_id)
+                    logger.info("PRUNED UNUSED ROLE", extra={"role_id": role_id})
+                except Exception:
+                    logger.exception(
+                        "Failed to delete role", extra={"role_id": role_id}
+                    )
+                    deleted_count -= 1
+
+        self.custom_role_data_list = list(self.custom_role_data.keys())
+        self.cache["color-list"] = None
+
+        await ctx.reply(
+            f"_Pruned {deleted_count} unused custom roles_", mention_author=False
+        )
 
     @color_add.command(
         name="unstable_gradient",
@@ -843,19 +812,14 @@ class Color(commands.GroupCog, group_name="warnet-color"):
         hex_primary="The primary HEX color value of the new color role.",
         hex_secondary="The secondary HEX color value of the new color role.",
     )
+    @app_guard(premium=True)
     async def add_hex_gradient_color(
         self, interaction: Interaction, name: str, hex_primary: str, hex_secondary: str
     ) -> None:
         await interaction.response.defer()
 
         if interaction.guild is None:
-            return await no_guild_alert(interaction=interaction)
-
-        if (
-            not interaction.user.premium_since
-            and not interaction.user.guild_permissions.manage_roles
-        ):
-            return await no_permission_alert(interaction)
+            return None
 
         if len(self.custom_role_data_list) == CustomRoleConfig.CUSTOM_ROLE_LIMIT:
             return await interaction.followup.send(
@@ -971,7 +935,8 @@ class Color(commands.GroupCog, group_name="warnet-color"):
         hex_primary="The primary HEX color value of the new color role.",
         hex_secondary="The secondary HEX color value of the new color role.",
     )
-    async def edit_hex_gradient_color(  # noqa: C901, FIX002 # TODO: improve this
+    @app_guard(premium=True)
+    async def edit_hex_gradient_color(  # noqa: FIX002 # TODO: improve this
         self,
         interaction: Interaction,
         role_id_or_name: str,
@@ -982,13 +947,7 @@ class Color(commands.GroupCog, group_name="warnet-color"):
         await interaction.response.defer()
 
         if interaction.guild is None:
-            return await no_guild_alert(interaction=interaction)
-
-        if (
-            not interaction.user.premium_since
-            and not interaction.user.guild_permissions.manage_roles
-        ):
-            return await no_permission_alert(interaction)
+            return None
 
         try:
             valid_color_primary = hex_to_discord_color(hex_primary)
@@ -1016,64 +975,65 @@ class Color(commands.GroupCog, group_name="warnet-color"):
         role_target = await check_role_by_name_or_number(
             self, interaction, name, number
         )
-        if role_target:
-            if (
-                not interaction.user.guild_permissions.manage_roles
-                and interaction.user.id != self.custom_role_data[role_target.id]
-            ):
-                return await no_permission_alert(interaction)
+        if not role_target:
+            return None
 
-            if not new_name:
-                new_name = role_target.name
-            url = f"https://discord.com/api/v9/guilds/{interaction.guild.id}/roles/{role_target.id}"
-            headers = {
-                "Authorization": f"Bot {self.bot.http.token}",
-                "Content-Type": "application/json",
-                "X-Audit-Log-Reason": "Member Request",
-            }
-            payload = {
-                "name": new_name,
-                "color": valid_color_primary.value,
-                "colors": {
-                    "primary_color": valid_color_primary.value,
-                    "secondary_color": valid_color_secondary.value,
-                },
-            }
-            async with (
-                aiohttp.ClientSession() as session,
-                session.patch(url, json=payload, headers=headers) as resp,
-            ):
-                if resp.status != http.HTTPStatus.OK:
-                    return await interaction.followup.send(
-                        f"❌ Failed to edit gradient role. Discord API returned status {resp.status}.",
-                        ephemeral=True,
-                    )
-                data = await resp.json()
-                edited_role = (
-                    interaction.guild.get_role(int(data["id"]))
-                    if "id" in data
-                    else role_target
+        if (
+            not interaction.user.guild_permissions.manage_roles
+            and interaction.user.id != self.custom_role_data[role_target.id]
+        ):
+            return await no_permission_alert(interaction)
+
+        if not new_name:
+            new_name = role_target.name
+        url = f"https://discord.com/api/v9/guilds/{interaction.guild.id}/roles/{role_target.id}"
+        headers = {
+            "Authorization": f"Bot {self.bot.http.token}",
+            "Content-Type": "application/json",
+            "X-Audit-Log-Reason": "Member Request",
+        }
+        payload = {
+            "name": new_name,
+            "color": valid_color_primary.value,
+            "colors": {
+                "primary_color": valid_color_primary.value,
+                "secondary_color": valid_color_secondary.value,
+            },
+        }
+        async with (
+            aiohttp.ClientSession() as session,
+            session.patch(url, json=payload, headers=headers) as resp,
+        ):
+            if resp.status != http.HTTPStatus.OK:
+                return await interaction.followup.send(
+                    f"❌ Failed to edit gradient role. Discord API returned status {resp.status}.",
+                    ephemeral=True,
                 )
-                if edited_role is None:
-                    return await value_is_none("The role", interaction=interaction)
-
-            self.cache["color-list"] = None
-
-            embed = discord.Embed(
-                title="Custom role edited!",
-                timestamp=datetime.now(tz=UTC),
-                color=edited_role.color,
+            data = await resp.json()
+            edited_role = (
+                interaction.guild.get_role(int(data["id"]))
+                if "id" in data
+                else role_target
             )
-            embed.add_field(
-                name="New custom role settings:",
-                value=(
-                    f"- **Name:** {edited_role.name}\n"
-                    f"- **Hex Primary:** {valid_color_primary}\n"
-                    f"- **Hex Secondary:** {valid_color_secondary}\n"
-                ),
-            )
-            return await interaction.followup.send(embed=embed)
-        return None
+            if edited_role is None:
+                return await value_is_none("The role", interaction=interaction)
+
+        self.cache["color-list"] = None
+
+        embed = discord.Embed(
+            title="Custom role edited!",
+            timestamp=datetime.now(tz=UTC),
+            color=edited_role.color,
+        )
+        embed.add_field(
+            name="New custom role settings:",
+            value=(
+                f"- **Name:** {edited_role.name}\n"
+                f"- **Hex Primary:** {valid_color_primary}\n"
+                f"- **Hex Secondary:** {valid_color_secondary}\n"
+            ),
+        )
+        return await interaction.followup.send(embed=embed)
 
 
 async def setup(bot: WarnetBot) -> None:

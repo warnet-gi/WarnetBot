@@ -10,7 +10,7 @@ from discord import Interaction, app_commands
 from discord.ext import commands, tasks
 
 from bot.bot import WarnetBot
-from bot.helper import no_guild_alert, value_is_none
+from bot.helper import value_is_none
 
 logger = logging.getLogger(__name__)
 
@@ -220,9 +220,10 @@ class General(commands.Cog):
         return
 
     @commands.command()
+    @commands.guild_only()
     async def nobar(self, ctx: commands.Context) -> None:
         if not ctx.guild:
-            return await no_guild_alert(ctx=ctx)
+            return
 
         nobar_channel_id = 1092630886127783957
         open_ticket_channel_id = 1066618888462278657
@@ -232,7 +233,7 @@ class General(commands.Cog):
                 "Role not found",
                 extra={"role_id": 1093508844551942144},
             )
-            return None
+            return
 
         await ctx.channel.send(
             f"Tata cara menjadi **HOST NOBAR** di server {ctx.guild.name}:\n"
@@ -240,7 +241,7 @@ class General(commands.Cog):
             f"2. Tentukan **Judul Film**, **Tanggal**, dan **Jam** nobar. Minimal __satu hari sebelum nobar__, agar dapat diumumkan kepada role **{nobar_role.name}** terlebih dahulu.\n"
             f"3. Pada saat waktu nobar, Admin/Mod akan memberikan kamu akses agar dapat stream pada channel <#{nobar_channel_id}>."
         )
-        return None
+        return
 
     @commands.hybrid_command(
         name="calendar",
