@@ -1,5 +1,4 @@
 import os
-from typing import ClassVar
 
 from dotenv import load_dotenv
 
