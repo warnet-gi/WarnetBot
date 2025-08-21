@@ -1,12 +1,10 @@
-import asyncio
 import io
 import logging
-from typing import Optional
 
 import discord
-from discord import Interaction, Member, Role
+from discord import Interaction, Member, Role, User
 from discord.ext import commands
-from imagetext_py import Canvas, Color, draw_text, FontDB, Paint
+from imagetext_py import Canvas, Color, FontDB, Paint, draw_text
 
 from bot.config import CustomRoleConfig
 
@@ -16,11 +14,17 @@ logger = logging.getLogger(__name__)
 async def check_role_by_name_or_number(
     self: commands.Cog,
     interaction: Interaction,
-    name: Optional[str],
-    number: Optional[int],
-) -> Optional[Role]:
+    name: str | None,
+    number: int | None,
+) -> Role | None:
+    if not interaction.guild:
+        return None
+
+    role_target = None
     if name:
-        role_target = discord.utils.find(lambda r: r.name == name, interaction.guild.roles)
+        role_target = discord.utils.find(
+            lambda r: r.name == name, interaction.guild.roles
+        )
     elif number:
         try:
             role_target_id = self.custom_role_data_list[number - 1]
@@ -38,32 +42,47 @@ async def check_role_by_name_or_number(
 
 
 async def move_role_to_under_boundary(interaction: Interaction, role: Role) -> None:
+    if not interaction.guild:
+        return None
+
     upper_boundary = interaction.guild.get_role(CustomRoleConfig.UPPER_BOUNDARY_ROLE_ID)
+    if not upper_boundary:
+        logger.error(
+            "Upper boundary role not found",
+            extra={"role_id": CustomRoleConfig.UPPER_BOUNDARY_ROLE_ID},
+        )
+        return None
+
     try:
         await role.move(above=upper_boundary, reason="Update custom role position")
     except discord.Forbidden:
-        logger.error(
-            f"Failed to move role {role.name} to the bottom due to insufficient permissions."
+        logger.exception(
+            "Failed to move role to the bottom due to insufficient permissions.",
+            extra={"role_id": role.id},
         )
         return await error_move_role(interaction, role)
-    except discord.HTTPException as e:
-        logger.error(f"Failed to move role {role.name} to the bottom due to HTTPException: {e}")
-        return await error_move_role(interaction, role)
-    except Exception as e:
-        logger.error(
-            f"An unexpected error occurred while moving role {role.name} to the bottom: {e}"
+    except discord.HTTPException:
+        logger.exception(
+            "Failed to move role to the bottom due to HTTPException",
+            extra={"role_id": role.id},
         )
         return await error_move_role(interaction, role)
-    return
+    except Exception:
+        logger.exception(
+            "An unexpected error occurred while moving role to the bottom",
+            extra={"role_id": role.id},
+        )
+        return await error_move_role(interaction, role)
+    return None
 
 
 def get_current_custom_role_on_user(
-    self: commands.Cog, guild: discord.Guild, member: Member
-) -> Optional[Role]:
+    self: commands.Cog, guild: discord.Guild, member: User | Member
+) -> Role | None:
     member_role_id_list = [role.id for role in member.roles]
     res = set(member_role_id_list) & set(self.custom_role_data_list)
 
-    return guild.get_role(list(res)[0]) if res else None
+    return guild.get_role(next(iter(res))) if res else None
 
 
 def generate_image_color_list(role_list: list[discord.Role]) -> io.BytesIO:
@@ -72,41 +91,46 @@ def generate_image_color_list(role_list: list[discord.Role]) -> io.BytesIO:
     There are certain rows per column. Each column has 300px wide.
     """
 
-    FontDB.LoadFromPath('Noto', CustomRoleConfig.FONT_NOTO)
-    FontDB.LoadFromPath('Noto-jp', CustomRoleConfig.FONT_NOTO_JP)
-    FontDB.LoadFromPath('Noto-cn', CustomRoleConfig.FONT_NOTO_CN)
-    font = FontDB.Query('Noto Noto-jp Noto-cn')
+    FontDB.LoadFromPath("Noto", CustomRoleConfig.FONT_NOTO)
+    FontDB.LoadFromPath("Noto-jp", CustomRoleConfig.FONT_NOTO_JP)
+    FontDB.LoadFromPath("Noto-cn", CustomRoleConfig.FONT_NOTO_CN)
+    font = FontDB.Query("Noto Noto-jp Noto-cn")
 
     total_data = len(role_list)
     column_px = 300
-    if total_data <= 15:
+    if total_data <= 15 * 1:
         boundary = 5  # max item per column
         row_px = 200
-    elif total_data <= 30:
+    elif total_data <= 15 * 2:
         boundary = 10
         row_px = 400
-    elif total_data <= 45:
+    elif total_data <= 15 * 3:
         boundary = 15
         row_px = 600
-    elif total_data <= 60:
+    elif total_data <= 15 * 4:
         boundary = 20
         row_px = 800
     else:
         boundary = 25
         row_px = 1000
 
-    background_color = (0, 0, 0, 0)  # RGBA format with alpha set to 0 for transparency
+    background_color = Color(
+        0, 0, 0, 0
+    )  # RGBA format with alpha set to 0 for transparency
     column_need = total_data // boundary + (1 if total_data % boundary else 0)
     width, height = column_px * column_need, row_px
     canvas = Canvas(width, height, background_color)
 
     number = 1
+    max_role_len = 15
     for col in range(column_need):
         x_now = (col * column_px) + 10
         y_now = 1
         for role in role_list[col * boundary : (col + 1) * boundary]:
-            name = role.name[:15] + '...' if len(role.name) > 15 else role.name
-            text = f'{number}. {name}'
+            name = (
+                role.name[:15] + "..." if len(role.name) > max_role_len else role.name
+            )
+            text = f"{number}. {name}"
             fill_color = Paint.Color(Color(*role.color.to_rgb()))
 
             draw_text(
@@ -125,7 +149,7 @@ def generate_image_color_list(role_list: list[discord.Role]) -> io.BytesIO:
 
     image_bytes = io.BytesIO()
     image = canvas.to_image()
-    image.save(image_bytes, format='PNG')
+    image.save(image_bytes, format="PNG")
 
     return image_bytes
 
@@ -134,15 +158,8 @@ def hex_to_discord_color(hex_color: str) -> discord.Color:
     """
     Convert a hex color string to a discord.Color object.
     """
-    hex_color = '#' + hex_color if not hex_color.startswith('#') else hex_color
-    valid_color = discord.Color.from_str(hex_color)
-    return valid_color
-
-
-async def no_permission_alert(interaction: Interaction) -> None:
-    return await interaction.followup.send(
-        "❌ You don't have permission to use this command", ephemeral=True
-    )
+    hex_color = "#" + hex_color if not hex_color.startswith("#") else hex_color
+    return discord.Color.from_str(hex_color)
 
 
 async def error_move_role(interaction: Interaction, role: Role) -> None:

@@ -1,17 +1,23 @@
 import logging
-import os
 import re
-from datetime import datetime, timedelta
-from io import StringIO
-from typing import Literal, Optional, Union
+from datetime import UTC, datetime, timedelta
+from io import BytesIO
+from pathlib import Path
+from typing import Literal
 
 import discord
-from discord import app_commands, Interaction
+from anyio import open_file
+from discord import Interaction, app_commands
 from discord.ext import commands, tasks
 
+from bot import config
 from bot.bot import WarnetBot
-from bot.cogs.ext.tcg.utils import send_missing_permission_error_embed
 from bot.config import MESSAGE_LOG_CHANNEL_ID
+from bot.helper import (
+    app_guard,
+    ctx_guard,
+    value_is_none,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +27,14 @@ class Admin(commands.GroupCog, group_name="admin"):
     def __init__(self, bot: WarnetBot) -> None:
         self.bot = bot
         self.db_pool = self.bot.get_db_pool()
+
+    async def cog_command_error(self, ctx: commands.Context, error: Exception) -> None:
+        logger.exception("An unexpected error occurred in Admin cog", exc_info=error)
+        await ctx.reply(
+            "An unexpected error occurred. Please try again later.",
+            delete_after=5,
+            ephemeral=True,
+        )
 
     @commands.Cog.listener()
     async def on_connect(self) -> None:
@@ -33,7 +47,7 @@ class Admin(commands.GroupCog, group_name="admin"):
         self,
         ctx: commands.Context,
         guilds: commands.Greedy[discord.Object],
-        spec: Optional[Literal["~", "*", "^"]] = None,
+        spec: Literal["~", "*", "^"] | None = None,
     ) -> None:
         if not guilds:
             if spec == "~":
@@ -66,119 +80,116 @@ class Admin(commands.GroupCog, group_name="admin"):
 
     @commands.command()
     @commands.is_owner()
-    async def log(self, ctx: commands.Context, log_type: Optional[str] = "d") -> None:
-        log_dir = "bot/data/log/"
+    async def log(self, ctx: commands.Context, log_type: str | None = "d") -> None:
+        log_dir = Path(config.LOG_DIR)
         if log_type == "d":
             latest_log_file = max(
-                (f for f in os.listdir(log_dir) if f.startswith("bot.log")),
-                key=lambda x: os.path.getmtime(os.path.join(log_dir, x)),
+                (f for f in log_dir.iterdir() if f.name.startswith("bot.log")),
+                key=lambda f: f.stat().st_mtime,
             )
             await ctx.reply(
-                file=discord.File(
-                    os.path.join(log_dir, latest_log_file), filename=latest_log_file
-                ),
+                file=discord.File(latest_log_file, filename=latest_log_file.name),
                 mention_author=False,
             )
 
         elif log_type == "w":
-            log_content = StringIO()
+            log_content = BytesIO()
 
             log_files = sorted(
-                [f for f in os.listdir(log_dir) if f.startswith("bot.log")],
-                key=lambda x: os.path.getmtime(os.path.join(log_dir, x)),
+                (f for f in log_dir.iterdir() if f.name.startswith("bot.log")),
+                key=lambda f: f.stat().st_mtime,
             )
 
             for log_file in log_files:
-                log_file_path = os.path.join(log_dir, log_file)
-                with open(log_file_path, "r", encoding="utf-8") as f:
-                    log_content.write(f.read().rstrip("\n") + "\n")
+                log_file_path = log_file
+                async with await open_file(log_file_path, encoding="utf-8") as f:
+                    log_content.write(
+                        (await f.read()).rstrip("\n").encode("utf-8") + b"\n"
+                    )
 
             log_content.seek(0)
             await ctx.reply(
                 file=discord.File(log_content, filename="weekly.log"),
                 mention_author=False,
             )
+
         else:
             await ctx.reply(
                 "Invalid log type. Use `d` for latest log or `w` for weekly log.",
             )
 
     @commands.command(name="channeltopic", aliases=["ct"])
+    @ctx_guard(manage_channel=True)
     async def channel_topic(self, ctx: commands.Context) -> None:
-        if ctx.author.guild_permissions.manage_channels:
-            await ctx.message.delete()
+        topic: str | None = None
+        if isinstance(ctx.channel, discord.TextChannel):
+            topic = ctx.channel.topic
 
-            topic: Optional[str] = None
-            if isinstance(ctx.channel, discord.TextChannel):
-                topic = ctx.channel.topic
+        embed: discord.Embed
+        if topic:
+            embed = discord.Embed(
+                title=f"Channel #{ctx.channel.name}",
+                description=topic,
+                color=discord.Color.green(),
+            )
+        else:
+            embed = discord.Embed(
+                title="Channel Topic Not Found",
+                description=f"**{ctx.author.name}** No topic set.",
+                color=discord.Color.red(),
+            )
 
-            embed: discord.Embed
-            if topic:
-                embed = discord.Embed(
-                    title=f"Channel #{ctx.channel.name}",
-                    description=topic,
-                    color=discord.Color.green(),
-                )
-            else:
-                embed = discord.Embed(
-                    title="Channel Topic Not Found",
-                    description=f"**{ctx.author.name}** No topic set.",
-                    color=discord.Color.red(),
-                )
-
-            await ctx.send(embed=embed)
+        await ctx.send(embed=embed)
 
     @app_commands.command(name="scammer", description="Ban scammer account")
     @app_commands.describe(
         user="User to be banned.",
     )
+    @app_guard(admin=True)
     async def ban_scammer(
         self,
         interaction: Interaction,
-        user: Union[discord.Member, discord.User],
+        user: discord.Member | discord.User,
     ) -> None:
-        await interaction.response.defer()
+        if interaction.guild is None:
+            return
 
-        if interaction.user.guild_permissions.administrator:
-            guild_name = interaction.guild.name
-            err_msg = None
-            try:
-                await user.send(
-                    f"You have been banned from *{guild_name}* because you were identified as a scammer. "
-                    "You may rejoin using this link: https://discord.gg/warnet"
-                )
-            except Exception:
-                err_msg = "Failed to send DM to the user. They may have DMs disabled."
-
-            try:
-                await interaction.guild.ban(
-                    user, reason="Scammer account", delete_message_days=1
-                )
-                await interaction.guild.unban(user, reason="Scammer account")
-                logger.info(
-                    f"Banned user {user.name} ({user.id}) by {interaction.user.name} ({interaction.user.id})"
-                    f"{err_msg if err_msg else ''}"
-                )
-            except Exception as e:
-                logger.error(f"Unexpected error while banning {user.name}.\n {e}")
-                return await interaction.followup.send(
-                    content=f"An unexpected error occurred: {e}", ephemeral=True
-                )
-
-            embed = discord.Embed(
-                color=discord.Color.green(),
-                title="✅ User successfully banned",
-                description=f"User {user.mention} has been banned from the server. [{err_msg}]",
-                timestamp=datetime.now(),
+        guild_name = interaction.guild.name
+        err_msg = None
+        try:
+            await user.send(
+                f"You have been banned from *{guild_name}* because you were identified as a scammer. "
+                "You may rejoin using this link: https://discord.gg/warnet"
             )
-            embed.set_footer(
-                text=f"Banned by {interaction.user.name}",
-                icon_url=interaction.user.display_avatar.url,
-            )
-            await interaction.followup.send(embed=embed)
+        except Exception:
+            err_msg = "Failed to send DM to the user. They may have DMs disabled."
 
-        else:
-            await send_missing_permission_error_embed(interaction)
+        await interaction.guild.ban(
+            user, reason="Scammer account", delete_message_days=1
+        )
+        await interaction.guild.unban(user, reason="Scammer account")
+        logger.info(
+            "Banned scammer",
+            extra={
+                "banned_id": user.id,
+                "admin_id": interaction.user.id,
+                "error_msg": err_msg,
+            },
+        )
+
+        embed = discord.Embed(
+            color=discord.Color.green(),
+            title="✅ User successfully banned",
+            description=f"User {user.mention} has been banned from the server. [{err_msg}]",
+            timestamp=datetime.now(tz=UTC),
+        )
+        embed.set_footer(
+            text=f"Banned by {interaction.user.name}",
+            icon_url=interaction.user.display_avatar.url,
+        )
+        await interaction.followup.send(embed=embed)
+
+        return
 
     @app_commands.command(
         name="give-role-on-vc",
@@ -188,35 +199,32 @@ class Admin(commands.GroupCog, group_name="admin"):
         vc="Voice channel target.",
         role="Role that will be given to all members in voice channel target.",
     )
+    @app_guard(manage_role=True)
     async def give_role_on_vc(
         self,
         interaction: Interaction,
-        vc: Union[discord.VoiceChannel, discord.StageChannel],
+        vc: discord.VoiceChannel | discord.StageChannel,
         role: discord.Role,
     ) -> None:
         await interaction.response.defer()
 
-        if interaction.user.guild_permissions.manage_roles:
-            cnt = 0
-            for member in vc.members:
-                if not member.get_role(role.id):
-                    await member.add_roles(role)
-                    cnt += 1
+        cnt = 0
+        for member in vc.members:
+            if not member.get_role(role.id):
+                await member.add_roles(role)
+                cnt += 1
 
-            embed = discord.Embed(
-                color=discord.Color.green(),
-                title="✅ Role successfully given",
-                description=f"Role {role.mention} telah diberikan kepada **{cnt}** member di channel {vc.mention}.",
-                timestamp=datetime.now(),
-            )
-            embed.set_footer(
-                text=f"Given by {interaction.user.name}",
-                icon_url=interaction.user.display_avatar.url,
-            )
-            await interaction.followup.send(embed=embed)
-
-        else:
-            await send_missing_permission_error_embed(interaction)
+        embed = discord.Embed(
+            color=discord.Color.green(),
+            title="✅ Role successfully given",
+            description=f"Role {role.mention} telah diberikan kepada **{cnt}** member di channel {vc.mention}.",
+            timestamp=datetime.now(tz=UTC),
+        )
+        embed.set_footer(
+            text=f"Given by {interaction.user.name}",
+            icon_url=interaction.user.display_avatar.url,
+        )
+        return await interaction.followup.send(embed=embed)
 
     @app_commands.command(
         name="give-role-on-poll",
@@ -228,15 +236,19 @@ class Admin(commands.GroupCog, group_name="admin"):
         message_id="message id where poll created.",
         poll_id="Poll id that will be used to get the voters (default=1).",
     )
+    @app_guard(manage_role=True)
     async def give_role_on_poll(
         self,
         interaction: Interaction,
         role: discord.Role,
         channel_poll: discord.TextChannel,
         message_id: app_commands.Range[str, 1],
-        poll_id: Optional[int] = 1,
+        poll_id: int | None,
     ) -> None:
         await interaction.response.defer()
+
+        if poll_id is None:
+            poll_id = 1
 
         try:
             poll_message = await channel_poll.fetch_message(int(message_id))
@@ -246,34 +258,34 @@ class Admin(commands.GroupCog, group_name="admin"):
                 ephemeral=True,
             )
 
-        if poll_message.poll:
-            poll_answer = discord.Poll.get_answer(poll_message.poll, id=poll_id)
-        else:
+        if not poll_message.poll:
             return await interaction.followup.send(
                 content="Poll not found in the message.", ephemeral=True
             )
 
-        if interaction.user.guild_permissions.manage_roles:
-            cnt = 0
-            async for voter in poll_answer.voters():
-                if not voter.get_role(role.id):
-                    await voter.add_roles(role)
-                    cnt += 1
-
-            embed = discord.Embed(
-                color=discord.Color.green(),
-                title="✅ Role successfully given",
-                description=f"Role {role.mention} telah diberikan kepada **{cnt}** member di poll **{poll_message.poll.question}**.",
-                timestamp=datetime.now(),
+        poll_answer = discord.Poll.get_answer(poll_message.poll, id=poll_id)
+        if not poll_answer:
+            return await interaction.followup.send(
+                content="Poll answer not found in the poll.", ephemeral=True
             )
-            embed.set_footer(
-                text=f"Given by {interaction.user.name}",
-                icon_url=interaction.user.display_avatar.url,
-            )
-            await interaction.followup.send(embed=embed)
 
-        else:
-            await send_missing_permission_error_embed(interaction)
+        cnt = 0
+        async for voter in poll_answer.voters():
+            if not voter.get_role(role.id):
+                await voter.add_roles(role)
+                cnt += 1
+
+        embed = discord.Embed(
+            color=discord.Color.green(),
+            title="✅ Role successfully given",
+            description=f"Role {role.mention} telah diberikan kepada **{cnt}** member di poll **{poll_message.poll.question}**.",
+            timestamp=datetime.now(tz=UTC),
+        )
+        embed.set_footer(
+            text=f"Given by {interaction.user.name}",
+            icon_url=interaction.user.display_avatar.url,
+        )
+        return await interaction.followup.send(embed=embed)
 
     @app_commands.command(name="send-message", description="Send message via bot.")
     @app_commands.describe(
@@ -281,72 +293,81 @@ class Admin(commands.GroupCog, group_name="admin"):
         attachment="File to be attached on message.",
         spoiler="Set whether the attachment need to be spoilered or not.",
     )
-    async def send_message(
+    @app_guard(admin=True)
+    async def send_message(  # noqa: C901, FIX002, PLR0912 # TODO: Improve this
         self,
         interaction: discord.Interaction,
-        message: Optional[str],
-        attachment: Optional[discord.Attachment],
-        spoiler: Optional[bool] = False,
+        message: str | None,
+        attachment: discord.Attachment | None,
+        spoiler: bool | None,
     ) -> None:
-        if interaction.user.guild_permissions.administrator:
-            if not message and not attachment:
-                return await interaction.response.send_message(
-                    content="You need to fill `message` and/or `attachment`.",
-                    ephemeral=True,
-                )
+        await interaction.response.defer(ephemeral=True)
 
-            await interaction.response.defer(ephemeral=True)
+        if not interaction.guild or not interaction.channel:
+            return None
 
-            message_valid = True
-            file_valid = True
-            if message and len(message) > 2000:
-                message_valid = False
-            elif message:
-                # support newline by typing '\n' on slash command parameter
-                message = "\n".join(message.split("\\n"))
+        if spoiler is None:
+            spoiler = False
 
-            file: discord.File = None
-            if attachment:
-                if attachment.size > 8e6:  # Discord attachment size limit is 8 MB
-                    file_valid = False
-                else:
-                    file = await attachment.to_file(spoiler=spoiler)
-
-            if not message_valid:
-                return await interaction.followup.send(
-                    content="Message failed to sent. Message can't exceed 2000 characters.",
-                    ephemeral=True,
-                )
-
-            if not file_valid:
-                return await interaction.followup.send(
-                    content="File failed to sent. File can't exceed 8 MB size.",
-                    ephemeral=True,
-                )
-
-            message_sent = await interaction.channel.send(content=message, file=file)
-            await interaction.followup.send(content="Message sent!", ephemeral=True)
-
-            log_embed = discord.Embed(
-                description=(
-                    f"`/admin send-message` command is triggered on {message_sent.jump_url}"
-                ),
-                color=discord.Color.blue(),
-                timestamp=datetime.now(),
-            )
-            log_embed.set_footer(
-                text=f"Triggered by {interaction.user.name}",
-                icon_url=interaction.user.display_avatar.url,
-            )
-
-            message_log_channel = interaction.guild.get_channel(MESSAGE_LOG_CHANNEL_ID)
-            await message_log_channel.send(embed=log_embed)
-
-        else:
+        if not message and not attachment:
             await interaction.response.send_message(
-                content="You don't have permission to execute this command!",
+                content="You need to fill `message` and/or `attachment`.",
                 ephemeral=True,
             )
+
+        message_valid = True
+        file_valid = True
+        max_size_msg = 2000
+        if message and len(message) > max_size_msg:
+            message_valid = False
+        elif message:
+            # support newline by typing '\n' on slash command parameter
+            message = "\n".join(message.split("\\n"))
+
+        file: discord.File | None = None
+        if attachment:
+            attachment_size_limit = 8e6  # Discord attachment size limit is 8 MB
+            if attachment.size > attachment_size_limit:
+                file_valid = False
+            else:
+                file = await attachment.to_file(spoiler=spoiler)
+
+        if not message_valid:
+            return await interaction.followup.send(
+                content="Message failed to sent. Message can't exceed 2000 characters.",
+                ephemeral=True,
+            )
+
+        if not file_valid:
+            return await interaction.followup.send(
+                content="File failed to sent. File can't exceed 8 MB size.",
+                ephemeral=True,
+            )
+
+        if file:
+            message_sent = await interaction.channel.send(content=message, file=file)
+        else:
+            message_sent = await interaction.channel.send(content=message)
+        await interaction.followup.send(content="Message sent!", ephemeral=True)
+
+        log_embed = discord.Embed(
+            description=(
+                f"`/admin send-message` command is triggered on {message_sent.jump_url}"
+            ),
+            color=discord.Color.blue(),
+            timestamp=datetime.now(tz=UTC),
+        )
+        log_embed.set_footer(
+            text=f"Triggered by {interaction.user.name}",
+            icon_url=interaction.user.display_avatar.url,
+        )
+
+        message_log_channel = interaction.guild.get_channel(MESSAGE_LOG_CHANNEL_ID)
+        if not message_log_channel:
+            return await value_is_none(value="log channel", interaction=interaction)
+
+        await message_log_channel.send(embed=log_embed)
+        return None
 
     @commands.hybrid_group(name="schedule-message", aliases=["smsg"])
     async def schedule_message(self, ctx: commands.Context) -> None:
@@ -360,45 +381,47 @@ class Admin(commands.GroupCog, group_name="admin"):
         time="Relative time e.g. 1d, 2h, 40m, 20s, and can be combined like 5h10m20s.",
         message="Message to be scheduled.",
     )
+    @ctx_guard(manage_channel=True)
     async def schedule_message_add(
         self,
         ctx: commands.Context,
-        channel: Union[discord.TextChannel, discord.Thread, discord.ForumChannel],
+        channel: discord.TextChannel | discord.Thread | discord.ForumChannel,
         time: str,
         *,
         message: str,
     ) -> None:
         await ctx.typing()
-        if not ctx.author.guild_permissions.manage_channels:
-            return await ctx.send(
-                content="❌ You don't have permission to execute this command!",
-                ephemeral=True,
-            )
+        if not ctx.guild:
+            return
 
-        if len(message) > 2000:
-            return await ctx.send(
+        max_msg_size = 2000
+        if len(message) > max_msg_size:
+            await ctx.send(
                 content="❌ Message failed to sent. Message can't exceed 2000 characters.",
                 ephemeral=True,
             )
+            return
         message = "\n".join(message.split("\\n"))  # support newline in slash command
 
         if parsed_time := self._parse_relative_time(time):
             day, hour, minute, second = parsed_time
         else:
-            return await ctx.send(
+            await ctx.send(
                 content="❌ Wrong relative time format.",
                 ephemeral=True,
             )
+            return
 
-        date_now = datetime.now()
+        date_now = datetime.now(UTC)
         date_trigger = date_now + timedelta(
             days=day, hours=hour, minutes=minute, seconds=second
         )
+        if date_trigger.tzinfo is None:
+            date_trigger = date_trigger.replace(tzinfo=UTC)
 
         if date_trigger <= date_now:
-            return await ctx.send(
-                "❌ You must specify a time in the future.", ephemeral=True
-            )
+            await ctx.send("❌ You must specify a time in the future.", ephemeral=True)
+            return
 
         async with self.db_pool.acquire() as conn:
             await conn.execute(
@@ -417,12 +440,14 @@ class Admin(commands.GroupCog, group_name="admin"):
         await ctx.send(
             f"⏰ Your message will be triggered in {channel.mention} <t:{int(date_trigger.timestamp())}:R>"
         )
+        return
 
     @schedule_message.command(name="edit", description="Edit a scheduled message.")
     @app_commands.describe(
         scheduled_message_id="Message schedule id",
         new_message="New edited message.",
     )
+    @ctx_guard(manage_channel=True)
     async def schedule_message_edit(
         self,
         ctx: commands.Context,
@@ -430,12 +455,6 @@ class Admin(commands.GroupCog, group_name="admin"):
         *,
         new_message: str,
     ) -> None:
-        if not ctx.author.guild_permissions.manage_channels:
-            return await ctx.send(
-                content="❌ You don't have permission to execute this command!",
-                ephemeral=True,
-            )
-
         async with self.db_pool.acquire() as conn:
             if await conn.fetchval(
                 "SELECT id FROM scheduled_message WHERE id=$1;", scheduled_message_id
@@ -449,23 +468,20 @@ class Admin(commands.GroupCog, group_name="admin"):
             else:
                 not_found_message = f"There is no scheduled message with id `{scheduled_message_id}`.\n\n"
                 not_found_message += "Use `/admin schedule-message list` or `war! smsg list` to check the list of scheduled messages."
-                return await ctx.send(not_found_message)
+                await ctx.send(not_found_message)
+                return
 
         await ctx.send(
             f"Message is succesfully edited on scheduled message id `{scheduled_message_id}`"
         )
+        return
 
     @schedule_message.command(name="cancel", description="Cancel a scheduled message.")
     @app_commands.describe(scheduled_message_id="Message schedule id to be canceled.")
+    @ctx_guard(manage_channel=True)
     async def schedule_message_cancel(
         self, ctx: commands.Context, scheduled_message_id: commands.Range[int, 1]
     ) -> None:
-        if not ctx.author.guild_permissions.manage_channels:
-            return await ctx.send(
-                content="❌ You don't have permission to execute this command!",
-                ephemeral=True,
-            )
-
         async with self.db_pool.acquire() as conn:
             res = await conn.fetchval(
                 "SELECT id FROM scheduled_message WHERE id=$1;", scheduled_message_id
@@ -475,25 +491,26 @@ class Admin(commands.GroupCog, group_name="admin"):
                 await conn.execute(
                     "DELETE FROM scheduled_message WHERE id=$1", scheduled_message_id
                 )
-                return await ctx.send(
+                await ctx.send(
                     f"Scheduled message id `{scheduled_message_id}` has been canceled."
                 )
+                return
 
-            else:
-                not_found_message = f"There is no scheduled message with id `{scheduled_message_id}`.\n\n"
-                not_found_message += "Use `/admin schedule-message list` or `war! smsg list` to check the list of scheduled messages."
-                return await ctx.send(not_found_message)
+            not_found_message = (
+                f"There is no scheduled message with id `{scheduled_message_id}`.\n\n"
+            )
+            not_found_message += "Use `/admin schedule-message list` or `war! smsg list` to check the list of scheduled messages."
+            await ctx.send(not_found_message)
+            return
 
     @schedule_message.command(
         name="list",
         description="Show the list of active scheduled messages in the guild.",
     )
+    @ctx_guard(manage_channel=True)
     async def schedule_message_list(self, ctx: commands.Context) -> None:
-        if not ctx.author.guild_permissions.manage_channels:
-            return await ctx.send(
-                content="❌ You don't have permission to execute this command!",
-                ephemeral=True,
-            )
+        if not ctx.guild:
+            return
 
         async with self.db_pool.acquire() as conn:
             records = await conn.fetch(
@@ -504,14 +521,23 @@ class Admin(commands.GroupCog, group_name="admin"):
 
         content = f"List of Scheduled message in **{ctx.guild.name}**\n"
         is_replied = False
+        max_len_msg = 20
+        max_size_msg = 2000
         for data in scheduled_message_data_list:
             channel = ctx.guild.get_channel(data["channel_id"])
+            if not channel:
+                logger.error(
+                    "Channel not found", extra={"channel_id": data["channel_id"]}
+                )
+                continue
             date_trigger_unix = int(data["date_trigger"].timestamp())
             message = data["message"]
-            content_message = message if len(message) <= 20 else message[:20] + "..."
+            content_message = (
+                message if len(message) <= max_len_msg else message[:20] + "..."
+            )
             content_extra = f"**{data['id']}**: {channel.mention}: {content_message} - <t:{date_trigger_unix}:F> <t:{date_trigger_unix}:R>\n"
 
-            if len(content + content_extra) > 2000:
+            if len(content + content_extra) > max_size_msg:
                 if not is_replied:
                     is_replied = True
                     await ctx.reply(content=content, mention_author=False)
@@ -525,8 +551,10 @@ class Admin(commands.GroupCog, group_name="admin"):
         content += "\nCancel a message schedule by using `/admin schedule-message cancel <id>` or `war! smsg cancel <id>`"
         if is_replied:
             await ctx.channel.send(content=content)
-        else:
-            await ctx.reply(content=content, mention_author=False)
+            return
+
+        await ctx.reply(content=content, mention_author=False)
+        return
 
     @tasks.loop()
     async def _message_schedule_task(self) -> None:
@@ -549,6 +577,11 @@ class Admin(commands.GroupCog, group_name="admin"):
             # task will be None if cancel command is triggered
             if task:
                 guild = self.bot.get_guild(task["guild_id"])
+                if not guild:
+                    logger.error(
+                        "guild not found", extra={"guild_id": task["guild_id"]}
+                    )
+                    return
                 target_channel = guild.get_channel(task["channel_id"])
 
                 if target_channel:
@@ -560,11 +593,11 @@ class Admin(commands.GroupCog, group_name="admin"):
                     )
 
     @_message_schedule_task.before_loop
-    async def _before_message_schedule_task(self):
+    async def _before_message_schedule_task(self) -> None:
         await self.bot.wait_until_ready()
 
     @staticmethod
-    def _parse_relative_time(time_text: str) -> Optional[tuple]:
+    def _parse_relative_time(time_text: str) -> tuple | None:
         pattern = r"\d+[dhms]"
 
         if matched_list := re.findall(pattern, time_text):
@@ -583,8 +616,7 @@ class Admin(commands.GroupCog, group_name="admin"):
 
             return day, hour, minute, second
 
-        else:
-            return
+        return None
 
 
 async def setup(bot: WarnetBot) -> None:

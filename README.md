@@ -19,7 +19,7 @@
 
 ## Requirement
 
-- Python 3.10+
+- uv (https://docs.astral.sh/uv/)
 - PostgreSQL
 
 ## How to contribute?

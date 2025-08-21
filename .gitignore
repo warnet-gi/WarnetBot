@@ -130,6 +130,3 @@ dmypy.json
 
 *.crt
 .vscode
-poetry.lock
-
-bot/data/genshin.json

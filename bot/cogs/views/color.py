@@ -3,24 +3,30 @@ from io import BytesIO
 import discord
 from discord import Interaction
 
-from bot.cogs.ext.color.utils import no_permission_alert
+from bot.helper import no_permission_alert
 
 
 class AcceptIconAttachment(discord.ui.View):
-    def __init__(self, role, bytes):
+    def __init__(self, role: discord.Role, _bytes: BytesIO) -> None:
         super().__init__(timeout=3600)
-        self.role: discord.Role = role
-        self.bytes: BytesIO = bytes
+        self.role = role
+        self.bytes = _bytes
 
     @discord.ui.button(label="Accept", style=discord.ButtonStyle.success, emoji="✅")
-    async def add_role_icon(self, interaction: Interaction, button: discord.ui.Button) -> None:
+    async def add_role_icon(
+        self, interaction: Interaction, button: discord.ui.Button
+    ) -> None:
         await interaction.response.defer(ephemeral=True)
         if not interaction.user.guild_permissions.manage_roles:
-            return await no_permission_alert(interaction)
+            return await no_permission_alert(interaction=interaction)
+
+        if not interaction.message:
+            return None
 
         try:
             edited_role = await self.role.edit(
-                display_icon=self.bytes.getvalue(), reason=f"Approved by {interaction.user.name}"
+                display_icon=self.bytes.getvalue(),
+                reason=f"Approved by {interaction.user.name}",
             )
         except discord.HTTPException:
             return await interaction.followup.send(
@@ -28,20 +34,25 @@ class AcceptIconAttachment(discord.ui.View):
                 ephemeral=True,
             )
 
-        if edited_role:
-            embed = discord.Embed(
-                title="Role Icon Updated",
-                description=f"Role {edited_role.mention} icon has been updated.",
-                color=discord.Color.green(),
-            )
-            embed.set_footer(
-                text=f"Accepted by {interaction.user.name}",
-                icon_url=interaction.user.display_avatar.url,
+        if not edited_role:
+            return await interaction.followup.send(
+                "Role Not Found.",
+                ephemeral=True,
             )
 
-            button.label = "Accepted"
-            button.disabled = True
-            await interaction.message.edit(view=self)
+        embed = discord.Embed(
+            title="Role Icon Updated",
+            description=f"Role {edited_role.mention} icon has been updated.",
+            color=discord.Color.green(),
+        )
+        embed.set_footer(
+            text=f"Accepted by {interaction.user.name}",
+            icon_url=interaction.user.display_avatar.url,
+        )
 
-            self.stop()
-            await interaction.followup.send(embed=embed)
+        button.label = "Accepted"
+        button.disabled = True
+        await interaction.message.edit(view=self)
+
+        self.stop()
+        return await interaction.followup.send(embed=embed)
