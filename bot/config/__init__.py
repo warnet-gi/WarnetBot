@@ -63,21 +63,3 @@ class CustomRoleConfig:
     BOOSTER_LOG_CHANNEL_ID = (
         774322083319775262 if config.BOT_DEBUG else 1008600026337005569
     )
-
-
-class TCGConfig:
-    TCG_TITLE_ROLE_ID = (
-        1051867676202512415,  # Novice Duelist
-        1051865453208801361,  # Expert Duelist
-        1051865448980942948,  # Master Duelist
-        1051865444073611365,  # Immortal Duelist
-    )
-    TCG_EVENT_STAFF_ROLE_ID = 977488765234855986
-    TCG_MATCH_REPORT_CHANNEL_ID = 1053525411725836428
-    TCG_MATCH_LOG_CHANNEL_ID = 1053525862982631516
-    TCG_TITLE_EMOJI: ClassVar[dict[int, str]] = {
-        TCG_TITLE_ROLE_ID[0]: "<:NoviceDuelist:1052440393461022760>",
-        TCG_TITLE_ROLE_ID[1]: "<:ExpertDuelist:1052440396489314304>",
-        TCG_TITLE_ROLE_ID[2]: "<:MasterDuelist:1052440400822018078>",
-        TCG_TITLE_ROLE_ID[3]: "<:ImmortalDuelist:1052440404135518228>",
-    }
