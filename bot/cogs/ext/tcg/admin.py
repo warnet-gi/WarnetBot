@@ -16,8 +16,6 @@ from bot.cogs.ext.tcg.utils import (
 )
 from bot.cogs.views.general import Confirm
 from bot.helper import (
-    no_channel_alert,
-    no_guild_alert,
     no_permission_alert,
     value_is_none,
 )
@@ -130,11 +128,9 @@ async def reset_member_stats(
     await interaction.response.defer()
 
     if not interaction.guild:
-        await no_guild_alert(interaction=interaction)
         return
 
     if not interaction.channel:
-        await no_channel_alert(interaction=interaction)
         return
 
     if isinstance(member, discord.User):
@@ -210,7 +206,6 @@ async def reset_all_member_stats(db_pool: Pool, interaction: Interaction) -> Non
     await interaction.response.defer()
 
     if not interaction.guild:
-        await no_guild_alert(interaction=interaction)
         return
 
     if not interaction.user.guild_permissions.administrator:
@@ -287,7 +282,6 @@ async def set_match_result(  # noqa: C901, PLR0912, FIX002 #TODO: improve this
     await interaction.response.defer()
 
     if not interaction.guild:
-        await no_guild_alert(interaction=interaction)
         return
 
     if interaction.user.guild_permissions.administrator or interaction.user.get_role(
@@ -417,7 +411,7 @@ async def undo_match_result(  # noqa: C901, PLR0912, FIX002 # TODO: improve this
         )
 
     if not interaction.guild:
-        return await no_guild_alert(interaction=interaction)
+        return None
 
     if (
         not interaction.user.guild_permissions.administrator

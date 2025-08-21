@@ -7,7 +7,6 @@ from discord.ext import commands
 from imagetext_py import Canvas, Color, FontDB, Paint, draw_text
 
 from bot.config import CustomRoleConfig
-from bot.helper import no_guild_alert, value_is_none
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +18,7 @@ async def check_role_by_name_or_number(
     number: int | None,
 ) -> Role | None:
     if not interaction.guild:
-        return await no_guild_alert(interaction=interaction)
+        return None
 
     role_target = None
     if name:
@@ -44,14 +43,15 @@ async def check_role_by_name_or_number(
 
 async def move_role_to_under_boundary(interaction: Interaction, role: Role) -> None:
     if not interaction.guild:
-        return await no_guild_alert(interaction=interaction)
+        return None
 
     upper_boundary = interaction.guild.get_role(CustomRoleConfig.UPPER_BOUNDARY_ROLE_ID)
     if not upper_boundary:
-        return await value_is_none(
-            value=f"upper_boundary {CustomRoleConfig.UPPER_BOUNDARY_ROLE_ID}",
-            interaction=interaction,
+        logger.error(
+            "Upper boundary role not found",
+            extra={"role_id": CustomRoleConfig.UPPER_BOUNDARY_ROLE_ID},
         )
+        return None
 
     try:
         await role.move(above=upper_boundary, reason="Update custom role position")

@@ -8,7 +8,7 @@ from discord.ext import commands
 
 from bot.bot import WarnetBot
 from bot.cogs.views.sticky import StickyPagination
-from bot.helper import no_guild_alert, no_permission_alert
+from bot.helper import app_guard
 
 logger = logging.getLogger(__name__)
 
@@ -76,6 +76,9 @@ class Sticky(commands.GroupCog, group_name="sticky"):
         channel="Target channel.",
         delay_time="Delay after new message is sent on a channel (in seconds). Default is 2 seconds.",
     )
+    @app_guard(
+        manage_channel=True,
+    )
     async def add_sticky_message(
         self,
         interaction: Interaction,
@@ -85,10 +88,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
     ) -> None:
         await interaction.response.defer()
         if interaction.guild is None:
-            return await no_guild_alert(interaction)
-
-        if interaction.permissions.manage_channels:
-            return await no_permission_alert(interaction)
+            return None
 
         async with self.db_pool.acquire() as conn:
             res = await conn.fetchrow(
@@ -150,6 +150,9 @@ class Sticky(commands.GroupCog, group_name="sticky"):
         channel="Channel name.",
         delay_time="New delay time after new message is sent on a channel (in seconds).",
     )
+    @app_guard(
+        manage_channel=True,
+    )
     async def edit_sticky_message(
         self,
         interaction: Interaction,
@@ -159,10 +162,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
     ) -> None:
         await interaction.response.defer()
         if interaction.guild is None:
-            return await no_guild_alert(interaction)
-
-        if interaction.permissions.manage_channels:
-            return await no_permission_alert(interaction)
+            return None
 
         async with self.db_pool.acquire() as conn:
             data = await conn.fetchrow(
@@ -220,6 +220,9 @@ class Sticky(commands.GroupCog, group_name="sticky"):
         name="remove", description="Remove sticky message from channel."
     )
     @app_commands.describe(channel="Target channel.")
+    @app_guard(
+        manage_channel=True,
+    )
     async def remove_sticky_message(
         self,
         interaction: Interaction,
@@ -228,10 +231,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
         await interaction.response.defer()
 
         if interaction.guild is None:
-            return await no_guild_alert(interaction)
-
-        if interaction.permissions.manage_channels:
-            return await no_permission_alert(interaction)
+            return None
 
         async with self.db_pool.acquire() as conn:
             data = await conn.fetchrow(
@@ -277,17 +277,18 @@ class Sticky(commands.GroupCog, group_name="sticky"):
         name="resend", description="Resend sticky message to channels."
     )
     @app_commands.describe(channel="Target Channel")
+    @app_guard(
+        manage_channel=True,
+    )
     async def resend_sticky_message(
         self,
         interaction: Interaction,
         channel: discord.TextChannel | discord.Thread,
     ) -> None:
         await interaction.response.defer()
-        if not interaction.permissions.manage_channels:
-            return await no_permission_alert(interaction)
 
         if interaction.guild is None:
-            return await no_guild_alert(interaction)
+            return None
 
         async with self.db_pool.acquire() as conn:
             data = await conn.fetchrow(
@@ -346,17 +347,18 @@ class Sticky(commands.GroupCog, group_name="sticky"):
     @app_commands.describe(
         invalid_channel_only="Only purge sticky message data from deleted channel or thread"
     )
+    @app_guard(
+        manage_channel=True,
+    )
     async def purge_sticky_message(
         self,
         interaction: Interaction,
         invalid_channel_only: bool,
     ) -> None:
         await interaction.response.defer()
-        if not interaction.permissions.manage_channels:
-            return await no_permission_alert(interaction)
 
         if interaction.guild is None:
-            return await no_guild_alert(interaction)
+            return None
 
         async with self.db_pool.acquire() as conn:
             res = await conn.fetch("SELECT * FROM sticky;")

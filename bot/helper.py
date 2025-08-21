@@ -5,7 +5,11 @@ from discord.ext import commands
 
 
 def app_guard(
-    *, admin: bool = False, manage_channel: bool = False, manage_role: bool = False, premium: bool = False
+    *,
+    admin: bool = False,
+    manage_channel: bool = False,
+    manage_role: bool = False,
+    premium: bool = False,
 ) -> Callable:
     async def predicate(interaction: Interaction) -> bool:
         if admin and not interaction.user.guild_permissions.administrator:
@@ -20,7 +24,11 @@ def app_guard(
             await no_permission_alert(interaction=interaction)
             return False
 
-        if premium and not interaction.user.premium_since and not interaction.user.guild_permissions.administrator:
+        if (
+            premium
+            and not interaction.user.premium_since
+            and not interaction.user.guild_permissions.administrator
+        ):
             await no_permission_alert(interaction=interaction)
             return False
 
@@ -30,7 +38,11 @@ def app_guard(
 
 
 def ctx_guard(
-    *, admin: bool = False, manage_channel: bool = False, manage_role: bool = False
+    *,
+    admin: bool = False,
+    manage_channel: bool = False,
+    manage_role: bool = False,
+    role_id: int | None = None,
 ) -> Callable:
     async def predicate(ctx: commands.Context) -> bool:
         if admin and not ctx.author.guild_permissions.administrator:
@@ -42,6 +54,14 @@ def ctx_guard(
             return False
 
         if manage_role and not ctx.author.guild_permissions.manage_roles:
+            await no_permission_alert(ctx=ctx)
+            return False
+
+        if (
+            role_id
+            and not ctx.author.get_role(role_id)
+            and not ctx.author.guild_permissions.administrator
+        ):
             await no_permission_alert(ctx=ctx)
             return False
 

@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 import json
 import logging
 from pathlib import Path
@@ -14,6 +15,7 @@ from bot.config import news as news_config
 logger = logging.getLogger(__name__)
 
 
+@commands.guild_only()
 class News(commands.GroupCog):
     def __init__(self, bot: WarnetBot) -> None:
         self.bot = bot
@@ -72,9 +74,9 @@ class News(commands.GroupCog):
                 title=item["title"],
                 url=item["url"],
                 color=news_config.TAG_COLOR_MAP.get(
-                    item["tags"][0].value, discord.Color.default()
+                    item["tags"][0], discord.Color.default()
                 ),
-                timestamp=item["date_published"],
+                timestamp=datetime.datetime.fromisoformat(item["date_published"]),
             )
             embed.set_image(url=item["image"])
             embed.set_author(

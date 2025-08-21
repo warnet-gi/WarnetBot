@@ -23,6 +23,14 @@ class Temporary(commands.GroupCog, group_name="warnet-temp"):
         if not self._check_temprole.is_running():
             self._check_temprole.start()
 
+    async def cog_command_error(self, ctx: commands.Context, error: Exception) -> None:
+        logger.exception("An unexpected error occurred in Admin cog", exc_info=error)
+        await ctx.reply(
+            "An unexpected error occurred. Please try again later.",
+            delete_after=5,
+            ephemeral=True,
+        )
+
     @app_commands.command(name="add", description="Adds a temprole to user")
     @app_commands.describe(
         user="User to add temprole to",

@@ -5,7 +5,6 @@ from discord import Interaction
 from discord.ext import commands
 
 from bot import config
-from bot.helper import no_guild_alert
 
 
 class LeaderboardPagination(discord.ui.View):
@@ -48,7 +47,6 @@ class LeaderboardPagination(discord.ui.View):
         n_members = 20
 
         if not ctx.guild:
-            await no_guild_alert(ctx=ctx)
             return
 
         total_data = len(leaderboard_data)

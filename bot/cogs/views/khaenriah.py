@@ -4,8 +4,6 @@ import discord
 from discord import Interaction
 from discord.ext import commands
 
-from bot.helper import no_guild_alert
-
 
 class BuronanPagination(discord.ui.View):
     def __init__(
@@ -47,7 +45,6 @@ class BuronanPagination(discord.ui.View):
         n_members = 10
 
         if not ctx.guild:
-            await no_guild_alert(ctx=ctx)
             return
 
         total_data = len(buronan_list_data)

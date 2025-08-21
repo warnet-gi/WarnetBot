@@ -4,7 +4,6 @@ import discord
 from discord import Interaction
 
 from bot import config
-from bot.helper import no_channel_alert, no_guild_alert
 
 
 async def send_user_not_registered_error_embed(
@@ -78,7 +77,7 @@ async def change_tcg_title_role(
             await member.remove_roles(current_tcg_role)
 
         if not interaction.channel:
-            return await no_channel_alert(interaction=interaction)
+            return None
 
         if target_role:
             await member.add_roles(target_role, reason="Achieve new title in TCG")
@@ -107,7 +106,7 @@ async def check_for_eligible_tcg_title(
     * Immortal Duelist = 1700
     """
     if not interaction.guild:
-        return await no_guild_alert(interaction=interaction)
+        return None
 
     tcg_title_role_list = [
         interaction.guild.get_role(role_id)

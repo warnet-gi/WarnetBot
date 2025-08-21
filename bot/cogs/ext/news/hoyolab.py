@@ -37,21 +37,15 @@ class HoyolabNewsAuthor(TypedDict):
     name: Name
 
 
-class HoyolabNewsTag(Enum):
-    EVENTS = "Events"
-    INFO = "Info"
-    NOTICES = "Notices"
-
-
 @dataclass
 class HoyolabNewsItem(TypedDict):
     id: int
     url: str
     title: str
     authors: list[HoyolabNewsAuthor]
-    tags: list[HoyolabNewsTag]
+    tags: list[str]
     content_html: str
-    date_published: datetime
+    date_published: str
     summary: str
     image: str
 

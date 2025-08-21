@@ -19,6 +19,14 @@ class General(commands.Cog):
     def __init__(self, bot: WarnetBot) -> None:
         self.bot = bot
 
+    async def cog_command_error(self, ctx: commands.Context, error: Exception) -> None:
+        logger.exception("An unexpected error occurred in Admin cog", exc_info=error)
+        await ctx.reply(
+            "An unexpected error occurred. Please try again later.",
+            delete_after=5,
+            ephemeral=True,
+        )
+
     @commands.command(name="ping")
     async def ping(self, ctx: commands.Context) -> None:
         await ctx.send(

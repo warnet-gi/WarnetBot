@@ -20,6 +20,14 @@ class Booster(commands.Cog):
         if not self._monthly_booster.is_running():
             self._monthly_booster.start()
 
+    async def cog_command_error(self, ctx: commands.Context, error: Exception) -> None:
+        logger.exception("An unexpected error occurred in Admin cog", exc_info=error)
+        await ctx.reply(
+            "An unexpected error occurred. Please try again later.",
+            delete_after=5,
+            ephemeral=True,
+        )
+
     @commands.command(name="boostermonthly")
     @commands.is_owner()
     async def manual_monthly_booster(self, ctx: commands.Context) -> None:

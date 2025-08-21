@@ -7,7 +7,7 @@ from discord.ext import commands
 from bot import config
 from bot.bot import WarnetBot
 from bot.cogs.views.khaenriah import BuronanPagination
-from bot.helper import no_guild_alert, no_permission_alert
+from bot.helper import ctx_guard
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +22,14 @@ class Khaenriah(commands.Cog):
         self.bot = bot
         self.db_pool = self.bot.get_db_pool()
 
+    async def cog_command_error(self, ctx: commands.Context, error: Exception) -> None:
+        logger.exception("An unexpected error occurred in Admin cog", exc_info=error)
+        await ctx.reply(
+            "An unexpected error occurred. Please try again later.",
+            delete_after=5,
+            ephemeral=True,
+        )
+
     @commands.group(aliases=["buron"])
     async def buronan(self, ctx: commands.Context) -> None:
         list_of_commands = (
@@ -35,6 +43,7 @@ class Khaenriah(commands.Cog):
             await ctx.send(f"Try:\n{list_of_commands}")
 
     @buronan.command(name="warn")
+    @ctx_guard(role_id=KURATOR_TEYVAT_ROLE_ID)
     async def buronan_warn(
         self,
         ctx: commands.Context,
@@ -43,13 +52,6 @@ class Khaenriah(commands.Cog):
         reason: str | None,
     ) -> None:
         if not ctx.guild:
-            await no_guild_alert(ctx=ctx)
-            return
-
-        if not ctx.author.guild_permissions.administrator and not ctx.author.get_role(
-            self.KURATOR_TEYVAT_ROLE_ID
-        ):
-            await no_permission_alert(ctx=ctx)
             return
 
         async with self.db_pool.acquire() as conn:
@@ -116,17 +118,11 @@ class Khaenriah(commands.Cog):
         return
 
     @buronan.command(name="increase", aliases=["inc"])
+    @ctx_guard(role_id=KURATOR_TEYVAT_ROLE_ID)
     async def buronan_increase(
         self, ctx: commands.Context, member: discord.Member | discord.User
     ) -> None:
         if not ctx.guild:
-            await no_guild_alert(ctx=ctx)
-            return
-
-        if not ctx.author.guild_permissions.administrator and not ctx.author.get_role(
-            self.KURATOR_TEYVAT_ROLE_ID
-        ):
-            await no_permission_alert(ctx=ctx)
             return
 
         async with self.db_pool.acquire() as conn:
@@ -187,17 +183,11 @@ class Khaenriah(commands.Cog):
         return
 
     @buronan.command(name="decrease", aliases=["dec"])
+    @ctx_guard(role_id=KURATOR_TEYVAT_ROLE_ID)
     async def buronan_decrease(
         self, ctx: commands.Context, member: discord.Member | discord.User
     ) -> None:
         if not ctx.guild:
-            await no_guild_alert(ctx=ctx)
-            return
-
-        if not ctx.author.guild_permissions.administrator and not ctx.author.get_role(
-            self.KURATOR_TEYVAT_ROLE_ID
-        ):
-            await no_permission_alert(ctx=ctx)
             return
 
         async with self.db_pool.acquire() as conn:
