@@ -155,7 +155,7 @@ class Admin(commands.GroupCog, group_name="admin"):
             return
 
         guild_name = interaction.guild.name
-        err_msg = None
+        err_msg = "DM sent successfully."
         try:
             await user.send(
                 f"You have been banned from *{guild_name}* because you were identified as a scammer. "
