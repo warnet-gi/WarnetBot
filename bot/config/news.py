@@ -13,7 +13,7 @@ LAST_ID_HOYOLAB_NEWS_PATH = "bot/data/news/hoyolab.txt"
 TIMES_CHECK_UPDATE = [
     datetime.time(hour=h, minute=m, tzinfo=datetime.UTC)
     for h in range(24)
-    for m in range(7, 60, 10)
+    for m in range(2, 60, 10)
 ]
 
 TAG_COLOR_MAP = {

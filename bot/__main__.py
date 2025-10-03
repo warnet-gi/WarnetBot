@@ -1,8 +1,11 @@
 import asyncio
+import logging
 
 from bot import config
 from bot.bot import WarnetBot
 from bot.config.logger import setup_logger
+
+logging.getLogger("hoyolabrssfeeds").setLevel(logging.CRITICAL + 1)
 
 
 def main() -> None:
