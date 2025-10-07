@@ -1,4 +1,4 @@
-name: Pyright type checker
+name: Pyright
 
 on:
   push:
