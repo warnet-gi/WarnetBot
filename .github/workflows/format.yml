@@ -10,7 +10,6 @@ on:
 
 jobs:
   format:
-    name: black
     runs-on: ubuntu-latest
 
     steps:

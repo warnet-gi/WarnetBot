@@ -9,8 +9,7 @@ on:
       - main
 
 jobs:
-  format:
-    name: black
+  type-check:
     runs-on: ubuntu-latest
 
     steps:

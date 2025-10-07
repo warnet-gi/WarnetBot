@@ -9,8 +9,7 @@ on:
       - main
 
 jobs:
-  format:
-    name: isort
+  lint:
     runs-on: ubuntu-latest
     
     steps:
