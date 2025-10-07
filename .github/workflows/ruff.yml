@@ -1,4 +1,5 @@
 name: Ruff
+
 on:
   push:
     branches:
@@ -6,13 +7,14 @@ on:
   pull_request:
     branches:
       - main
+
 jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/ruff-action@v3
-  
+
   format:
     runs-on: ubuntu-latest
     steps:
