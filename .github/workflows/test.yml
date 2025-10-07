@@ -12,7 +12,7 @@ on:
 jobs:
   test-cov:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -30,5 +30,5 @@ jobs:
         if: github.event_name == 'pull_request'
         uses: orgoro/coverage@v3.1
         with:
-            coverageFile: coverage.xml
-            token: ${{ secrets.GITHUB_TOKEN }}
+          coverageFile: coverage.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
