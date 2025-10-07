@@ -5,7 +5,7 @@ from bot import config
 from bot.bot import WarnetBot
 from bot.config.logger import setup_logger
 
-logging.getLogger("hoyolabrssfeeds").setLevel(logging.INFO + 1)
+logging.getLogger("hoyolabrssfeeds").setLevel(logging.ERROR)
 
 
 def main() -> None:
