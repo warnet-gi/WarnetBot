@@ -16,7 +16,7 @@ BOT_PREFIX = config.BOT_PREFIX
 
 
 class WarnetBot(Bot):
-    debug: bool
+    debug: bool = False
     bot_app_info: discord.AppInfo
     db_pool: asyncpg.Pool
 
