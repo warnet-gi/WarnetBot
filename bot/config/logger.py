@@ -27,7 +27,7 @@ def setup_logger() -> None:
 
     console_handler = DebugConsoleHandler()
     console_handler.setFormatter(formatter)
-    console_handler.setLevel(logging.DEBUG)
+    console_handler.setLevel(logging.INFO)
 
     file_handler = logging.handlers.TimedRotatingFileHandler(
         filename="bot/data/log/bot.log",
@@ -44,6 +44,6 @@ def setup_logger() -> None:
     ).timetuple()
 
     logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.INFO)
     logger.addHandler(console_handler)
     logger.addHandler(file_handler)

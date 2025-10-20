@@ -51,7 +51,6 @@ class News(commands.GroupCog):
         await news.create_feed()
 
         if not news.was_updated and last_id != "":
-            logger.info("[hoyolab] No new news updates found.")
             return
 
         async with await open_file(
