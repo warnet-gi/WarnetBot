@@ -12,7 +12,7 @@ LAST_ID_HOYOLAB_NEWS_PATH = "bot/data/news/hoyolab.txt"
 # Repeat every 10 minutes with an offset of 2 minutes
 TIMES_CHECK_UPDATE = [
     datetime.time(hour=h, minute=m, tzinfo=datetime.UTC)
-    for h in range(24)
+    for h in range(1)
     for m in range(2, 60, 10)
 ]
 
