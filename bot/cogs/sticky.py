@@ -39,10 +39,11 @@ class Sticky(commands.GroupCog, group_name="sticky"):
         if message.channel.id in self.sticky_data:
             res = self.sticky_data[message.channel.id]
 
-        if res and (message.author == self.bot.user and res[3]):
+        if res and (message.author != self.bot.user or not res[3]):
             sticky_message_id = res[0]
             sticky_message = res[1]
             delay_time = res[2]
+            ignore_self = res[3]
             try:
                 sticky = await message.channel.fetch_message(sticky_message_id)
             except discord.errors.NotFound:
@@ -63,6 +64,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                 msg.id,
                 sticky_message,
                 delay_time,
+                ignore_self,
             ]
 
     @app_commands.command(name="list", description="List channel with sticky message.")
@@ -80,7 +82,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
         message="Sticky message.",
         channel="Target channel.",
         delay_time="Delay after new message is sent on a channel (in seconds). Default is 2 seconds.",
-        ignore_self="Ignore messages sent by bots.",
+        ignore_self="Ignore messages sent by this bots.",
     )
     @app_guard(
         manage_channel=True,
@@ -158,7 +160,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
         message="New sticky message.",
         channel="Channel name.",
         delay_time="New delay time after new message is sent on a channel (in seconds).",
-        ignore_self="Ignore messages sent by bots.",
+        ignore_self="Ignore messages sent by this bots.",
     )
     @app_guard(
         manage_channel=True,
