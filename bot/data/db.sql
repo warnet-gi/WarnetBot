@@ -22,6 +22,7 @@ CREATE TABLE scheduled_message(
 	channel_id bigint NOT NULL,
 	message text NOT NULL,
 	date_trigger TIMESTAMP WITH TIME ZONE NOT NULL,
+	ignore_bot BOOLEAN DEFAULT TRUE NOT NULL,
 	PRIMARY KEY(id),
 	UNIQUE(id)
 );
