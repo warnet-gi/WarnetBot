@@ -82,7 +82,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
         message="Sticky message.",
         channel="Target channel.",
         delay_time="Delay after new message is sent on a channel (in seconds). Default is 2 seconds.",
-        ignore_self="Ignore messages sent by this bots.",
+        ignore_self="Ignore messages sent by this bot.",
     )
     @app_guard(
         manage_channel=True,
@@ -160,7 +160,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
         message="New sticky message.",
         channel="Channel name.",
         delay_time="New delay time after new message is sent on a channel (in seconds).",
-        ignore_self="Ignore messages sent by this bots.",
+        ignore_self="Ignore messages sent by this bot.",
     )
     @app_guard(
         manage_channel=True,
