@@ -21,7 +21,8 @@ CREATE TABLE scheduled_message(
 	guild_id bigint NOT NULL,
 	channel_id bigint NOT NULL,
 	message text NOT NULL,
-	date_trigger TIMESTAMP WITH TIME ZONE NOT NULL,
+	date_trigger TIMESTAMP WITH TIME ZONE NOT NULL, -- When TRUE, sticky messages won't be reposted for bot messages
+	-- When TRUE, sticky messages won't be reposted for bot messages
 	ignore_bot BOOLEAN DEFAULT TRUE NOT NULL,
 	PRIMARY KEY(id),
 	UNIQUE(id)

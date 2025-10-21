@@ -39,27 +39,29 @@ class Sticky(commands.GroupCog, group_name="sticky"):
         if message.channel.id in self.sticky_data:
             res = self.sticky_data[message.channel.id]
 
-        if res and (message.author != self.bot.user and (not res[3] or not message.author.bot)):
-            sticky_message_id = res[0]
-            sticky_message = res[1]
-            delay_time = res[2]
-            try:
-                sticky = await message.channel.fetch_message(sticky_message_id)
-            except discord.errors.NotFound:
-                return
+        if res:
+            should_ignore_message = res[3] and message.author.bot
+            if message.author != self.bot.user and not should_ignore_message:
+                sticky_message_id = res[0]
+                sticky_message = res[1]
+                delay_time = res[2]
+                try:
+                    sticky = await message.channel.fetch_message(sticky_message_id)
+                except discord.errors.NotFound:
+                    return
 
-            await sticky.delete()
-            await asyncio.sleep(delay_time)
-            msg = await message.channel.send(sticky_message)
+                await sticky.delete()
+                await asyncio.sleep(delay_time)
+                msg = await message.channel.send(sticky_message)
 
-            async with self.db_pool.acquire() as conn:
-                await conn.execute(
-                    "UPDATE sticky SET message_id=$2 WHERE channel_id=$1;",
-                    message.channel.id,
-                    msg.id,
-                )
+                async with self.db_pool.acquire() as conn:
+                    await conn.execute(
+                        "UPDATE sticky SET message_id=$2 WHERE channel_id=$1;",
+                        message.channel.id,
+                        msg.id,
+                    )
 
-            self.sticky_data[message.channel.id] = [msg.id, sticky_message, delay_time]
+                self.sticky_data[message.channel.id] = [msg.id, sticky_message, delay_time]
 
     @app_commands.command(name="list", description="List channel with sticky message.")
     async def list_sticky_messages(self, interaction: Interaction) -> None:
@@ -87,7 +89,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
         message: app_commands.Range[str, 0, 2000],
         channel: discord.TextChannel | discord.Thread,
         delay_time: app_commands.Range[int, 2, 1800] | None,
-        ignore_bot: bool = True,
+        ignore_bot: bool = True,  # noqa: FBT002
     ) -> None:
         await interaction.response.defer()
         if interaction.guild is None:
@@ -165,7 +167,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
         message: app_commands.Range[str, 0, 2000],
         channel: discord.TextChannel | discord.Thread,
         delay_time: app_commands.Range[int, 2, 1800] | None,
-        ignore_bot: bool = True,
+        ignore_bot: bool = True,  # noqa: FBT002
     ) -> None:
         await interaction.response.defer()
         if interaction.guild is None:
