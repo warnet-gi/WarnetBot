@@ -61,7 +61,11 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                         msg.id,
                     )
 
-                self.sticky_data[message.channel.id] = [msg.id, sticky_message, delay_time]
+                self.sticky_data[message.channel.id] = [
+                    msg.id,
+                    sticky_message,
+                    delay_time,
+                ]
 
     @app_commands.command(name="list", description="List channel with sticky message.")
     async def list_sticky_messages(self, interaction: Interaction) -> None:
@@ -342,7 +346,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                 msg.id,
                 data["message"],
                 data["delay_time"],
-                data["ignore_bot"]
+                data["ignore_bot"],
             ]
 
             return await self._send_interaction(
