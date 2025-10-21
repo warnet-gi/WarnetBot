@@ -30,7 +30,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                     data["message_id"],
                     data["message"],
                     data["delay_time"],
-                    data["ignore_bot"],
+                    data["ignore_self"],
                 ]
 
     @commands.Cog.listener()
@@ -39,33 +39,31 @@ class Sticky(commands.GroupCog, group_name="sticky"):
         if message.channel.id in self.sticky_data:
             res = self.sticky_data[message.channel.id]
 
-        if res:
-            should_ignore_message = res[3] and message.author.bot
-            if message.author != self.bot.user and not should_ignore_message:
-                sticky_message_id = res[0]
-                sticky_message = res[1]
-                delay_time = res[2]
-                try:
-                    sticky = await message.channel.fetch_message(sticky_message_id)
-                except discord.errors.NotFound:
-                    return
+        if res and (message.author == self.bot.user and res[3]):
+            sticky_message_id = res[0]
+            sticky_message = res[1]
+            delay_time = res[2]
+            try:
+                sticky = await message.channel.fetch_message(sticky_message_id)
+            except discord.errors.NotFound:
+                return
 
-                await sticky.delete()
-                await asyncio.sleep(delay_time)
-                msg = await message.channel.send(sticky_message)
+            await sticky.delete()
+            await asyncio.sleep(delay_time)
+            msg = await message.channel.send(sticky_message)
 
-                async with self.db_pool.acquire() as conn:
-                    await conn.execute(
-                        "UPDATE sticky SET message_id=$2 WHERE channel_id=$1;",
-                        message.channel.id,
-                        msg.id,
-                    )
-
-                self.sticky_data[message.channel.id] = [
+            async with self.db_pool.acquire() as conn:
+                await conn.execute(
+                    "UPDATE sticky SET message_id=$2 WHERE channel_id=$1;",
+                    message.channel.id,
                     msg.id,
-                    sticky_message,
-                    delay_time,
-                ]
+                )
+
+            self.sticky_data[message.channel.id] = [
+                msg.id,
+                sticky_message,
+                delay_time,
+            ]
 
     @app_commands.command(name="list", description="List channel with sticky message.")
     async def list_sticky_messages(self, interaction: Interaction) -> None:
@@ -82,7 +80,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
         message="Sticky message.",
         channel="Target channel.",
         delay_time="Delay after new message is sent on a channel (in seconds). Default is 2 seconds.",
-        ignore_bot="Ignore messages sent by bots.",
+        ignore_self="Ignore messages sent by bots.",
     )
     @app_guard(
         manage_channel=True,
@@ -93,7 +91,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
         message: app_commands.Range[str, 0, 2000],
         channel: discord.TextChannel | discord.Thread,
         delay_time: app_commands.Range[int, 2, 1800] | None,
-        ignore_bot: bool = True,  # noqa: FBT002
+        ignore_self: bool = True,  # noqa: FBT002
     ) -> None:
         await interaction.response.defer()
         if interaction.guild is None:
@@ -125,22 +123,22 @@ class Sticky(commands.GroupCog, group_name="sticky"):
 
         async with self.db_pool.acquire() as conn:
             await conn.execute(
-                "INSERT INTO sticky (channel_id,message_id,message,delay_time,ignore_bot) VALUES ($1,$2,$3,$4,$5);",
+                "INSERT INTO sticky (channel_id,message_id,message,delay_time,ignore_self) VALUES ($1,$2,$3,$4,$5);",
                 channel.id,
                 msg.id,
                 message,
                 delay_time,
-                ignore_bot,
+                ignore_self,
             )
 
-        self.sticky_data[channel.id] = [msg.id, message, delay_time, ignore_bot]
+        self.sticky_data[channel.id] = [msg.id, message, delay_time, ignore_self]
         logger.info(
             "NEW STICKY MESSSAGE HAS BEEN ADDED",
             extra={
                 "channel_id": channel.id,
                 "msgs": message,
                 "delay_time": delay_time,
-                "ignore_bot": ignore_bot,
+                "ignore_self": ignore_self,
             },
         )
 
@@ -160,7 +158,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
         message="New sticky message.",
         channel="Channel name.",
         delay_time="New delay time after new message is sent on a channel (in seconds).",
-        ignore_bot="Ignore messages sent by bots.",
+        ignore_self="Ignore messages sent by bots.",
     )
     @app_guard(
         manage_channel=True,
@@ -171,7 +169,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
         message: app_commands.Range[str, 0, 2000],
         channel: discord.TextChannel | discord.Thread,
         delay_time: app_commands.Range[int, 2, 1800] | None,
-        ignore_bot: bool = True,  # noqa: FBT002
+        ignore_self: bool = True,  # noqa: FBT002
     ) -> None:
         await interaction.response.defer()
         if interaction.guild is None:
@@ -210,14 +208,19 @@ class Sticky(commands.GroupCog, group_name="sticky"):
 
         async with self.db_pool.acquire() as conn:
             await conn.execute(
-                "UPDATE sticky SET message=$2, delay_time=$3, ignore_bot=$4 WHERE channel_id=$1;",
+                "UPDATE sticky SET message=$2, delay_time=$3, ignore_self=$4 WHERE channel_id=$1;",
                 channel.id,
                 message,
                 delay_time,
-                ignore_bot,
+                ignore_self,
             )
 
-        self.sticky_data[channel.id] = [sticky_data.id, message, delay_time, ignore_bot]
+        self.sticky_data[channel.id] = [
+            sticky_data.id,
+            message,
+            delay_time,
+            ignore_self,
+        ]
 
         return await self._send_interaction(
             interaction,
@@ -346,7 +349,7 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                 msg.id,
                 data["message"],
                 data["delay_time"],
-                data["ignore_bot"],
+                data["ignore_self"],
             ]
 
             return await self._send_interaction(
