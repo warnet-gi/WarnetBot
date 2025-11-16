@@ -151,6 +151,8 @@ class Admin(commands.GroupCog, group_name="admin"):
         interaction: Interaction,
         user: discord.Member | discord.User,
     ) -> None:
+        await interaction.response.defer()
+
         if interaction.guild is None:
             return
 
