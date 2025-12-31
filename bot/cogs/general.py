@@ -259,13 +259,13 @@ class General(commands.Cog):
     async def calendar(self, ctx: commands.Context) -> None:
         await ctx.typing()
         embed = discord.Embed(
-            title="HoYoverse 2025 Patch Calendar",
+            title="HoYoverse 2026 Patch Calendar",
             color=ctx.author.color,
             description=(
                 "For Genshin Impact, Honkai: Star Rail, and Zenless Zone Zero\n\n"
                 "Dates are estimation based on previous versions' pattern, it may or may not change,\n\n"
                 "if there are any changes in the future, this calendar will (eventually) be updated.\n\n"
-                "Rev: 26/07/2025. Zenless 2.1 - 7 weeks"
+                "Rev: 30/12/2025."
             ),
         )
         embed.set_image(
