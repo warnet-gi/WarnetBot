@@ -269,7 +269,7 @@ class General(commands.Cog):
             ),
         )
         embed.set_image(
-            url="https://raw.githubusercontent.com/warnet-gi/WarnetBot/main/bot/assets/img/calendar.png"
+            url="https://raw.githubusercontent.com/warnet-gi/WarnetBot/main/bot/assets/img/calendar.png?hello"
         )
         await ctx.reply(embed=embed, mention_author=False)
 
