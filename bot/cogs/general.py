@@ -265,11 +265,11 @@ class General(commands.Cog):
                 "For Genshin Impact, Honkai: Star Rail, and Zenless Zone Zero\n\n"
                 "Dates are estimation based on previous versions' pattern, it may or may not change,\n\n"
                 "if there are any changes in the future, this calendar will (eventually) be updated.\n\n"
-                "Rev: 30/12/2025."
+                "Rev: listed in footnotes."
             ),
         )
         embed.set_image(
-            url="https://raw.githubusercontent.com/warnet-gi/WarnetBot/main/bot/assets/img/calendar.png"
+            url="https://raw.githubusercontent.com/warnet-gi/WarnetBot/main/bot/assets/img/calendar.png?hello"
         )
         await ctx.reply(embed=embed, mention_author=False)
 
