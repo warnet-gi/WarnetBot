@@ -299,16 +299,27 @@ class General(commands.Cog):
     @tasks.loop(minutes=2)
     async def _change_presence(self) -> None:
         activity_status = [
-            discord.Game(name="PC Warnet"),
-            discord.Game(name="Genshin Impact"),
-            discord.Game(name="Arknights"),
-            discord.Game(name="Honkai: Star Rail"),
-            discord.Game(name="Wuthering Waves"),
-            discord.Activity(type=discord.ActivityType.listening, name="war! help"),
-            discord.Activity(type=discord.ActivityType.competing, name="Spiral Abyss"),
-            discord.Activity(
-                type=discord.ActivityType.competing, name="Imaginarium Theater"
-            ),
+        discord.Game(name="PC Warnet"),
+        discord.Game(name="Genshin Impact"),
+        discord.Game(name="Arknights"),
+        discord.Game(name="Honkai: Star Rail"),
+        discord.Game(name="Wuthering Waves"),
+        discord.Game(name="Zenless Zone Zero"),
+        discord.Game(name="Petit Planet"),
+        discord.Game(name="Honkai : Nexus Anima"),
+        discord.Game(name="Vasapura"),
+        discord.Game(name="Arknights : Enfield"),
+        discord.Game(name="Neverness to Everness"),
+        discord.Game(name="Silver Palace"),
+        discord.Game(name="Ananta"),
+        discord.Game(name="GTA VI"),
+        discord.Activity(type=discord.ActivityType.listening, name="war! help"),
+        discord.Activity(type=discord.ActivityType.competing, name="Spiral Abyss"),
+        discord.Activity(
+            type=discord.ActivityType.competing, name="Imaginarium Theater"
+        ),
+        discord.Activity(type=discord.ActivityType.playing, name="Miliastra Wonderland"),
+        discord.Activity(type=discord.ActivityType.competing, name="Stygian Onslaught"),
         ]
         discord_status = [
             discord.Status.online,
