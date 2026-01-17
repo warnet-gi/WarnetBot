@@ -308,7 +308,7 @@ class General(commands.Cog):
             discord.Game(name="Petit Planet"),
             discord.Game(name="Honkai: Nexus Anima"),
             discord.Game(name="Vasapura"),
-            discord.Game(name="Arknights: Enfield"),
+            discord.Game(name="Arknights: Endfield"),
             discord.Game(name="Neverness to Everness"),
             discord.Game(name="Silver Palace"),
             discord.Game(name="Ananta"),
