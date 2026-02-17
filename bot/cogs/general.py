@@ -269,7 +269,7 @@ class General(commands.Cog):
             ),
         )
         embed.set_image(
-            url="https://raw.githubusercontent.com/warnet-gi/WarnetBot/main/bot/assets/img/calendar.png?hello"
+            url=f"https://raw.githubusercontent.com/warnet-gi/WarnetBot/main/bot/assets/img/calendar.png?${int(time.time())}"
         )
         await ctx.reply(embed=embed, mention_author=False)
 
@@ -304,10 +304,25 @@ class General(commands.Cog):
             discord.Game(name="Arknights"),
             discord.Game(name="Honkai: Star Rail"),
             discord.Game(name="Wuthering Waves"),
+            discord.Game(name="Zenless Zone Zero"),
+            discord.Game(name="Petit Planet"),
+            discord.Game(name="Honkai: Nexus Anima"),
+            discord.Game(name="Vasapura"),
+            discord.Game(name="Arknights: Endfield"),
+            discord.Game(name="Neverness to Everness"),
+            discord.Game(name="Silver Palace"),
+            discord.Game(name="Ananta"),
+            discord.Game(name="GTA VI"),
             discord.Activity(type=discord.ActivityType.listening, name="war! help"),
             discord.Activity(type=discord.ActivityType.competing, name="Spiral Abyss"),
             discord.Activity(
                 type=discord.ActivityType.competing, name="Imaginarium Theater"
+            ),
+            discord.Activity(
+                type=discord.ActivityType.playing, name="Miliastra Wonderland"
+            ),
+            discord.Activity(
+                type=discord.ActivityType.competing, name="Stygian Onslaught"
             ),
         ]
         discord_status = [
