@@ -21,7 +21,7 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = ["pytest==7.4.1", "pytest-cov==4.1.0", "ruff>=0.12.4", "pyright>=1.1.403"]
+dev = ["pytest==7.4.1", "pytest-cov==4.1.0", "ruff==0.14.1", "pyright>=1.1.403"]
 
 [tool.ruff.lint]
 select = ["ALL"]

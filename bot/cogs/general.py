@@ -2,7 +2,7 @@ import io
 import logging
 import random
 import time
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta
 
 import discord
 import pytz
@@ -188,11 +188,7 @@ class General(commands.Cog):
             8: pytz.timezone("Asia/Shanghai"),
             9: pytz.timezone("Asia/Jayapura"),
         }
-        idn_tz = (
-            idn_tz_code[idn_timezone]
-            if not isinstance(idn_timezone, app_commands.Choice)
-            else idn_tz_code[idn_timezone.value]
-        )
+        idn_tz = idn_tz_code[idn_timezone.value]
 
         current_time = datetime.now(tz=pytz.utc).astimezone(idn_tz)
         day = day if day else current_time.day
@@ -202,8 +198,13 @@ class General(commands.Cog):
         minute = current_time.minute if minute is None else minute
 
         try:
-            idn_dt = idn_tz.localize(
-                datetime(year, month, day, hour=hour, minute=minute, tzinfo=UTC)
+            idn_dt = datetime(
+                year,
+                month,
+                day,
+                hour=hour,
+                minute=minute,
+                tzinfo=idn_tz,
             )
         except ValueError:
             await interaction.response.send_message(

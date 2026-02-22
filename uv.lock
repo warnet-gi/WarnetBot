@@ -551,7 +551,7 @@ dev = [
     { name = "pyright", specifier = ">=1.1.403" },
     { name = "pytest", specifier = "==7.4.1" },
     { name = "pytest-cov", specifier = "==4.1.0" },
-    { name = "ruff", specifier = ">=0.12.4" },
+    { name = "ruff", specifier = "==0.14.1" },
 ]
 
 [[package]]

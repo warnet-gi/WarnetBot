@@ -12,13 +12,23 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/ruff-action@v3
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+      - name: Sync
+        run: uv sync --locked --all-extras --dev
+      - name: Check
+        run: uv run ruff check
 
   format:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/ruff-action@v3
-        with:
-          args: "format --check --diff"
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+      - name: Sync
+        run: uv sync --locked --all-extras --dev
+      - name: Format
+        run: uv run ruff format --check --diff
