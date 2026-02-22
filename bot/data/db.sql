@@ -7,6 +7,7 @@ CREATE TABLE sticky(
 	message_id BIGINT NOT NULL,
 	message TEXT NOT NULL,
 	delay_time INT DEFAULT 2 NOT NULL,
+	ignore_self BOOLEAN DEFAULT TRUE NOT NULL, -- When TRUE, sticky messages won't be reposted for self messages
 	PRIMARY KEY(channel_id),
 	UNIQUE(channel_id),
 	UNIQUE(message_id)
@@ -21,7 +22,7 @@ CREATE TABLE scheduled_message(
 	guild_id bigint NOT NULL,
 	channel_id bigint NOT NULL,
 	message text NOT NULL,
-	date_trigger TIMESTAMP WITH TIME ZONE NOT NULL,
+	date_trigger TIMESTAMP WITH TIME ZONE NOT NULL, 
 	PRIMARY KEY(id),
 	UNIQUE(id)
 );
