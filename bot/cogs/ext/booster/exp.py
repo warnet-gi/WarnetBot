@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 async def give_monthly_booster_exp(bot: WarnetBot) -> None:  # noqa: C901, PLR0912, PLR0915, FIX002 # TODO: improve this
-    today = datetime.now(tz=datetime.UTC).date()
+    today = datetime.now(tz=UTC).date()
     logger.info(
         "MONTHLY EXP BOOSTER IS TRIGGERED", extra={"date": today.strftime("%B %Y")}
     )
