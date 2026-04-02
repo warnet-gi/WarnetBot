@@ -51,7 +51,7 @@ class Booster(commands.Cog):
             )
 
         try:
-            while len(approved) != len(owner_ids):
+            while not approved.intersection(owner_ids):
                 _, user = await self.bot.wait_for(
                     "reaction_add", timeout=300.0, check=check
                 )
