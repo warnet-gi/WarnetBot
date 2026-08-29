@@ -21,10 +21,13 @@ class WarnetBot(Bot):
     db_pool: asyncpg.Pool
 
     def __init__(self) -> None:
+        bot_intents = discord.Intents.default()
+        bot_intents.message_content = True
+        bot_intents.members = True
         super().__init__(
             command_prefix=BOT_PREFIX,
             strip_after_prefix=True,
-            intents=discord.Intents.all(),
+            intents=bot_intents,
             help_command=None,
         )
         self.session: aiohttp.ClientSession = None
