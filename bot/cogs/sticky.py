@@ -3,7 +3,7 @@ import logging
 from datetime import UTC, datetime
 
 import discord
-from discord import Interaction, app_commands
+from discord import AllowedMentions, Interaction, app_commands
 from discord.ext import commands
 
 from bot.bot import WarnetBot
@@ -21,6 +21,12 @@ class Sticky(commands.GroupCog, group_name="sticky"):
         self.sticky_data: dict[int, list] = {}
         self._locks: dict[int, asyncio.Lock] = {}
         self._bg_tasks: set[asyncio.Task] = set()
+        self.no_mention = AllowedMentions(
+            everyone=False,
+            users=False,
+            roles=False,
+            replied_user=False,
+        )
 
     @commands.Cog.listener()
     async def on_connect(self) -> None:
@@ -41,55 +47,82 @@ class Sticky(commands.GroupCog, group_name="sticky"):
         res = self.sticky_data.get(message.channel.id)
         if not res:
             return
-        task = asyncio.create_task(
-            self._repost_sticky(message.channel, res[0], res[1], res[2])
-        )
+        task = asyncio.create_task(self._repost_sticky(message.channel, res[0], res[1], res[2]))
         self._bg_tasks.add(task)
         task.add_done_callback(self._bg_tasks.discard)
 
+    async def _fetch_previous_sticky(
+        self, channel: discord.abc.Messageable, sticky_id: int
+    ) -> discord.Message | None:
+        try:
+            return await channel.fetch_message(sticky_id)  # type: ignore[attr-defined]
+        except discord.NotFound:
+            current = self.sticky_data.get(channel.id)  # type: ignore[attr-defined]
+            if current is not None and current[0] != sticky_id:
+                return None
+            self.sticky_data.pop(channel.id, None)
+            async with self.db_pool.acquire() as conn:
+                await conn.execute(
+                    "DELETE FROM sticky WHERE channel_id = $1", channel.id
+                )
+        except (discord.Forbidden, discord.HTTPException):
+            logger.warning(
+                "Sticky fetch failed", extra={"channel_id": getattr(channel, "id", "?")}
+            )
+        return None
+
     async def _repost_sticky(
-        self,
-        channel: discord.abc.Messageable,
-        sticky_id: int,
-        sticky_msg: str,
-        delay: int,
+        self, channel: discord.abc.Messageable, sticky_id: int, sticky_msg: str, delay: int,
     ) -> None:
-        # ponytail: per-channel lock, offload so on_message never blocks
+        # per-channel lock, offload so on_message never blocks
         lock = self._locks.setdefault(channel.id, asyncio.Lock())  # type: ignore[attr-defined]
         async with lock:
             try:
+                # --- race guard: refresh to current data inside lock ---
+                # on_message captures sticky_id at task creation time; if multiple
+                # messages arrive quickly, the first task updates sticky_data/DB
+                # while the second task still holds the old id. Without a check
+                # the stale task fetches the old (now deleted) id -> NotFound ->
+                # it incorrectly DELETEs the live DB row (data loss).
+                current = self.sticky_data.get(channel.id)  # type: ignore[attr-defined]
+                if current is None:
+                    return
+                # If this task is stale (id changed under us), there is already a
+                # newer sticky at the bottom that covers all messages sent while
+                # the first task was sleeping. No need to repost again.
+                if current[0] != sticky_id:
+                    return
+                # Always use the latest message/delay from cache (edits may have
+                # changed them after this task was queued).
+                sticky_id, sticky_msg, delay = current  # type: ignore[misc]
+
+                prev = await self._fetch_previous_sticky(channel, sticky_id)
+                if prev is None:
+                    return
+
+                await asyncio.sleep(delay)
+
+                # Re-validate cache after sleep -- an edit could have changed
+                # message/delay while we were sleeping.
+                cur3 = self.sticky_data.get(channel.id)  # type: ignore[attr-defined]
+                if cur3 is not None:
+                    if cur3[0] != sticky_id:
+                        return
+                    sticky_msg = cur3[1]
+
+                # Send new sticky BEFORE deleting old one so a send failure
+                # does not leave the channel with no sticky and a dangling DB row.
                 try:
-                    prev = await channel.fetch_message(sticky_id)  # type: ignore[attr-defined]
-                except discord.NotFound:
-                    self.sticky_data.pop(channel.id, None)
-                    async with self.db_pool.acquire() as conn:
-                        await conn.execute(
-                            "DELETE FROM sticky WHERE channel_id = $1", channel.id
-                        )
-                    return
+                    msg = await channel.send(sticky_msg, allowed_mentions=self.no_mention)  # type: ignore[attr-defined]
                 except (discord.Forbidden, discord.HTTPException):
-                    logger.warning(
-                        "Sticky fetch failed",
-                        extra={"channel_id": getattr(channel, "id", "?")},
-                    )
+                    logger.warning("Sticky send failed", extra={"channel_id": getattr(channel, 'id', '?')})
                     return
+
                 try:
                     await prev.delete()
                 except (discord.NotFound, discord.Forbidden, discord.HTTPException):
-                    logger.warning(
-                        "Sticky delete failed",
-                        extra={"channel_id": getattr(channel, "id", "?")},
-                    )
-                    return
-                await asyncio.sleep(delay)
-                try:
-                    msg = await channel.send(sticky_msg)  # type: ignore[attr-defined]
-                except (discord.Forbidden, discord.HTTPException):
-                    logger.warning(
-                        "Sticky send failed",
-                        extra={"channel_id": getattr(channel, "id", "?")},
-                    )
-                    return
+                    logger.warning("Sticky delete failed", extra={"channel_id": getattr(channel, 'id', '?')})
+
                 async with self.db_pool.acquire() as conn:
                     await conn.execute(
                         "UPDATE sticky SET message_id=$2 WHERE channel_id=$1;",
@@ -97,11 +130,9 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                         msg.id,
                     )
                 self.sticky_data[channel.id] = [msg.id, sticky_msg, delay]
+
             except Exception:
-                logger.exception(
-                    "Unexpected sticky repost error",
-                    extra={"channel_id": getattr(channel, "id", "?")},
-                )
+                logger.exception("Unexpected sticky repost error", extra={"channel_id": getattr(channel, 'id', '?')})
 
     async def cog_unload(self) -> None:
         for t in list(self._bg_tasks):
