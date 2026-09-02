@@ -37,6 +37,7 @@ def app_guard(
 
     return app_commands.check(predicate)
 
+
 def ctx_guard(
     *,
     admin: bool = False,
@@ -69,6 +70,7 @@ def ctx_guard(
 
     return commands.check(predicate)
 
+
 async def no_permission_alert(
     interaction: Interaction | None = None, ctx: commands.Context | None = None
 ) -> None:
@@ -79,6 +81,7 @@ async def no_permission_alert(
             "❌ You don't have permission to use this command", ephemeral=True
         )
 
+
 async def value_is_none(
     value: str,
     interaction: Interaction | None = None,
@@ -88,6 +91,7 @@ async def value_is_none(
         await ctx.send(f"{value} is not found")
     if interaction:
         await interaction.followup.send(f"{value} is not found", ephemeral=True)
+
 
 async def handle_cog_error(
     ctx: commands.Context, error: Exception, cog_name: str
@@ -101,7 +105,7 @@ async def handle_cog_error(
         ephemeral=True,
     )
 
+
 def ensure_task_started(task: tasks.Loop) -> None:
     if not task.is_running():
         task.start()
-

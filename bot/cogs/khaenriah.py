@@ -25,8 +25,6 @@ class Khaenriah(commands.Cog):
     async def cog_command_error(self, ctx: commands.Context, error: Exception) -> None:
         await handle_cog_error(ctx, error, "Khaenriah")
 
-
-
     @commands.group(aliases=["buron"])
     async def buronan(self, ctx: commands.Context) -> None:
         list_of_commands = (

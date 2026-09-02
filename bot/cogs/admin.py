@@ -580,9 +580,7 @@ class Admin(commands.GroupCog, group_name="admin"):
         if task:
             guild = self.bot.get_guild(task["guild_id"])
             if not guild:
-                logger.error(
-                    "guild not found", extra={"guild_id": task["guild_id"]}
-                )
+                logger.error("guild not found", extra={"guild_id": task["guild_id"]})
                 return
             target_channel = guild.get_channel(task["channel_id"])
             if target_channel:

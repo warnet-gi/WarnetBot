@@ -41,12 +41,18 @@ class Sticky(commands.GroupCog, group_name="sticky"):
         res = self.sticky_data.get(message.channel.id)
         if not res:
             return
-        task = asyncio.create_task(self._repost_sticky(message.channel, res[0], res[1], res[2]))
+        task = asyncio.create_task(
+            self._repost_sticky(message.channel, res[0], res[1], res[2])
+        )
         self._bg_tasks.add(task)
         task.add_done_callback(self._bg_tasks.discard)
 
     async def _repost_sticky(
-        self, channel: discord.abc.Messageable, sticky_id: int, sticky_msg: str, delay: int
+        self,
+        channel: discord.abc.Messageable,
+        sticky_id: int,
+        sticky_msg: str,
+        delay: int,
     ) -> None:
         # ponytail: per-channel lock, offload so on_message never blocks
         lock = self._locks.setdefault(channel.id, asyncio.Lock())  # type: ignore[attr-defined]
@@ -57,21 +63,32 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                 except discord.NotFound:
                     self.sticky_data.pop(channel.id, None)
                     async with self.db_pool.acquire() as conn:
-                        await conn.execute("DELETE FROM sticky WHERE channel_id = $1", channel.id)
+                        await conn.execute(
+                            "DELETE FROM sticky WHERE channel_id = $1", channel.id
+                        )
                     return
                 except (discord.Forbidden, discord.HTTPException):
-                    logger.warning("Sticky fetch failed", extra={"channel_id": getattr(channel, 'id', '?')})
+                    logger.warning(
+                        "Sticky fetch failed",
+                        extra={"channel_id": getattr(channel, "id", "?")},
+                    )
                     return
                 try:
                     await prev.delete()
                 except (discord.NotFound, discord.Forbidden, discord.HTTPException):
-                    logger.warning("Sticky delete failed", extra={"channel_id": getattr(channel, 'id', '?')})
+                    logger.warning(
+                        "Sticky delete failed",
+                        extra={"channel_id": getattr(channel, "id", "?")},
+                    )
                     return
                 await asyncio.sleep(delay)
                 try:
                     msg = await channel.send(sticky_msg)  # type: ignore[attr-defined]
                 except (discord.Forbidden, discord.HTTPException):
-                    logger.warning("Sticky send failed", extra={"channel_id": getattr(channel, 'id', '?')})
+                    logger.warning(
+                        "Sticky send failed",
+                        extra={"channel_id": getattr(channel, "id", "?")},
+                    )
                     return
                 async with self.db_pool.acquire() as conn:
                     await conn.execute(
@@ -81,7 +98,10 @@ class Sticky(commands.GroupCog, group_name="sticky"):
                     )
                 self.sticky_data[channel.id] = [msg.id, sticky_msg, delay]
             except Exception:
-                logger.exception("Unexpected sticky repost error", extra={"channel_id": getattr(channel, 'id', '?')})
+                logger.exception(
+                    "Unexpected sticky repost error",
+                    extra={"channel_id": getattr(channel, "id", "?")},
+                )
 
     async def cog_unload(self) -> None:
         for t in list(self._bg_tasks):

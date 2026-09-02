@@ -190,12 +190,17 @@ class Giveaway(commands.GroupCog, group_name="warnet-ga"):
                 if m:
                     members_to_remove.append(m)
             sem = asyncio.Semaphore(5)
+
             async def _rm(m: discord.Member) -> None:
                 async with sem:
                     try:
                         await m.remove_roles(blacklist_role)
                     except Exception:
-                        logger.exception("Failed to remove GA role from user", extra={"user_id": m.id})
+                        logger.exception(
+                            "Failed to remove GA role from user",
+                            extra={"user_id": m.id},
+                        )
+
             if members_to_remove:
                 await asyncio.gather(*(_rm(m) for m in members_to_remove))
             for m in members_to_remove:
