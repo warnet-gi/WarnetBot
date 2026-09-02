@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import re
 from datetime import UTC, datetime, timedelta
@@ -253,7 +254,12 @@ class Admin(commands.GroupCog, group_name="admin"):
             poll_id = 1
 
         try:
-            poll_message = await channel_poll.fetch_message(int(message_id))
+            try:
+                mid = int(message_id)
+            except ValueError:
+                await interaction.followup.send("Invalid message ID.")
+                return None
+            poll_message = await channel_poll.fetch_message(mid)
         except discord.NotFound:
             return await interaction.followup.send(
                 content="Message not found in the given channel (wrong message ID).",
@@ -312,10 +318,11 @@ class Admin(commands.GroupCog, group_name="admin"):
             spoiler = False
 
         if not message and not attachment:
-            await interaction.response.send_message(
+            await interaction.followup.send(
                 content="You need to fill `message` and/or `attachment`.",
                 ephemeral=True,
             )
+            return None
 
         message_valid = True
         file_valid = True
@@ -566,33 +573,28 @@ class Admin(commands.GroupCog, group_name="admin"):
             )
 
         if not next_task:
-            self._message_schedule_task.stop()
-
-        else:
-            await discord.utils.sleep_until(next_task["date_trigger"])
-
-            async with self.db_pool.acquire() as conn:
-                task = await conn.fetchrow(
-                    "SELECT * FROM scheduled_message WHERE id=$1;", next_task["id"]
+            await asyncio.sleep(30)  # keep loop alive, don't stop()
+            return
+        await discord.utils.sleep_until(next_task["date_trigger"])
+        async with self.db_pool.acquire() as conn:
+            task = await conn.fetchrow(
+                "SELECT * FROM scheduled_message WHERE id=$1;", next_task["id"]
+            )
+        # task will be None if cancel command is triggered
+        if task:
+            guild = self.bot.get_guild(task["guild_id"])
+            if not guild:
+                logger.error(
+                    "guild not found", extra={"guild_id": task["guild_id"]}
                 )
-
-            # task will be None if cancel command is triggered
-            if task:
-                guild = self.bot.get_guild(task["guild_id"])
-                if not guild:
-                    logger.error(
-                        "guild not found", extra={"guild_id": task["guild_id"]}
-                    )
-                    return
-                target_channel = guild.get_channel(task["channel_id"])
-
-                if target_channel:
-                    await target_channel.send(content=task["message"])
-
-                async with self.db_pool.acquire() as conn:
-                    await conn.execute(
-                        "DELETE FROM scheduled_message WHERE id = $1;", task["id"]
-                    )
+                return
+            target_channel = guild.get_channel(task["channel_id"])
+            if target_channel:
+                await target_channel.send(content=task["message"])
+            async with self.db_pool.acquire() as conn:
+                await conn.execute(
+                    "DELETE FROM scheduled_message WHERE id = $1;", task["id"]
+                )
 
     @_message_schedule_task.before_loop
     async def _before_message_schedule_task(self) -> None:

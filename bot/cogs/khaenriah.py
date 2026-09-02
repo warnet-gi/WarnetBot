@@ -224,7 +224,6 @@ class Khaenriah(commands.Cog):
                 return
 
         warn_log_channel = ctx.guild.get_channel(config.WARN_LOG_CHANNEL_ID)
-        warn_log_channel = ctx.guild.get_channel(config.WARN_LOG_CHANNEL_ID)
         if warn_log_channel is None:
             logger.error(
                 "Channel not found",

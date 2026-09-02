@@ -19,6 +19,8 @@ class Sticky(commands.GroupCog, group_name="sticky"):
         self.bot = bot
         self.db_pool = bot.get_db_pool()
         self.sticky_data: dict[int, list] = {}
+        self._locks: dict[int, asyncio.Lock] = {}
+        self._bg_tasks: set[asyncio.Task] = set()
 
     @commands.Cog.listener()
     async def on_connect(self) -> None:
@@ -34,31 +36,56 @@ class Sticky(commands.GroupCog, group_name="sticky"):
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message) -> None:
-        res = None
-        if message.channel.id in self.sticky_data:
-            res = self.sticky_data[message.channel.id]
+        if message.author == self.bot.user:
+            return
+        res = self.sticky_data.get(message.channel.id)
+        if not res:
+            return
+        task = asyncio.create_task(self._repost_sticky(message.channel, res[0], res[1], res[2]))
+        self._bg_tasks.add(task)
+        task.add_done_callback(self._bg_tasks.discard)
 
-        if res and message.author != self.bot.user:
-            sticky_message_id = res[0]
-            sticky_message = res[1]
-            delay_time = res[2]
+    async def _repost_sticky(
+        self, channel: discord.abc.Messageable, sticky_id: int, sticky_msg: str, delay: int
+    ) -> None:
+        # ponytail: per-channel lock, offload so on_message never blocks
+        lock = self._locks.setdefault(channel.id, asyncio.Lock())  # type: ignore[attr-defined]
+        async with lock:
             try:
-                sticky = await message.channel.fetch_message(sticky_message_id)
-            except discord.errors.NotFound:
-                return
+                try:
+                    prev = await channel.fetch_message(sticky_id)  # type: ignore[attr-defined]
+                except discord.NotFound:
+                    self.sticky_data.pop(channel.id, None)
+                    async with self.db_pool.acquire() as conn:
+                        await conn.execute("DELETE FROM sticky WHERE channel_id = $1", channel.id)
+                    return
+                except (discord.Forbidden, discord.HTTPException):
+                    logger.warning("Sticky fetch failed", extra={"channel_id": getattr(channel, 'id', '?')})
+                    return
+                try:
+                    await prev.delete()
+                except (discord.NotFound, discord.Forbidden, discord.HTTPException):
+                    logger.warning("Sticky delete failed", extra={"channel_id": getattr(channel, 'id', '?')})
+                    return
+                await asyncio.sleep(delay)
+                try:
+                    msg = await channel.send(sticky_msg)  # type: ignore[attr-defined]
+                except (discord.Forbidden, discord.HTTPException):
+                    logger.warning("Sticky send failed", extra={"channel_id": getattr(channel, 'id', '?')})
+                    return
+                async with self.db_pool.acquire() as conn:
+                    await conn.execute(
+                        "UPDATE sticky SET message_id=$2 WHERE channel_id=$1;",
+                        channel.id,
+                        msg.id,
+                    )
+                self.sticky_data[channel.id] = [msg.id, sticky_msg, delay]
+            except Exception:
+                logger.exception("Unexpected sticky repost error", extra={"channel_id": getattr(channel, 'id', '?')})
 
-            await sticky.delete()
-            await asyncio.sleep(delay_time)
-            msg = await message.channel.send(sticky_message)
-
-            async with self.db_pool.acquire() as conn:
-                await conn.execute(
-                    "UPDATE sticky SET message_id=$2 WHERE channel_id=$1;",
-                    message.channel.id,
-                    msg.id,
-                )
-
-            self.sticky_data[message.channel.id] = [msg.id, sticky_message, delay_time]
+    async def cog_unload(self) -> None:
+        for t in list(self._bg_tasks):
+            t.cancel()
 
     @app_commands.command(name="list", description="List channel with sticky message.")
     async def list_sticky_messages(self, interaction: Interaction) -> None:

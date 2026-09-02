@@ -127,9 +127,9 @@ class Temporary(commands.GroupCog, group_name="warnet-temp"):
                 continue
 
             if not role:
+                id_success.append(record["id"])
                 continue
-
-            if user.get_role(role.id) is None or not role:
+            if user.get_role(role.id) is None:
                 id_success.append(record["id"])
                 continue
 

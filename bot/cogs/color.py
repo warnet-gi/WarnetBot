@@ -870,8 +870,12 @@ class Color(commands.GroupCog, group_name="warnet-color"):
                     ephemeral=True,
                 )
             data = await resp.json()
-            created_role = interaction.guild.get_role(int(data["id"]))
-            await asyncio.sleep(1)  # Wait for role to be created in the guild
+            created_role = None
+            for _ in range(3):
+                created_role = interaction.guild.get_role(int(data["id"]))
+                if created_role:
+                    break
+                await asyncio.sleep(0.5)
             if not created_role:
                 return await interaction.followup.send(
                     "❌ Role was created but could not be found in the guild.",

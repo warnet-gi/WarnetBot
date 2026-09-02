@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from datetime import datetime, time, timedelta, timezone
 
@@ -56,7 +57,7 @@ class Booster(commands.Cog):
                     "reaction_add", timeout=300.0, check=check
                 )
                 approved.add(user.id)
-        except TimeoutError:
+        except asyncio.TimeoutError:  # noqa: UP041 - explicit asyncio timeout for clarity
             await ctx.send("Timeout! Action cancelled.")
             return
 

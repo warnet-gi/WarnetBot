@@ -33,7 +33,7 @@ class News(commands.GroupCog):
 
     @tasks.loop(time=news_config.TIMES_CHECK_UPDATE)
     async def _news_hoyolab(self) -> None:
-        news = hoyolab_news()
+        news = await asyncio.to_thread(hoyolab_news)
         info_channel = self.bot.get_channel(news_config.INFORMATION_CHANNEL_ID)
         if info_channel is None:
             logger.error(

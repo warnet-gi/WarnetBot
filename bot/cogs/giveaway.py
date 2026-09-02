@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from datetime import UTC, datetime, timedelta
 
@@ -169,7 +170,7 @@ class Giveaway(commands.GroupCog, group_name="warnet-ga"):
         return await interaction.followup.send(embed=embed)
 
     @tasks.loop(seconds=60)
-    async def _check_blacklist_ga(self) -> None:
+    async def _check_blacklist_ga(self) -> None:  # noqa: C901
         guild = self.bot.get_guild(GUILD_ID)
         if guild is None:
             logger.error("Guild not found")
@@ -187,20 +188,33 @@ class Giveaway(commands.GroupCog, group_name="warnet-ga"):
                 "SELECT user_id FROM blacklist_ga WHERE end_time <= $1 AND has_role = TRUE",
                 now,
             )
-            for user in user_want_remove:
-                if user := guild.get_member(int(user["user_id"])):
-                    await user.remove_roles(blacklist_role)
-                    await conn.execute(
-                        "UPDATE blacklist_ga SET has_role = FALSE WHERE user_id = $1",
-                        user.id,
-                    )
-                    logger.info(
-                        "Removed role  from user (rm role)",
-                        extra={"role": blacklist_role.id, "user": user.id},
-                    )
+            # bounded concurrency for role removal, DB updates sequential (single conn)
+            members_to_remove: list[discord.Member] = []
+            for row in user_want_remove:
+                m = guild.get_member(int(row["user_id"]))
+                if m:
+                    members_to_remove.append(m)
+            sem = asyncio.Semaphore(5)
+            async def _rm(m: discord.Member) -> None:
+                async with sem:
+                    try:
+                        await m.remove_roles(blacklist_role)
+                    except Exception:
+                        logger.exception("Failed to remove GA role from user", extra={"user_id": m.id})
+            if members_to_remove:
+                await asyncio.gather(*(_rm(m) for m in members_to_remove))
+            for m in members_to_remove:
+                await conn.execute(
+                    "UPDATE blacklist_ga SET has_role = FALSE WHERE user_id = $1",
+                    m.id,
+                )
+                logger.info(
+                    "Removed role  from user (rm role)",
+                    extra={"role": blacklist_role.id, "user": m.id},
+                )
 
             user_want_delete = await conn.fetch(
-                "SELECT user_id FROM blacklist_ga WHERE has_role = FALSE AND status_user = 0 OR cooldown_time <= $1",
+                "SELECT user_id FROM blacklist_ga WHERE has_role = FALSE AND (status_user = 0 OR cooldown_time <= $1)",
                 now,
             )
             for user in user_want_delete:
