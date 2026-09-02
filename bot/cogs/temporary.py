@@ -8,6 +8,7 @@ from discord.ext import commands, tasks
 from bot.bot import WarnetBot
 from bot.cogs.ext.temprole.time import parse_time_string
 from bot.config import BLACKLIST_GA_ROLE_ID, GUILD_ID
+from bot.helper import ensure_task_started, handle_cog_error
 
 logger = logging.getLogger(__name__)
 
@@ -20,16 +21,10 @@ class Temporary(commands.GroupCog, group_name="warnet-temp"):
 
     @commands.Cog.listener()
     async def on_connect(self) -> None:
-        if not self._check_temprole.is_running():
-            self._check_temprole.start()
+        ensure_task_started(self._check_temprole)
 
     async def cog_command_error(self, ctx: commands.Context, error: Exception) -> None:
-        logger.exception("An unexpected error occurred in Admin cog", exc_info=error)
-        await ctx.reply(
-            "An unexpected error occurred. Please try again later.",
-            delete_after=5,
-            ephemeral=True,
-        )
+        await handle_cog_error(ctx, error, "Temporary")
 
     @app_commands.command(name="add", description="Adds a temprole to user")
     @app_commands.describe(

@@ -17,6 +17,8 @@ from bot.config import MESSAGE_LOG_CHANNEL_ID
 from bot.helper import (
     app_guard,
     ctx_guard,
+    ensure_task_started,
+    handle_cog_error,
     value_is_none,
 )
 
@@ -30,17 +32,11 @@ class Admin(commands.GroupCog, group_name="admin"):
         self.db_pool = self.bot.get_db_pool()
 
     async def cog_command_error(self, ctx: commands.Context, error: Exception) -> None:
-        logger.exception("An unexpected error occurred in Admin cog", exc_info=error)
-        await ctx.reply(
-            "An unexpected error occurred. Please try again later.",
-            delete_after=5,
-            ephemeral=True,
-        )
+        await handle_cog_error(ctx, error, "Admin")
 
     @commands.Cog.listener()
     async def on_connect(self) -> None:
-        if not self._message_schedule_task.is_running():
-            self._message_schedule_task.start()
+        ensure_task_started(self._message_schedule_task)
 
     @commands.command()
     @commands.is_owner()

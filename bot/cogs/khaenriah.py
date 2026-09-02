@@ -7,7 +7,7 @@ from discord.ext import commands
 from bot import config
 from bot.bot import WarnetBot
 from bot.cogs.views.khaenriah import BuronanPagination
-from bot.helper import ctx_guard
+from bot.helper import ctx_guard, handle_cog_error
 
 logger = logging.getLogger(__name__)
 
@@ -23,12 +23,9 @@ class Khaenriah(commands.Cog):
         self.db_pool = self.bot.get_db_pool()
 
     async def cog_command_error(self, ctx: commands.Context, error: Exception) -> None:
-        logger.exception("An unexpected error occurred in Admin cog", exc_info=error)
-        await ctx.reply(
-            "An unexpected error occurred. Please try again later.",
-            delete_after=5,
-            ephemeral=True,
-        )
+        await handle_cog_error(ctx, error, "Khaenriah")
+
+
 
     @commands.group(aliases=["buron"])
     async def buronan(self, ctx: commands.Context) -> None:

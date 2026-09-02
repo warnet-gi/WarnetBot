@@ -10,7 +10,7 @@ from discord import Interaction, app_commands
 from discord.ext import commands, tasks
 
 from bot.bot import WarnetBot
-from bot.helper import value_is_none
+from bot.helper import ensure_task_started, handle_cog_error, value_is_none
 
 logger = logging.getLogger(__name__)
 
@@ -20,12 +20,7 @@ class General(commands.Cog):
         self.bot = bot
 
     async def cog_command_error(self, ctx: commands.Context, error: Exception) -> None:
-        logger.exception("An unexpected error occurred in Admin cog", exc_info=error)
-        await ctx.reply(
-            "An unexpected error occurred. Please try again later.",
-            delete_after=5,
-            ephemeral=True,
-        )
+        await handle_cog_error(ctx, error, "General")
 
     @commands.command(name="ping")
     async def ping(self, ctx: commands.Context) -> None:
@@ -276,8 +271,7 @@ class General(commands.Cog):
 
     @commands.Cog.listener()
     async def on_connect(self) -> None:
-        if not self._change_presence.is_running():
-            self._change_presence.start()
+        ensure_task_started(self._change_presence)
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx: commands.Context, error) -> None:  # noqa: ANN001 'error' does not have a type annotation

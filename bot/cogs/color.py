@@ -19,7 +19,12 @@ from bot.cogs.ext.color.utils import (
 )
 from bot.cogs.views.color import AcceptIconAttachment
 from bot.config import CustomRoleConfig
-from bot.helper import app_guard, ctx_guard, no_permission_alert, value_is_none
+from bot.helper import (
+    app_guard,
+    ctx_guard,
+    no_permission_alert,
+    value_is_none,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +45,7 @@ class Color(commands.GroupCog, group_name="warnet-color"):
     )
 
     async def cog_command_error(self, ctx: commands.Context, error: Exception) -> None:
-        logger.exception("An unexpected error occurred in Admin cog", exc_info=error)
+        logger.exception("An unexpected error occurred in Color cog", exc_info=error)
         await ctx.reply(
             "An unexpected error occurred. Please try again later.",
             delete_after=5,

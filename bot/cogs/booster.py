@@ -7,7 +7,7 @@ from discord.ext import commands, tasks
 
 from bot.bot import WarnetBot
 from bot.cogs.ext.booster.exp import give_monthly_booster_exp
-from bot.helper import value_is_none
+from bot.helper import ensure_task_started, handle_cog_error, value_is_none
 
 logger = logging.getLogger(__name__)
 
@@ -18,16 +18,10 @@ class Booster(commands.Cog):
 
     @commands.Cog.listener()
     async def on_connect(self) -> None:
-        if not self._monthly_booster.is_running():
-            self._monthly_booster.start()
+        ensure_task_started(self._monthly_booster)
 
     async def cog_command_error(self, ctx: commands.Context, error: Exception) -> None:
-        logger.exception("An unexpected error occurred in Admin cog", exc_info=error)
-        await ctx.reply(
-            "An unexpected error occurred. Please try again later.",
-            delete_after=5,
-            ephemeral=True,
-        )
+        await handle_cog_error(ctx, error, "Booster")
 
     @commands.command(name="boostermonthly")
     @commands.is_owner()
