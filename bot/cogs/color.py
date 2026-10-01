@@ -10,7 +10,7 @@ from discord.ext import commands
 
 from bot import config
 from bot.bot import WarnetBot
-from bot.cogs.ext.color.utils import generate_image_color_list
+from bot.cogs.ext.color.utils import RoleRow, render_role_list
 from bot.cogs.views.color import (
     CustomRoleFormView,
     IconApprovalView,
@@ -803,11 +803,21 @@ class CustomRole(commands.GroupCog, group_name="warnet-color"):
             version = self._list_versions.get(guild.id, 0)
             async with self.db_pool.acquire() as conn:
                 rows = await conn.fetch(f"{_NUMBERED_ROLES_SQL} ORDER BY n;", guild.id)
-            roles = [(row["name"], _hex_to_rgb(row["primary_color"])) for row in rows]
+            roles = [
+                RoleRow(
+                    number=row["n"],
+                    name=row["name"],
+                    primary=_hex_to_rgb(row["primary_color"]),
+                    secondary=_hex_to_rgb(row["secondary_color"])
+                    if row["style"] == "gradient" and row["secondary_color"]
+                    else None,
+                )
+                for row in rows
+            ]
             try:
                 # Pillow drawing: keep off the event loop.
                 image = await asyncio.to_thread(
-                    lambda: generate_image_color_list(roles).getvalue()
+                    lambda: render_role_list(roles).getvalue()
                 )
             except Exception:
                 logger.exception(
