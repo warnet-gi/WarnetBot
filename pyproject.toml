@@ -55,6 +55,11 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["PLR2004", "S101"]
+# Runs a looser Ruff config
+"bot/cogs/color.py" = ["SIM102", "SIM105", "TRY300", "S608"]
+"bot/cogs/views/color.py" = ["SIM105", "PLR0912"]
+"bot/cogs/views/confirm.py" = ["SIM105", "ARG002"]
+"bot/cogs/views/sticky.py" = ["SIM105", "N803", "N806"]
 
 [tool.pyright]
 include = ["bot"]

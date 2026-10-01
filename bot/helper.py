@@ -1,6 +1,7 @@
 import logging
 from collections.abc import Callable
 
+import discord
 from discord import Interaction, app_commands
 from discord.ext import commands, tasks
 
@@ -109,3 +110,16 @@ async def handle_cog_error(
 def ensure_task_started(task: tasks.Loop) -> None:
     if not task.is_running():
         task.start()
+
+
+async def reject_non_author(
+    interaction: Interaction, author: discord.User | discord.Member
+) -> bool:
+    if interaction.user != author:
+        embed = discord.Embed(
+            description="You cannot control this because you did not execute it.",
+            color=discord.Color.red(),
+        )
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+        return True
+    return False

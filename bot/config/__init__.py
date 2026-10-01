@@ -52,6 +52,14 @@ class CustomRoleConfig:
     UPPER_BOUNDARY_ROLE_ID = 975844681634185246
     BOTTOM_BOUNDARY_ROLE_ID = 975845512370606201
     CUSTOM_ROLE_LIMIT = 75
+    # new custom roles are placed directly under this role
+    ANCHOR_ROLE_ID = UPPER_BOUNDARY_ROLE_ID
+    ICON_EXPIRY_SECONDS = 15 * 60
+    # may approve role icon requests (admin, mod, staff), plus anyone with Manage Roles
+    STAFF_ROLE_IDS = (
+        *(int(role_id) for role_id in ADMINISTRATOR_ROLE_ID.values()),
+        *(int(role_id) for role_id in NON_ADMINISTRATOR_ROLE_ID.values()),
+    )
 
     FONT_NOTO = "bot/assets/font/NotoSans-Black.ttf"
     FONT_NOTO_JP = "bot/assets/font/NotoSansJP-Bold.ttf"

@@ -41,14 +41,30 @@ CREATE INDEX IF NOT EXISTS buronan_khaenriah_discord_id_idx ON buronan_khaenriah
 
 ------- CUSTOM ROLE FEATURE -------
 -----------------------------------
-CREATE TABLE custom_role(
-	role_id BIGINT NOT NULL,
-	owner_discord_id BIGINT,
+-- Existing databases: run bot/data/migrations/001_custom_role_v2.sql, then `war!colorbackfill`.
+-- custom_roles = ownership + last-known look; custom_role_members = who currently wears a role.
+CREATE TABLE IF NOT EXISTS custom_roles (
+	role_id BIGINT PRIMARY KEY,       -- Discord role ID
+	guild_id BIGINT NOT NULL,
+	owner_id BIGINT,                  -- Discord user ID; NULL = orphaned legacy role
+	name TEXT NOT NULL,
 	created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
-	PRIMARY KEY(role_id),
-	UNIQUE(role_id)
+	style TEXT NOT NULL DEFAULT 'single',
+	primary_color TEXT,
+	secondary_color TEXT
 );
-CREATE INDEX IF NOT EXISTS custom_role_role_id_idx ON custom_role (role_id);
+-- one owned role per user per guild
+CREATE UNIQUE INDEX IF NOT EXISTS custom_roles_guild_owner_uidx ON custom_roles (guild_id, owner_id);
+-- backs the numbered list: ROW_NUMBER() OVER (ORDER BY created_at, role_id) per guild
+CREATE INDEX IF NOT EXISTS custom_roles_guild_created_idx ON custom_roles (guild_id, created_at, role_id);
+
+CREATE TABLE IF NOT EXISTS custom_role_members (
+	role_id BIGINT REFERENCES custom_roles (role_id) ON DELETE CASCADE,
+	user_id BIGINT NOT NULL,
+	joined_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+	PRIMARY KEY (role_id, user_id)
+);
+CREATE INDEX IF NOT EXISTS custom_role_members_user_id_idx ON custom_role_members (user_id);
 
 ----- TEMPORARY ROLE FEATURE ------
 -----------------------------------

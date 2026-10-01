@@ -1,93 +1,16 @@
 import io
-import logging
 
-import discord
-from discord import Interaction, Member, Role, User
-from discord.ext import commands
 from imagetext_py import Canvas, Color, FontDB, Paint, draw_text
 
 from bot.config import CustomRoleConfig
 
-logger = logging.getLogger(__name__)
 
-
-async def check_role_by_name_or_number(
-    self: commands.Cog,
-    interaction: Interaction,
-    name: str | None,
-    number: int | None,
-) -> Role | None:
-    if not interaction.guild:
-        return None
-
-    role_target = None
-    if name:
-        role_target = discord.utils.find(
-            lambda r: r.name == name, interaction.guild.roles
-        )
-    elif number:
-        try:
-            role_target_id = self.custom_role_data_list[number - 1]
-            role_target = interaction.guild.get_role(role_target_id)
-        except IndexError:
-            role_target = None
-
-    if not role_target:
-        await interaction.followup.send(
-            "❌ Failed to find the color!\nPlease use `/warnet-color list` to see all the available colors."
-        )
-        return None
-
-    return role_target
-
-
-async def move_role_to_under_boundary(interaction: Interaction, role: Role) -> None:
-    if not interaction.guild:
-        return None
-
-    upper_boundary = interaction.guild.get_role(CustomRoleConfig.UPPER_BOUNDARY_ROLE_ID)
-    if not upper_boundary:
-        logger.error(
-            "Upper boundary role not found",
-            extra={"role_id": CustomRoleConfig.UPPER_BOUNDARY_ROLE_ID},
-        )
-        return None
-
-    try:
-        await role.move(above=upper_boundary, reason="Update custom role position")
-    except discord.Forbidden:
-        logger.exception(
-            "Failed to move role to the bottom due to insufficient permissions.",
-            extra={"role_id": role.id},
-        )
-        return await error_move_role(interaction, role)
-    except discord.HTTPException:
-        logger.exception(
-            "Failed to move role to the bottom due to HTTPException",
-            extra={"role_id": role.id},
-        )
-        return await error_move_role(interaction, role)
-    except Exception:
-        logger.exception(
-            "An unexpected error occurred while moving role to the bottom",
-            extra={"role_id": role.id},
-        )
-        return await error_move_role(interaction, role)
-    return None
-
-
-def get_current_custom_role_on_user(
-    self: commands.Cog, guild: discord.Guild, member: User | Member
-) -> Role | None:
-    member_role_id_list = [role.id for role in member.roles]
-    res = set(member_role_id_list) & set(self.custom_role_data_list)
-
-    return guild.get_role(next(iter(res))) if res else None
-
-
-def generate_image_color_list(role_list: list[discord.Role]) -> io.BytesIO:
+def generate_image_color_list(
+    roles: list[tuple[str, tuple[int, int, int]]],
+) -> io.BytesIO:
     """
     Generate an image to show the available list of custom roles.
+    `roles` is (name, rgb) in list-number order: row N is custom role number N.
     There are certain rows per column. Each column has 300px wide.
     """
 
@@ -96,7 +19,7 @@ def generate_image_color_list(role_list: list[discord.Role]) -> io.BytesIO:
     FontDB.LoadFromPath("Noto-cn", CustomRoleConfig.FONT_NOTO_CN)
     font = FontDB.Query("Noto Noto-jp Noto-cn")
 
-    total_data = len(role_list)
+    total_data = len(roles)
     column_px = 300
     if total_data <= 15 * 1:
         boundary = 5  # max item per column
@@ -117,7 +40,7 @@ def generate_image_color_list(role_list: list[discord.Role]) -> io.BytesIO:
     background_color = Color(
         0, 0, 0, 0
     )  # RGBA format with alpha set to 0 for transparency
-    column_need = total_data // boundary + (1 if total_data % boundary else 0)
+    column_need = max(total_data // boundary + (1 if total_data % boundary else 0), 1)
     width, height = column_px * column_need, row_px
     canvas = Canvas(width, height, background_color)
 
@@ -126,12 +49,12 @@ def generate_image_color_list(role_list: list[discord.Role]) -> io.BytesIO:
     for col in range(column_need):
         x_now = (col * column_px) + 10
         y_now = 1
-        for role in role_list[col * boundary : (col + 1) * boundary]:
+        for role_name, rgb in roles[col * boundary : (col + 1) * boundary]:
             name = (
-                role.name[:15] + "..." if len(role.name) > max_role_len else role.name
+                role_name[:15] + "..." if len(role_name) > max_role_len else role_name
             )
             text = f"{number}. {name}"
-            fill_color = Paint.Color(Color(*role.color.to_rgb()))
+            fill_color = Paint.Color(Color(*rgb))
 
             draw_text(
                 canvas=canvas,
@@ -152,18 +75,3 @@ def generate_image_color_list(role_list: list[discord.Role]) -> io.BytesIO:
     image.save(image_bytes, format="PNG")
 
     return image_bytes
-
-
-def hex_to_discord_color(hex_color: str) -> discord.Color:
-    """
-    Convert a hex color string to a discord.Color object.
-    """
-    hex_color = "#" + hex_color if not hex_color.startswith("#") else hex_color
-    return discord.Color.from_str(hex_color)
-
-
-async def error_move_role(interaction: Interaction, role: Role) -> None:
-    return await interaction.followup.send(
-        f"❌ Failed to move the role `{role.name}`. Please contact the server administrator.",
-        ephemeral=True,
-    )
